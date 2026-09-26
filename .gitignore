@@ -18,6 +18,14 @@ asset-backups/
 brand-backups/
 *.dump
 
+# Llaves privadas y certificados (p. ej. la llave SSH del servidor): nunca al repositorio
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+
 # Logs y capturas temporales de QA
 *.log
 frontend/shot.png
