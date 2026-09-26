@@ -16,7 +16,7 @@ services:
 
   migrate:
     build: ./backend
-    env_file: ${VAKEVA_ENV_FILE:-.env.production}
+    env_file: ${PARTLY_ENV_FILE:-.env.production}
     depends_on:
       database:
         condition: service_healthy
@@ -26,7 +26,7 @@ services:
   backend:
     build: ./backend
     restart: unless-stopped
-    env_file: ${VAKEVA_ENV_FILE:-.env.production}
+    env_file: ${PARTLY_ENV_FILE:-.env.production}
     depends_on:
       database:
         condition: service_healthy

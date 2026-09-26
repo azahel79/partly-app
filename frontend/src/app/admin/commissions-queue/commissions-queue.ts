@@ -25,7 +25,7 @@ const STATUS: Record<CommissionChargeStatus, { label: string; tone: string }> = 
   PAID: { label: 'Pagada', tone: 'bg-emerald-100 text-emerald-800' },
 };
 
-/** Cola del admin: revisa los comprobantes de comisión de los vendedores y configura la cuenta de Vakeva. */
+/** Cola del admin: revisa los comprobantes de comisión de los vendedores y configura la cuenta de Partly. */
 @Component({
   selector: 'app-commissions-queue',
   styleUrl: './commissions-queue.css',
@@ -46,7 +46,7 @@ export class CommissionsQueue implements OnInit {
   protected readonly remindingId = signal<string | null>(null);
   protected readonly notice = signal<string | null>(null);
 
-  // cuenta bancaria de Vakeva
+  // cuenta bancaria de Partly
   protected readonly bank = signal<PlatformBankAccount | null | undefined>(undefined);
   protected readonly editingBank = signal(false);
   protected readonly savingBank = signal(false);

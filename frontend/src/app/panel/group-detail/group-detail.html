@@ -157,7 +157,7 @@
             <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-crema-border/60">
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-crema-inset text-on-surface-variant text-[11px] font-semibold">
                 <span class="material-symbols-outlined text-sm">percent</span>
-                {{ g.approvalStatus === 'APPROVED' ? 'Comisión de Vakeva' : 'Comisión propuesta por Vakeva' }}: {{ g.commissionPercentage }}%
+                {{ g.approvalStatus === 'APPROVED' ? 'Comisión de Partly' : 'Comisión propuesta por Partly' }}: {{ g.commissionPercentage }}%
               </span>
               <span class="text-[11px] text-on-surface-variant font-medium">
                 Recibes ~${{ ((+g.pricePerSlot) * (1 - (+g.commissionPercentage) / 100)).toFixed(2) }} por cupo después de comisión.
@@ -272,31 +272,31 @@
           @if (g.credentialReviewStatus === 'SUBMITTED') {
             <div class="p-5 rounded-[28px] bg-blue-50 border border-blue-200 flex items-start gap-3">
               <span class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-lg">fact_check</span></span>
-              <div><p class="text-sm font-extrabold text-ink">Credenciales enviadas al administrador</p><p class="text-xs text-on-surface-variant font-medium mt-0.5">Vakeva las está revisando. El grupo seguirá oculto hasta que se confirme que el acceso funciona.</p></div>
+              <div><p class="text-sm font-extrabold text-ink">Credenciales enviadas al administrador</p><p class="text-xs text-on-surface-variant font-medium mt-0.5">Partly las está revisando. El grupo seguirá oculto hasta que se confirme que el acceso funciona.</p></div>
             </div>
           } @else {
             <div class="p-5 rounded-[28px] bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center gap-3">
               <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-lg">key</span></span>
               <div class="flex-1">
-                <p class="text-sm font-extrabold text-ink">{{ g.credentialReviewStatus === 'REQUESTED' ? 'Vakeva solicitó las credenciales' : 'Este grupo está en revisión de Vakeva' }}</p>
+                <p class="text-sm font-extrabold text-ink">{{ g.credentialReviewStatus === 'REQUESTED' ? 'Partly solicitó las credenciales' : 'Este grupo está en revisión de Partly' }}</p>
                 <p class="text-xs text-on-surface-variant font-medium mt-0.5">
                   @if (g.credentialReviewStatus === 'REQUESTED') {
-                    Si la comisión de Vakeva te conviene, envía el correo y la contraseña de {{ g.plan.platform.name }} para que comprueben el acceso y aprueben tu grupo.
+                    Si la comisión de Partly te conviene, envía el correo y la contraseña de {{ g.plan.platform.name }} para que comprueben el acceso y aprueben tu grupo.
                   } @else if (g.commissionPercentage) {
-                    Vakeva definió tu comisión ({{ g.commissionPercentage }}%). Revísala y, cuando el equipo te pida las credenciales, podrás enviarlas desde aquí.
+                    Partly definió tu comisión ({{ g.commissionPercentage }}%). Revísala y, cuando el equipo te pida las credenciales, podrás enviarlas desde aquí.
                   } @else {
-                    Primero Vakeva te dirá cuánta comisión se lleva; si te conviene, después te pedirá las credenciales de {{ g.plan.platform.name }}. Te avisamos por aquí.
+                    Primero Partly te dirá cuánta comisión se lleva; si te conviene, después te pedirá las credenciales de {{ g.plan.platform.name }}. Te avisamos por aquí.
                   }
                 </p>
               </div>
               <button
                 type="button"
                 [disabled]="g.credentialReviewStatus !== 'REQUESTED'"
-                [attr.title]="g.credentialReviewStatus !== 'REQUESTED' ? 'Se habilita cuando Vakeva te pida las credenciales' : null"
+                [attr.title]="g.credentialReviewStatus !== 'REQUESTED' ? 'Se habilita cuando Partly te pida las credenciales' : null"
                 (click)="scrollToCredentials(); openCredentialForm()"
                 class="active:scale-[0.98] transition-colors hover:bg-[#047857] shrink-0 py-2.5 px-5 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:bg-pink disabled:active:scale-100"
               >
-                {{ g.credentialReviewStatus === 'REQUESTED' ? 'Enviar credenciales al administrador' : 'Esperando la solicitud de Vakeva' }}
+                {{ g.credentialReviewStatus === 'REQUESTED' ? 'Enviar credenciales al administrador' : 'Esperando la solicitud de Partly' }}
               </button>
             </div>
           }
@@ -565,7 +565,7 @@
                     <p class="text-xs font-bold text-ink">Credenciales pendientes de envío</p>
                     <p class="text-[11px] text-on-surface-variant">
                       @if (g.approvalStatus === 'PENDING' && g.credentialReviewStatus !== 'REQUESTED') {
-                        Podrás enviarlas cuando Vakeva las solicite, después de que conozcas tu comisión.
+                        Podrás enviarlas cuando Partly las solicite, después de que conozcas tu comisión.
                       } @else {
                         Envíalas al administrador para que pueda comprobarlas y aprobar el grupo.
                       }
@@ -659,7 +659,7 @@
           </span>
           <div>
             <p class="text-xs font-bold text-ink">Tu seguridad primero</p>
-            <p class="text-[11px] text-on-surface-variant leading-relaxed">Todas las suscripciones están protegidas con Vakeva Shield.</p>
+            <p class="text-[11px] text-on-surface-variant leading-relaxed">Todas las suscripciones están protegidas con Partly Shield.</p>
           </div>
         </div>
 
@@ -707,7 +707,7 @@
               </span>
               <div>
                 <p class="text-xs font-bold text-ink">Vendedor confiable</p>
-                <p class="text-[10px] text-on-surface-variant">Cuenta verificada por Vakeva</p>
+                <p class="text-[10px] text-on-surface-variant">Cuenta verificada por Partly</p>
               </div>
             </div>
           }
@@ -1237,7 +1237,7 @@
       </div>
     </ng-template>
 
-    <!-- Banner Vakeva Shield -->
+    <!-- Banner Partly Shield -->
     <div class="anim-in flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 shrink-0">
@@ -1245,10 +1245,10 @@
         </div>
         <div>
           <p class="text-sm font-bold text-ink flex items-center gap-2">
-            Protección Vakeva Shield activa
+            Protección Partly Shield activa
             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">100% seguro</span>
           </p>
-          <p class="text-xs text-on-surface-variant">Si algo no funciona como se espera, te ayudamos a resolverlo. Tu compra está protegida con Vakeva Shield.</p>
+          <p class="text-xs text-on-surface-variant">Si algo no funciona como se espera, te ayudamos a resolverlo. Tu compra está protegida con Partly Shield.</p>
         </div>
       </div>
       <a routerLink="/seguridad" class="active:scale-[0.98] hover:bg-slate-200 shrink-0 inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-slate-100 text-ink text-xs font-bold transition-all">

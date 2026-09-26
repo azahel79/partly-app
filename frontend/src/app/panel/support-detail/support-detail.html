@@ -23,7 +23,7 @@
       @if (inc.status === 'ESCALATED') {
         <div class="mt-4 p-3.5 rounded-xl bg-red-50 text-red-700 text-xs font-semibold flex items-center gap-2">
           <span class="material-symbols-outlined text-base">shield_person</span>
-          Escalada a Vakeva — nuestro equipo la está revisando y solo ellos pueden cerrarla.
+          Escalada a Partly — nuestro equipo la está revisando y solo ellos pueden cerrarla.
         </div>
       } @else if (inc.status !== 'RESOLVED') {
         <div class="mt-4 flex items-center gap-2 flex-wrap">
@@ -31,7 +31,7 @@
             Marcar como resuelta
           </button>
           <button type="button" [disabled]="updatingStatus()" (click)="setStatus('ESCALATED')" class="active:scale-[0.98] hover:bg-slate-200 px-3.5 py-2 rounded-lg bg-slate-100 text-red-600 text-xs font-bold transition-all disabled:opacity-50">
-            Escalar a Vakeva
+            Escalar a Partly
           </button>
         </div>
       } @else {

@@ -5,10 +5,10 @@ import { API_BASE_URL } from './api-config';
 import { AuthTokens, AuthUser, LoginResponse } from './auth.models';
 import { toErrorMessage } from './http-error.util';
 
-const ACCESS_TOKEN_KEY = 'vakeva.accessToken';
-const REFRESH_TOKEN_KEY = 'vakeva.refreshToken';
-const USER_KEY = 'vakeva.user';
-export const OAUTH_RETURN_URL_KEY = 'vakeva.oauth.returnUrl';
+const ACCESS_TOKEN_KEY = 'partly.accessToken';
+const REFRESH_TOKEN_KEY = 'partly.refreshToken';
+const USER_KEY = 'partly.user';
+export const OAUTH_RETURN_URL_KEY = 'partly.oauth.returnUrl';
 
 function readStoredUser(): AuthUser | null {
   try {

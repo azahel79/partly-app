@@ -1,6 +1,6 @@
-# Vakeva API
+# Partly API
 
-API de Vakeva construida con NestJS, Prisma y PostgreSQL. Centraliza identidad, catálogo, grupos, pagos por transferencia, credenciales cifradas, comisiones, proveedores, notificaciones, correo y soporte.
+API de Partly construida con NestJS, Prisma y PostgreSQL. Centraliza identidad, catálogo, grupos, pagos por transferencia, credenciales cifradas, comisiones, proveedores, notificaciones, correo y soporte.
 
 ## Inicio rápido
 
@@ -36,7 +36,7 @@ src/
     ├── plans/            variantes, cupos, periodos y comisión
     ├── groups/           publicaciones, membresías y credenciales
     ├── payments/         comprobantes, prorrateo y renovaciones
-    ├── commissions/      ganancias y cobros de Vakeva
+    ├── commissions/      ganancias y cobros de Partly
     ├── wallet/           libro histórico de saldo
     ├── payouts/          retiros heredados del primer flujo financiero
     ├── providers/        proveedores y mercado de mayoreo
@@ -75,7 +75,7 @@ Todas las rutas usan `/api`. `🔒` requiere JWT y `ADMIN` requiere además rol 
 | `/admin/payments` | ADMIN | monitor y recordatorios manuales de pago |
 | `/earnings` | 🔒 | resumen e historial de ganancias del vendedor |
 | `/commissions` | 🔒 | deuda, comprobante y estado de comisiones |
-| `/admin/commissions` | ADMIN | revisión y cuenta bancaria de Vakeva |
+| `/admin/commissions` | ADMIN | revisión y cuenta bancaria de Partly |
 | `/provider-profiles`, `/provider-listings` | 🔒/ADMIN | proveedores e inventario de mayoreo |
 | `/provider-orders` | 🔒 | compra, comprobante, entrega, renovación y reposición |
 | `/wholesale-access` | 🔒/ADMIN | autorización para comprar al mayoreo |
@@ -113,7 +113,7 @@ No hay cargo automático a tarjeta. `PaymentMethod` y `Wallet` permanecen por co
 
 ### Ganancias y comisión
 
-Cada pago validado crea un `EarningEntry` con bruto, porcentaje, comisión y neto. El dinero llega directamente al vendedor; Vakeva agrupa comisiones exigibles en `CommissionCharge`. El vendedor transfiere la comisión, carga comprobante y administración lo valida.
+Cada pago validado crea un `EarningEntry` con bruto, porcentaje, comisión y neto. El dinero llega directamente al vendedor; Partly agrupa comisiones exigibles en `CommissionCharge`. El vendedor transfiere la comisión, carga comprobante y administración lo valida.
 
 Una comisión vencida puede restringir operaciones del vendedor hasta su regularización.
 
@@ -125,7 +125,7 @@ La llave `CREDENTIALS_ENCRYPTION_KEY` debe tener 64 caracteres hexadecimales y v
 
 ## Proveedores y mayoreo
 
-Un usuario puede solicitar un perfil de proveedor. Los proveedores aprobados publican `ProviderListing` asociados a planes existentes. Un comprador con `WholesaleAccess` autorizado crea una orden, transfiere a Vakeva, sube comprobante y recibe credenciales cifradas tras la entrega.
+Un usuario puede solicitar un perfil de proveedor. Los proveedores aprobados publican `ProviderListing` asociados a planes existentes. Un comprador con `WholesaleAccess` autorizado crea una orden, transfiere a Partly, sube comprobante y recibe credenciales cifradas tras la entrega.
 
 Las órdenes soportan vencimiento, renovación, reposición, cancelación, reembolso manual y creación de un grupo resultante.
 

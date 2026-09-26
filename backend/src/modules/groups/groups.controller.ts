@@ -263,7 +263,7 @@ export class GroupsController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Números para decidir si iniciar el grupo (solo el vendedor)',
-    description: 'Cupos reservados vs. necesarios (75%), ingresos, comisión de Vakeva y ganancia contra lo que costó la cuenta.',
+    description: 'Cupos reservados vs. necesarios (75%), ingresos, comisión de Partly y ganancia contra lo que costó la cuenta.',
   })
   async getStartPreview(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.groupsService.getStartPreview(id, user);

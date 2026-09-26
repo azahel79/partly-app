@@ -8,7 +8,7 @@ export function readMailConfig(config: ConfigService): MailConfig {
   const raw = String(config.get<string>('mail.provider') ?? 'log').toLowerCase() as MailProviderName;
   return {
     provider: PROVIDERS.includes(raw) ? raw : 'log',
-    fromName: config.get<string>('mail.fromName') ?? 'Vakeva',
+    fromName: config.get<string>('mail.fromName') ?? 'Partly',
     fromAddress: config.get<string>('mail.fromAddress'),
     replyTo: config.get<string>('mail.replyTo'),
     resendApiKey: config.get<string>('mail.resendApiKey'),
@@ -24,9 +24,9 @@ export function readMailConfig(config: ConfigService): MailConfig {
   };
 }
 
-/** Dirección que aparece como remitente: "Vakeva <no-reply@dominio>". */
+/** Dirección que aparece como remitente: "Partly <no-reply@dominio>". */
 export function formatFrom(config: MailConfig): string {
-  const address = config.fromAddress ?? 'no-reply@vakeva.local';
+  const address = config.fromAddress ?? 'no-reply@partly.local';
   return `${config.fromName} <${address}>`;
 }
 

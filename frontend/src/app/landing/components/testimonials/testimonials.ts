@@ -37,7 +37,7 @@ export class Testimonials {
       avatarBg: 'bg-ink',
       avatarColor: 'text-crema',
       quote:
-        'Antes me daba pena pedirle la contraseña a mis amigos y que luego cambiaran la cuenta. Con Vakeva tengo mi perfil con PIN propio y sé que el débito es exacto.',
+        'Antes me daba pena pedirle la contraseña a mis amigos y que luego cambiaran la cuenta. Con Partly tengo mi perfil con PIN propio y sé que el débito es exacto.',
       statIcon: 'trending_down',
       statIconColor: 'text-pink',
       statText: 'Ahorro $180/mes compartiendo Netflix y Spotify',
@@ -49,11 +49,11 @@ export class Testimonials {
     {
       initials: 'MR',
       name: 'Mauricio Robledo',
-      handle: '@miembrovakeva',
+      handle: '@miembropartly',
       avatarBg: 'bg-pink',
       avatarColor: 'text-white',
       quote:
-        'Tenía 3 cupos libres en mi plan familiar de YouTube y Disney. Ahora Vakeva les cobra en automático y me deposita cada semana en mi CLABE sin tener que recordar nada.',
+        'Tenía 3 cupos libres en mi plan familiar de YouTube y Disney. Ahora Partly les cobra en automático y me deposita cada semana en mi CLABE sin tener que recordar nada.',
       statIcon: 'monetization_on',
       statIconColor: 'text-emerald-600',
       statText: 'Gano $620/mes cubriendo el costo total de mi cuenta familiar',

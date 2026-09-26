@@ -78,7 +78,7 @@ export class SupportDetail implements OnInit {
   }
 
   protected statusLabel(status: IncidentStatus): string {
-    return { OPEN: 'Abierta', IN_REVIEW: 'En revisión', RESOLVED: 'Resuelta', ESCALATED: 'Escalada a Vakeva' }[status];
+    return { OPEN: 'Abierta', IN_REVIEW: 'En revisión', RESOLVED: 'Resuelta', ESCALATED: 'Escalada a Partly' }[status];
   }
 
   protected statusClass(status: IncidentStatus): string {

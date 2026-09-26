@@ -142,14 +142,14 @@ spacing:
 
 This design system blends the structural clarity, dynamic diagonal gradient backdrops, and technical precision of modern fintech leaders with soft, modern neumorphic extrusions. Designed for sophisticated digital platforms, workflow automation tools, and modern web applications, the interface creates a tangible sense of touch and physical tactility while maintaining uncompromising legibility and digital ergonomics.
 
-The visual direction centers on soft-molded tactile surfaces resting upon a luminous warm cream canvas (`#F6F4EF`), paired with intense brand punctuations: Vakeva Ink (`#14142B`) and electric Vakeva Pink (`#FF3168`). By combining Stripe-inspired geometric precision, clear hierarchical column layouts, and soft, dual-light pneumatic extrusions, the aesthetic feels approachable yet industrial, reliable, and premium.
+The visual direction centers on soft-molded tactile surfaces resting upon a luminous warm cream canvas (`#F6F4EF`), paired with intense brand punctuations: Partly Ink (`#14142B`) and electric Partly Pink (`#FF3168`). By combining Stripe-inspired geometric precision, clear hierarchical column layouts, and soft, dual-light pneumatic extrusions, the aesthetic feels approachable yet industrial, reliable, and premium.
 
 ## Colors
 
 The palette leverages a specialized four-point color role architecture calibrated for pneumatic depth:
 
-- **Primary (`#14142B` - Vakeva Ink):** Used for primary typography, dominant structural indicators, high-contrast actions, and deep shadow casts.
-- **Secondary (`#FF3168` - Vakeva Pink):** High-energy accent reserved for primary action triggers, status highlights, conversion metrics, and active interactive states.
+- **Primary (`#14142B` - Partly Ink):** Used for primary typography, dominant structural indicators, high-contrast actions, and deep shadow casts.
+- **Secondary (`#FF3168` - Partly Pink):** High-energy accent reserved for primary action triggers, status highlights, conversion metrics, and active interactive states.
 - **Tertiary (`#581C87` - Deep Violet / Magenta):** Bridges the sharp ink tone and electric pink in atmospheric background gradients, mesh glows, and intermediate active fills.
 - **Neutral (`#F6F4EF` - Warm Cream Base):** The universal physical surface plane. All extruded surfaces, cards, and canvas backgrounds emerge from this precise hex code to ensure neumorphic light diffusion retains warmth.
 
@@ -157,15 +157,15 @@ The palette leverages a specialized four-point color role architecture calibrate
 - **Canvas Base:** `#F6F4EF`
 - **Surface Extrusion:** `#F6F4EF` (identical to canvas base to achieve true monolithic extrusion)
 - **High-Light Source:** Pure white `#FFFFFF` at 70%–90% opacity (angled from top-left: 315° / -45°).
-- **Deep Shadow Sink:** Vakeva Ink (`#14142B`) at 8%–14% opacity (angled bottom-right: 135°).
-- **Atmospheric Brand Gradient:** Linear 135deg starting with electric Vakeva Pink (`#FF3168`), flowing through deep violet/magenta (`#581C87`), terminating in deep Vakeva Ink (`#14142B`).
+- **Deep Shadow Sink:** Partly Ink (`#14142B`) at 8%–14% opacity (angled bottom-right: 135°).
+- **Atmospheric Brand Gradient:** Linear 135deg starting with electric Partly Pink (`#FF3168`), flowing through deep violet/magenta (`#581C87`), terminating in deep Partly Ink (`#14142B`).
 
 ## Typography
 
 The type hierarchy relies entirely on **Plus Jakarta Sans**, offering a clean geometric construction with rounded counters that echo the soft pneumatic curves of the UI while maintaining high legibility. 
 
 - **Weight Distinctions:** Headlines utilize Extra Bold (800) and Bold (700) with tight negative tracking to deliver punchy hero headers reminiscent of modern SaaS documentation and marketing platforms.
-- **Readability Rules:** Body copy strictly adheres to Vakeva Ink (`#14142B`) with a secondary reading tier at 65% opacity. Never use low-contrast grey text against extruded surfaces; high typographic contrast counters the softness of the shadows, preventing visual fatigue.
+- **Readability Rules:** Body copy strictly adheres to Partly Ink (`#14142B`) with a secondary reading tier at 65% opacity. Never use low-contrast grey text against extruded surfaces; high typographic contrast counters the softness of the shadows, preventing visual fatigue.
 - **Numeric & Metric Displays:** Metric dashboards and volume cards employ tabular numeric positioning with bold weights (700) for instant financial scanning.
 
 ## Layout & Spacing
@@ -187,7 +187,7 @@ Elevation in this design system is driven by soft-mold neumorphic extrusions rat
 ### Light Direction Standard
 - **Light Angle:** -45° (top-left to bottom-right).
 - **Highlight (Top-Left):** `#FFFFFF`
-- **Lowlight Shadow (Bottom-Right):** `#14142B` (Vakeva Ink)
+- **Lowlight Shadow (Bottom-Right):** `#14142B` (Partly Ink)
 
 ### Elevation Tokens
 - **Elevation Level 1 (Subtle Convex Card / Container):**
@@ -214,28 +214,28 @@ The shape system is defined by soft, organic, continuous curvatures that feel sc
 ## Components
 
 ### 1. Buttons
-- **Primary Action Button:** Vakeva Ink (`#14142B`) solid fill with crisp white text (`#FFFFFF`), rounded-pill shape, padded with `12px 28px`. Hover: dynamic transform elevation and subtle Vakeva Pink glow accent. Active: scaled slightly (0.98).
-- **Secondary Tactile Button:** Base surface color (`#F6F4EF`) with Level 1 neumorphic dual-shadows and Vakeva Ink label. Hover: elevates to Level 2. Active: snaps to Inset Sunken state with no upward translation.
-- **Accent Button:** Solid Vakeva Pink (`#FF3168`) background with crisp white typography, paired with a soft magenta shadow `0px 10px 24px rgba(255, 49, 104, 0.35)`.
+- **Primary Action Button:** Partly Ink (`#14142B`) solid fill with crisp white text (`#FFFFFF`), rounded-pill shape, padded with `12px 28px`. Hover: dynamic transform elevation and subtle Partly Pink glow accent. Active: scaled slightly (0.98).
+- **Secondary Tactile Button:** Base surface color (`#F6F4EF`) with Level 1 neumorphic dual-shadows and Partly Ink label. Hover: elevates to Level 2. Active: snaps to Inset Sunken state with no upward translation.
+- **Accent Button:** Solid Partly Pink (`#FF3168`) background with crisp white typography, paired with a soft magenta shadow `0px 10px 24px rgba(255, 49, 104, 0.35)`.
 
 ### 2. Form Inputs & Text Fields
 - **Container:** Inset sunken neumorphic cavity (`inset -3px -3px 7px #FFFFFF, inset 3px 3px 7px rgba(20,20,43,0.08)`), surface tinted slightly to `#F1EFE9`.
-- **Text & Placeholder:** Vakeva Ink text with 40% opacity placeholder.
-- **Focus State:** Retains the inset cavity while adding a sharp 1.5px Vakeva Pink (`#FF3168`) border ring to satisfy clear WCAG accessibility and input clarity.
+- **Text & Placeholder:** Partly Ink text with 40% opacity placeholder.
+- **Focus State:** Retains the inset cavity while adding a sharp 1.5px Partly Pink (`#FF3168`) border ring to satisfy clear WCAG accessibility and input clarity.
 
 ### 3. Cards & Modular Blocks
 - **Dashboard / Feature Containers:** Built on Level 1 elevation with a continuous background of `#F6F4EF`.
 - **Hero Floating Modals:** Multi-tiered cards featuring internal light badges, micro-metric graphs, and tabular checkout previews. Overlaid over vibrant slanted backdrop gradients with Level 3 elevation.
 
 ### 4. Chips & Category Badges
-- **Tactile Filter Pill:** Extruded surface pill with high-contrast Vakeva Ink text.
-- **Active Pill:** Inset cavity profile with solid Vakeva Pink text or inverted solid Vakeva Pink pill with inset white text.
+- **Tactile Filter Pill:** Extruded surface pill with high-contrast Partly Ink text.
+- **Active Pill:** Inset cavity profile with solid Partly Pink text or inverted solid Partly Pink pill with inset white text.
 - **Notification Badges:** Circular or pill shapes using deep magenta or pink tinted backgrounds (`rgba(255, 49, 104, 0.12)`) and saturated ink/pink text.
 
 ### 5. Checkboxes & Switches
-- **Checkboxes:** 20px × 20px sunken square container (4px border-radius). Checked state fills with Vakeva Ink and displays a sharp white checkmark.
-- **Toggle Switches:** Elongated sunken track (`44px × 24px`) with a floating circular knob (`18px`) that is extruded in Level 1 elevation. Active state moves the knob smoothly to the right while tinting the track with Vakeva Pink.
+- **Checkboxes:** 20px × 20px sunken square container (4px border-radius). Checked state fills with Partly Ink and displays a sharp white checkmark.
+- **Toggle Switches:** Elongated sunken track (`44px × 24px`) with a floating circular knob (`18px`) that is extruded in Level 1 elevation. Active state moves the knob smoothly to the right while tinting the track with Partly Pink.
 
 ### 6. Data Visualizations & Trend Lines
-- **Sparklines:** Fluid single-stroke curves using Vakeva Pink (`#FF3168`) with an ambient gradient area fill dropping to zero opacity.
-- **Stat Metric Cards:** Large display numbers in Vakeva Ink paired with green/pink micro-pills indicating growth margins.
+- **Sparklines:** Fluid single-stroke curves using Partly Pink (`#FF3168`) with an ambient gradient area fill dropping to zero opacity.
+- **Stat Metric Cards:** Large display numbers in Partly Ink paired with green/pink micro-pills indicating growth margins.

@@ -44,7 +44,7 @@ export const EMAIL_RULES: Partial<Record<NotificationType, EmailRule>> = {
   GROUP_READY_TO_START: { title: 'Tu grupo ya puede iniciar', audience: 'user', cta: startGroup },
   GROUP_FULL: { title: 'Tu grupo se llenó', audience: 'user', cta: startGroup },
   GROUP_START_REMINDER: { title: 'Tus compradores esperan que inicies el grupo', audience: 'user', defer: true, cta: startGroup },
-  // comisión de Vakeva
+  // comisión de Partly
   COMMISSION_DUE: { title: 'Tienes una comisión por pagar', audience: 'user', defer: true, cta: commissions },
   COMMISSION_REMINDER: { title: 'Tu comisión vence pronto', audience: 'user', defer: true, cta: commissions },
   COMMISSION_OVERDUE: { title: 'Tu comisión está vencida', audience: 'user', cta: commissions },
@@ -64,5 +64,5 @@ export const EMAIL_RULES: Partial<Record<NotificationType, EmailRule>> = {
   WHOLESALE_ACCESS_REJECTED: { title: 'Sobre tu acceso al mayoreo', audience: 'user', cta: wholesale },
   WHOLESALE_ACCESS_REQUESTED: { title: 'Nueva solicitud de acceso al mayoreo', audience: 'admin', cta: () => ({ label: 'Revisar solicitudes', path: '/admin/mayoreo-acceso' }) },
   // avisos generales (aprobación de grupos, credenciales, etc.)
-  SYSTEM: { title: 'Aviso de Vakeva', audience: 'user', cta: (n) => (n.groupId ? { label: 'Ver el grupo', path: `/panel/grupos/${n.groupId}` } : null) },
+  SYSTEM: { title: 'Aviso de Partly', audience: 'user', cta: (n) => (n.groupId ? { label: 'Ver el grupo', path: `/panel/grupos/${n.groupId}` } : null) },
 };

@@ -3,16 +3,16 @@ import { validationSchema } from '../src/config/validation.schema';
 const validBase = {
   NODE_ENV: 'production',
   PORT: 3000,
-  FRONTEND_URL: 'https://vakeva.example.com',
-  DATABASE_URL: 'postgresql://user:password@database:5432/vakeva',
+  FRONTEND_URL: 'https://partly.example.com',
+  DATABASE_URL: 'postgresql://user:password@database:5432/partly',
   JWT_ACCESS_SECRET: 'a'.repeat(32),
   JWT_REFRESH_SECRET: 'b'.repeat(32),
   GOOGLE_CLIENT_ID: 'client-id',
   GOOGLE_CLIENT_SECRET: 'client-secret',
-  GOOGLE_CALLBACK_URL: 'https://vakeva.example.com/api/auth/google/callback',
+  GOOGLE_CALLBACK_URL: 'https://partly.example.com/api/auth/google/callback',
   CREDENTIALS_ENCRYPTION_KEY: 'c'.repeat(64),
   MAIL_PROVIDER: 'resend',
-  MAIL_FROM_ADDRESS: 'no-reply@vakeva.example.com',
+  MAIL_FROM_ADDRESS: 'no-reply@partly.example.com',
   RESEND_API_KEY: 'resend-key',
 };
 
@@ -22,7 +22,7 @@ describe('validation.schema', () => {
   });
 
   it('exige HTTPS en los orígenes públicos de producción', () => {
-    const result = validationSchema.validate({ ...validBase, FRONTEND_URL: 'http://vakeva.example.com' });
+    const result = validationSchema.validate({ ...validBase, FRONTEND_URL: 'http://partly.example.com' });
     expect(result.error?.message).toContain('FRONTEND_URL');
   });
 

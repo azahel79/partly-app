@@ -73,10 +73,10 @@ export function notificationTitle(n: Notification, area: NotificationArea): stri
     if (n.type.startsWith('WHOLESALE_ACCESS_')) return 'Acceso a mayoreo';
     if (n.type.startsWith('COMMISSION_')) return 'Comisiones';
     if (n.type.startsWith('PAYMENT_')) return 'Pagos';
-    return n.groupId ? 'Grupo' : 'Aviso de Vakeva';
+    return n.groupId ? 'Grupo' : 'Aviso de Partly';
   }
-  if (n.payload.startsWith('Vakeva definió la comisión')) return 'Vakeva definió tu comisión';
-  if (n.payload.startsWith('El equipo de Vakeva solicita las credenciales')) return 'Vakeva te pide las credenciales';
+  if (n.payload.startsWith('Partly definió la comisión')) return 'Partly definió tu comisión';
+  if (n.payload.startsWith('El equipo de Partly solicita las credenciales')) return 'Partly te pide las credenciales';
   if (n.type === 'GROUP_READY_TO_START') return 'Tu grupo ya puede iniciar';
   if (n.type === 'GROUP_FULL') return '¡Tu grupo se llenó!';
   if (n.type === 'GROUP_START_REMINDER') return 'Tus compradores te esperan';
@@ -111,7 +111,7 @@ export function notificationTitle(n: Notification, area: NotificationArea): stri
   }
   if (n.type.startsWith('PROVIDER_')) return 'Actualización de proveedor';
   if (n.type.startsWith('INCIDENT_')) return 'Actualización de incidencia';
-  return 'Aviso de Vakeva';
+  return 'Aviso de Partly';
 }
 
 /** Color del ícono: amber = requiere atención, red = algo salió mal, blue = buena noticia del grupo, green = normal. */

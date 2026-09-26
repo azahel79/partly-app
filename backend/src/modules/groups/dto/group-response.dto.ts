@@ -93,7 +93,7 @@ export class GroupResponseDto {
   @Expose()
   approvalStatus: GroupApprovalStatus;
 
-  @ApiProperty({ nullable: true, example: 'La plataforma que describes no está permitida en el catálogo de Vakeva.' })
+  @ApiProperty({ nullable: true, example: 'La plataforma que describes no está permitida en el catálogo de Partly.' })
   @Expose()
   rejectionReason: string | null;
 
@@ -177,7 +177,7 @@ export class GroupResponseDto {
   @Expose()
   startedAt: Date | null;
 
-  @ApiProperty({ nullable: true, example: '12.00', description: '% que se queda Vakeva de cada cobro a tus miembros — lo asigna un ADMIN al aprobar el grupo. Null mientras no se ha aprobado.' })
+  @ApiProperty({ nullable: true, example: '12.00', description: '% que se queda Partly de cada cobro a tus miembros — lo asigna un ADMIN al aprobar el grupo. Null mientras no se ha aprobado.' })
   @Expose()
   commissionPercentage: string | null;
 
@@ -196,7 +196,7 @@ export class GroupResponseDto {
     };
     this.owner = {
       id: group.owner.id,
-      name: group.owner.profileNameVisible ? group.owner.name : 'Miembro de Vakeva',
+      name: group.owner.profileNameVisible ? group.owner.name : 'Miembro de Partly',
       avatarUrl: group.owner.profileAvatarVisible ? group.owner.avatarUrl : null,
       ratingAvg: group.owner.ratingAvg.toString(),
       memberSince: group.owner.createdAt,

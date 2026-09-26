@@ -1,4 +1,4 @@
-# Base de datos de Vakeva
+# Base de datos de Partly
 
 Documento funcional del esquema PostgreSQL administrado con Prisma. La fuente canónica es [`prisma/schema.prisma`](prisma/schema.prisma); si este documento y el esquema difieren, prevalece el esquema.
 
@@ -175,7 +175,7 @@ Una fila única por pago validado. Congela el bruto, porcentaje de comisión, co
 
 ### `CommissionCharge` → `commission_charges`
 
-Cuenta por cobrar de Vakeva contra un vendedor. Agrupa ganancias facturables y registra vencimiento, comprobante, revisión, rechazo, pago y recordatorios.
+Cuenta por cobrar de Partly contra un vendedor. Agrupa ganancias facturables y registra vencimiento, comprobante, revisión, rechazo, pago y recordatorios.
 
 Estados esperados:
 
@@ -203,7 +203,7 @@ Solicitud de retiro con estado, importe, método, fecha de solicitud y fecha de 
 
 ### `PlatformSettings` → `platform_settings`
 
-Singleton con ID `default`. Almacena la cuenta bancaria de Vakeva donde los vendedores pagan comisiones y los compradores pagan mayoreo. La CLABE de la plataforma se guarda actualmente como configuración administrativa, no como credencial del usuario.
+Singleton con ID `default`. Almacena la cuenta bancaria de Partly donde los vendedores pagan comisiones y los compradores pagan mayoreo. La CLABE de la plataforma se guarda actualmente como configuración administrativa, no como credencial del usuario.
 
 ### `EmailMessage` → `email_messages`
 
@@ -317,8 +317,8 @@ No se debe usar `migrate dev`, `db push` ni editar migraciones históricas en pr
 Antes de una migración de producción:
 
 ```bash
-pg_dump --format=custom --file=vakeva.dump "$DATABASE_URL"
-pg_restore --list vakeva.dump
+pg_dump --format=custom --file=partly.dump "$DATABASE_URL"
+pg_restore --list partly.dump
 ```
 
 Los respaldos deben cifrarse, almacenarse fuera del repositorio y probarse periódicamente mediante una restauración aislada. PostgreSQL no contiene los comprobantes físicos: `RECEIPTS_DIR` o el bucket de objetos requiere su propio respaldo coordinado.

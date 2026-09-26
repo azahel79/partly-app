@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class ReviewCommissionDto {
-  @ApiProperty({ description: 'true = la transferencia llegó a la cuenta de Vakeva. false = se rechaza el comprobante.' })
+  @ApiProperty({ description: 'true = la transferencia llegó a la cuenta de Partly. false = se rechaza el comprobante.' })
   @IsBoolean()
   approve: boolean;
 

@@ -47,7 +47,7 @@ export const validationSchema = Joi.object({
     then: Joi.string().valid('resend', 'brevo', 'smtp').insensitive().required(),
     otherwise: Joi.string().valid('log', 'resend', 'brevo', 'smtp').insensitive().default('log'),
   }),
-  MAIL_FROM_NAME: Joi.string().allow('').default('Vakeva'),
+  MAIL_FROM_NAME: Joi.string().allow('').default('Partly'),
   MAIL_FROM_ADDRESS: Joi.string().when('NODE_ENV', {
     is: 'production',
     then: Joi.string().email().required(),

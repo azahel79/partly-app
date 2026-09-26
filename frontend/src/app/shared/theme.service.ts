@@ -3,7 +3,7 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 
 export type ThemeMode = 'light' | 'dark';
 
-const STORAGE_KEY = 'vakeva.theme';
+const STORAGE_KEY = 'partly.theme';
 
 /**
  * Modo oscuro del panel y del admin. Solo se aplica mientras el usuario está dentro de uno de esos

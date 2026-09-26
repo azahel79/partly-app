@@ -13,7 +13,7 @@ const PAGE_SIZE = 10;
 
 /**
  * Lo que el vendedor gana: el dinero de sus compradores ya llega directo a su cuenta, así que
- * aquí solo se lleva la cuenta (cobrado, comisión de Vakeva y lo que le queda). Nada se retira.
+ * aquí solo se lleva la cuenta (cobrado, comisión de Partly y lo que le queda). Nada se retira.
  */
 @Component({
   imports: [RouterLink],

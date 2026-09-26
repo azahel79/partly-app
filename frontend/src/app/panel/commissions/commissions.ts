@@ -12,7 +12,7 @@ const STATUS: Record<CommissionChargeStatus, { label: string; tone: string }> = 
   PAID: { label: 'Pagada', tone: 'bg-emerald-50 text-emerald-700' },
 };
 
-/** La comisión que el vendedor le paga a Vakeva: se transfiere a la cuenta de Vakeva y se sube el comprobante. */
+/** La comisión que el vendedor le paga a Partly: se transfiere a la cuenta de Partly y se sube el comprobante. */
 @Component({
   imports: [RouterLink],
   selector: 'app-commissions',
@@ -102,7 +102,7 @@ export class CommissionsPage implements OnInit {
           const { [charge.id]: _removed, ...rest } = map;
           return rest;
         });
-        this.notice.set('Comprobante enviado. Vakeva lo revisará y te avisaremos cuando quede validado.');
+        this.notice.set('Comprobante enviado. Partly lo revisará y te avisaremos cuando quede validado.');
         this.load();
       },
       error: (message: string) => {

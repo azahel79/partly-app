@@ -1,5 +1,5 @@
 /**
- * Reglas de la comisión de Vakeva (el vendedor la paga por transferencia, no se descuenta de
+ * Reglas de la comisión de Partly (el vendedor la paga por transferencia, no se descuenta de
  * ningún saldo). Todo el calendario vive aquí para poder ajustarlo en un solo lugar.
  */
 

@@ -8,12 +8,12 @@
   <section class="cmp-hero" id="resumen">
     <div appReveal class="cmp-hero-left">
       <div class="cmp-tagline"><span>+</span>"Ahorra en lo que usas"<span>+</span></div>
-      <h1>Cuánto pagas solo<br />vs. cuánto pagas con <b>Vakeva</b>.</h1>
-      <p>En Vakeva te unes a grupos verificados para compartir el costo de tus suscripciones favoritas. Mismos servicios, menos gasto, más para ti.</p>
+      <h1>Cuánto pagas solo<br />vs. cuánto pagas con <b>Partly</b>.</h1>
+      <p>En Partly te unes a grupos verificados para compartir el costo de tus suscripciones favoritas. Mismos servicios, menos gasto, más para ti.</p>
       <div class="cmp-chips">
         <div appReveal appRevealVariant="pop" [appRevealDelay]="120" class="cmp-chip"><span class="material-symbols-outlined">attach_money</span><div><strong>Ahorro real</strong><small>Hasta 80% menos</small></div></div>
         <div appReveal appRevealVariant="pop" [appRevealDelay]="200" class="cmp-chip"><span class="material-symbols-outlined">verified_user</span><div><strong>Grupos verificados</strong><small>Seguros y confiables</small></div></div>
-        <div appReveal appRevealVariant="pop" [appRevealDelay]="280" class="cmp-chip"><span class="material-symbols-outlined">group</span><div><strong>Miles de usuarios</strong><small>Ya ahorran con Vakeva</small></div></div>
+        <div appReveal appRevealVariant="pop" [appRevealDelay]="280" class="cmp-chip"><span class="material-symbols-outlined">group</span><div><strong>Miles de usuarios</strong><small>Ya ahorran con Partly</small></div></div>
       </div>
     </div>
 
@@ -47,7 +47,7 @@
     } @else {
       <table>
         <thead>
-          <tr><th>Servicio</th><th>Plan</th><th>Cupos por grupo</th><th>Precio individual</th><th>Precio con Vakeva</th><th>Ahorro</th></tr>
+          <tr><th>Servicio</th><th>Plan</th><th>Cupos por grupo</th><th>Precio individual</th><th>Precio con Partly</th><th>Ahorro</th></tr>
         </thead>
         <tbody>
           @for (row of rows(); track row.platformId) {
@@ -59,7 +59,7 @@
               <td>{{ row.tierName }}</td>
               <td>{{ row.maxSlots }}</td>
               <td>${{ formatMoney(row.officialPrice) }}</td>
-              <td><span class="cmp-vakeva-pill">${{ formatMoney(row.perSlotPrice) }}</span></td>
+              <td><span class="cmp-partly-pill">${{ formatMoney(row.perSlotPrice) }}</span></td>
               <td><span class="cmp-savings-pill">{{ row.savingsPercent | number: '1.0-0' }}%</span></td>
             </tr>
           }
@@ -73,7 +73,7 @@
       <span class="material-symbols-outlined">calculate</span>
       <div>
         <h3>Cómo leer estos números</h3>
-        <p>El precio "con Vakeva" se calcula dividiendo el precio oficial del plan entre los cupos del grupo. Las cifras son aproximadas y pueden variar según el vendedor y el plan elegido, pero te dan una idea clara del ahorro que puedes lograr.</p>
+        <p>El precio "con Partly" se calcula dividiendo el precio oficial del plan entre los cupos del grupo. Las cifras son aproximadas y pueden variar según el vendedor y el plan elegido, pero te dan una idea clara del ahorro que puedes lograr.</p>
       </div>
     </section>
     <section appReveal appRevealVariant="scale" [appRevealDelay]="80" class="cmp-honesty cmp-slots"><span class="material-symbols-outlined">group</span><div><h3>Cálculo basado en cupos</h3><p>Dividimos el costo oficial entre los lugares disponibles del plan. Cada persona paga únicamente la parte que utiliza.</p></div></section>
@@ -85,8 +85,8 @@
     <div class="cmp-faq-kicker">¿Aún tienes dudas?</div><h2>Preguntas frecuentes</h2><p class="cmp-faq-subtitle">Te contamos lo más importante.</p>
     <div class="cmp-faq-list">
       <details appReveal appRevealVariant="left">
-        <summary><span>¿Es seguro unirse a un grupo en Vakeva?</span><span class="material-symbols-outlined">chevron_right</span></summary>
-        <p>Sí. Solo se muestran grupos ya revisados por nuestro equipo, y las credenciales de la cuenta compartida se guardan cifradas con AES-256 — ni siquiera el equipo de Vakeva puede leerlas.</p>
+        <summary><span>¿Es seguro unirse a un grupo en Partly?</span><span class="material-symbols-outlined">chevron_right</span></summary>
+        <p>Sí. Solo se muestran grupos ya revisados por nuestro equipo, y las credenciales de la cuenta compartida se guardan cifradas con AES-256 — ni siquiera el equipo de Partly puede leerlas.</p>
       </details>
       <details appReveal appRevealVariant="left" [appRevealDelay]="70">
         <summary><span>¿Qué pasa si un miembro del grupo se va?</span><span class="material-symbols-outlined">chevron_right</span></summary>
@@ -94,7 +94,7 @@
       </details>
       <details appReveal appRevealVariant="left" [appRevealDelay]="140">
         <summary><span>¿Qué métodos de pago aceptan?</span><span class="material-symbols-outlined">chevron_right</span></summary>
-        <p>Puedes pagar con tarjeta, con tu saldo en tu Wallet Vakeva, o por transferencia — en ese caso subes tu comprobante y el vendedor lo confirma desde su panel.</p>
+        <p>Puedes pagar con tarjeta, con tu saldo en tu Wallet Partly, o por transferencia — en ese caso subes tu comprobante y el vendedor lo confirma desde su panel.</p>
       </details>
       <details appReveal appRevealVariant="left" [appRevealDelay]="210">
         <summary><span>¿Puedo cambiar de servicio después?</span><span class="material-symbols-outlined">chevron_right</span></summary>

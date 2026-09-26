@@ -1,9 +1,9 @@
-﻿const { chromium } = require('playwright');
+const { chromium } = require('playwright');
 const fs = require('node:fs');
 (async () => {
  const browser = await chromium.launch({headless:true});
  const context = await browser.newContext({reducedMotion:'reduce'});
- await context.addInitScript(() => { if (!['/iniciar-sesion','/crear-cuenta','/admin/login'].includes(location.pathname)) localStorage.setItem('vakeva.user', JSON.stringify({id:'responsive-test',name:'Cuenta de prueba con nombre largo',email:'responsive@example.test',role:'ADMIN'})); else localStorage.removeItem('vakeva.user'); });
+ await context.addInitScript(() => { if (!['/iniciar-sesion','/crear-cuenta','/admin/login'].includes(location.pathname)) localStorage.setItem('partly.user', JSON.stringify({id:'responsive-test',name:'Cuenta de prueba con nombre largo',email:'responsive@example.test',role:'ADMIN'})); else localStorage.removeItem('partly.user'); });
  // Isolated UI audit: never contact or mutate real backend data.
  await context.route('**/api/**', r => r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'Datos no disponibles en la prueba visual'})}));
  const page = await context.newPage();

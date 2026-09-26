@@ -84,6 +84,6 @@ export class Owners {
   }
 
   protected requestWithdrawal(): void {
-    window.alert('Solicitud de retiro enviada. Vakeva la revisa y actualiza el estatus: pendiente → en proceso → pagado.');
+    window.alert('Solicitud de retiro enviada. Partly la revisa y actualiza el estatus: pendiente → en proceso → pagado.');
   }
 }

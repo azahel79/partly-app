@@ -44,9 +44,9 @@ const TEMPLATE_LABEL: Record<string, string> = {
 const PROVIDER_LABEL: Record<MailProviderName, string> = { log: 'Simulado', resend: 'Resend', brevo: 'Brevo', smtp: 'SMTP' };
 
 const ENV_SNIPPETS: Record<'resend' | 'brevo' | 'smtp', string> = {
-  resend: 'MAIL_PROVIDER=resend\nMAIL_FROM_NAME=Vakeva\nMAIL_FROM_ADDRESS=no-reply@tu-dominio.com\nRESEND_API_KEY=re_xxxxxxxx',
-  brevo: 'MAIL_PROVIDER=brevo\nMAIL_FROM_NAME=Vakeva\nMAIL_FROM_ADDRESS=no-reply@tu-dominio.com\nBREVO_API_KEY=xkeysib-xxxxxxxx',
-  smtp: 'MAIL_PROVIDER=smtp\nMAIL_FROM_NAME=Vakeva\nMAIL_FROM_ADDRESS=no-reply@tu-dominio.com\nSMTP_HOST=smtp.tu-proveedor.com\nSMTP_PORT=587\nSMTP_SECURE=false\nSMTP_USER=usuario\nSMTP_PASS=contraseña',
+  resend: 'MAIL_PROVIDER=resend\nMAIL_FROM_NAME=Partly\nMAIL_FROM_ADDRESS=no-reply@tu-dominio.com\nRESEND_API_KEY=re_xxxxxxxx',
+  brevo: 'MAIL_PROVIDER=brevo\nMAIL_FROM_NAME=Partly\nMAIL_FROM_ADDRESS=no-reply@tu-dominio.com\nBREVO_API_KEY=xkeysib-xxxxxxxx',
+  smtp: 'MAIL_PROVIDER=smtp\nMAIL_FROM_NAME=Partly\nMAIL_FROM_ADDRESS=no-reply@tu-dominio.com\nSMTP_HOST=smtp.tu-proveedor.com\nSMTP_PORT=587\nSMTP_SECURE=false\nSMTP_USER=usuario\nSMTP_PASS=contraseña',
 };
 
 /** Bandeja de salida: qué correos salieron (o se simularon), cuáles fallaron y cómo activar el envío real. */

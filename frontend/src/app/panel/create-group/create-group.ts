@@ -83,7 +83,7 @@ export class CreateGroup implements OnInit {
     return 0;
   });
 
-  /** Lo que pagan en total tus miembros (bruto, antes de la comisión de Vakeva). */
+  /** Lo que pagan en total tus miembros (bruto, antes de la comisión de Partly). */
   protected readonly totalCollected = computed(() => this.pricePerSlot() * this.availableSlots());
 
   /** Lo que llegaría a tu wallet por un mes completo: va de la comisión más alta a la más baja. */

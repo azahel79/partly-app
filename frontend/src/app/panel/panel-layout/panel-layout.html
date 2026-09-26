@@ -9,7 +9,7 @@
   <header class="panel-header sticky top-0 z-40 bg-[#FCF8FF]/90 backdrop-blur-md border-b border-crema-border/60">
     <div class="panel-header-row max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
       <a routerLink="/" class="group flex items-center shrink-0">
-        <img [src]="theme.isDark() ? 'vakeva-logo-dark.png' : 'vakeva-logo.png'" alt="Vakeva" class="h-11 w-auto group-hover:scale-105 transition-transform" />
+        <img [src]="theme.isDark() ? 'partly-logo-dark.png' : 'partly-logo.png'" alt="Partly" class="h-11 w-auto group-hover:scale-105 transition-transform" />
       </a>
 
       <nav aria-label="Panel" class="panel-navigation flex items-center gap-1 bg-crema-inset shadow-neu-inset-sm p-1 rounded-full overflow-x-auto">
@@ -137,7 +137,7 @@
             <div class="profile-dropdown">
               <header><span class="profile-trigger-avatar">@if (authService.currentUser()?.avatarUrl) { <img [src]="authService.currentUser()?.avatarUrl" alt="" /> } @else { {{ initials() }} }</span><div><strong>{{ authService.currentUser()?.name }}</strong><small>{{ authService.currentUser()?.email }}</small></div></header>
               <a routerLink="/panel/ganancias" (click)="closeProfileMenu()"><span class="material-symbols-outlined">savings</span><div><strong>Mis ganancias</strong><small>Lo que ganas por tus grupos</small></div><i class="material-symbols-outlined">chevron_right</i></a>
-              <a routerLink="/panel/comisiones" (click)="closeProfileMenu()"><span class="material-symbols-outlined">request_quote</span><div><strong>Comisiones</strong><small>Lo que le pagas a Vakeva</small></div><i class="material-symbols-outlined">chevron_right</i></a>
+              <a routerLink="/panel/comisiones" (click)="closeProfileMenu()"><span class="material-symbols-outlined">request_quote</span><div><strong>Comisiones</strong><small>Lo que le pagas a Partly</small></div><i class="material-symbols-outlined">chevron_right</i></a>
               <a routerLink="/panel/perfil" (click)="closeProfileMenu()"><span class="material-symbols-outlined">manage_accounts</span><div><strong>Editar perfil</strong><small>Datos, seguridad y preferencias</small></div><i class="material-symbols-outlined">chevron_right</i></a>
               <a routerLink="/panel/perfil" [queryParams]="{ tab: 'notifications' }" (click)="closeProfileMenu()"><span class="material-symbols-outlined">notifications</span><div><strong>Notificaciones</strong><small>Configura tus avisos</small></div><i class="material-symbols-outlined">chevron_right</i></a>
               <button type="button" (click)="logout()"><span class="material-symbols-outlined">logout</span><div><strong>Cerrar sesión</strong><small>Salir de este dispositivo</small></div></button>

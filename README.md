@@ -1,6 +1,6 @@
-# Vakeva
+# Partly
 
-Vakeva es una plataforma para organizar, compartir y comercializar suscripciones digitales. Conecta compradores, vendedores y proveedores; administra grupos y perfiles; registra pagos por transferencia; protege credenciales; calcula comisiones y ofrece herramientas de soporte y moderación.
+Partly es una plataforma para organizar, compartir y comercializar suscripciones digitales. Conecta compradores, vendedores y proveedores; administra grupos y perfiles; registra pagos por transferencia; protege credenciales; calcula comisiones y ofrece herramientas de soporte y moderación.
 
 ## Estado del proyecto
 
@@ -11,7 +11,7 @@ El repositorio contiene una aplicación funcional en desarrollo activo:
 - catálogo de plataformas, planes y grupos;
 - aprobación administrativa de grupos y credenciales;
 - pagos mediante comprobante, prorrateo y renovaciones;
-- ganancias y comisiones de Vakeva;
+- ganancias y comisiones de Partly;
 - proveedores, inventario y compras al mayoreo;
 - notificaciones, correo, reseñas e incidencias;
 - panel administrativo y auditoría básica.
@@ -101,8 +101,8 @@ También existen `npm run start:backend` y `npm run start:frontend` para desarro
 3. Los compradores reservan un lugar; al comenzar el grupo se generan sus cobros.
 4. Cada comprador transfiere al vendedor y sube su comprobante.
 5. El vendedor o un administrador valida el pago; la membresía obtiene acceso a las credenciales cifradas.
-6. Vakeva registra ingreso bruto, comisión y neto del vendedor.
-7. Las comisiones exigibles se agrupan en cargos que el vendedor paga a Vakeva.
+6. Partly registra ingreso bruto, comisión y neto del vendedor.
+7. Las comisiones exigibles se agrupan en cargos que el vendedor paga a Partly.
 8. Las tareas programadas gestionan renovaciones, vencimientos, recordatorios y correo.
 
 El módulo de mayoreo permite que usuarios autorizados compren cuentas completas a proveedores y las conviertan posteriormente en grupos.

@@ -1,7 +1,7 @@
 {
-  "name": "vakeva-backend",
+  "name": "partly-backend",
   "version": "0.1.0",
-  "description": "API de Vakeva para compartir y comercializar suscripciones digitales",
+  "description": "API de Partly para compartir y comercializar suscripciones digitales",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

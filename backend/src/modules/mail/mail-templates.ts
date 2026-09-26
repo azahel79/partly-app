@@ -64,8 +64,8 @@ export function renderEmail(content: EmailContent, ctx: RenderContext): Rendered
   const note = content.note ? `<p style="margin:14px 0 0;font-size:13px;line-height:1.5;color:#7c859c;">${escapeHtml(content.note)}</p>` : '';
 
   const footerPrefs = ctx.prefsUrl
-    ? `Recibes este correo porque tienes una cuenta en Vakeva. <a href="${escapeHtml(ctx.prefsUrl)}" style="color:${BRAND};text-decoration:underline;">Administra tus avisos</a> cuando quieras.`
-    : 'Recibes este correo porque tienes una cuenta en Vakeva.';
+    ? `Recibes este correo porque tienes una cuenta en Partly. <a href="${escapeHtml(ctx.prefsUrl)}" style="color:${BRAND};text-decoration:underline;">Administra tus avisos</a> cuando quieras.`
+    : 'Recibes este correo porque tienes una cuenta en Partly.';
 
   const html = `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(content.title)}</title></head>
@@ -73,7 +73,7 @@ export function renderEmail(content: EmailContent, ctx: RenderContext): Rendered
 <span style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(content.preheader ?? content.title)}</span>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fa;padding:28px 12px;"><tr><td align="center">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
-    <tr><td style="padding:0 4px 14px;"><a href="${escapeHtml(ctx.appUrl)}" style="font-size:24px;font-weight:900;letter-spacing:-.02em;color:${INK};text-decoration:none;">vakeva<span style="color:${BRAND};">.</span></a></td></tr>
+    <tr><td style="padding:0 4px 14px;"><a href="${escapeHtml(ctx.appUrl)}" style="font-size:24px;font-weight:900;letter-spacing:-.02em;color:${INK};text-decoration:none;">partly<span style="color:${BRAND};">.</span></a></td></tr>
     <tr><td style="background:#ffffff;border:1px solid #e6eaf0;border-radius:16px;padding:30px 28px;">
       <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;font-weight:800;color:${INK};">${escapeHtml(content.title)}</h1>
       ${content.greeting ? `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:${INK};">${escapeHtml(content.greeting)}</p>` : ''}
@@ -82,7 +82,7 @@ export function renderEmail(content: EmailContent, ctx: RenderContext): Rendered
       ${cta}
       ${note}
     </td></tr>
-    <tr><td style="padding:16px 8px 0;font-size:12px;line-height:1.6;color:#7c859c;text-align:center;">${footerPrefs}<br>© Vakeva · Suscripciones compartidas seguras</td></tr>
+    <tr><td style="padding:16px 8px 0;font-size:12px;line-height:1.6;color:#7c859c;text-align:center;">${footerPrefs}<br>© Partly · Suscripciones compartidas seguras</td></tr>
   </table>
 </td></tr></table></body></html>`;
 
@@ -96,7 +96,7 @@ export function renderEmail(content: EmailContent, ctx: RenderContext): Rendered
     content.note ?? '',
     '',
     ctx.prefsUrl ? `Administra tus avisos: ${ctx.prefsUrl}` : '',
-    '— Vakeva',
+    '— Partly',
   ]
     .filter((line, index, all) => line !== '' || (index > 0 && all[index - 1] !== ''))
     .join('\n')

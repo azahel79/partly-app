@@ -63,7 +63,7 @@ export class CommissionsService {
 
   /**
    * Se llama al validar un pago (dentro de la misma transacción): anota cuánto entró, cuánto
-   * de eso es comisión de Vakeva y cuánto se queda el vendedor. El dinero del comprador ya
+   * de eso es comisión de Partly y cuánto se queda el vendedor. El dinero del comprador ya
    * cayó directo a la cuenta del vendedor, así que aquí no se mueve ningún saldo.
    */
   async recordEarning(
@@ -174,7 +174,7 @@ export class CommissionsService {
       type: NotificationType.COMMISSION_DUE,
       payload: open
         ? `Se sumaron $${amount.toFixed(2)} a tu comisión por pagar: ahora son $${total.toFixed(2)}. Págala antes del ${this.dateLabel(payBy)}.`
-        : `Tienes una comisión de $${total.toFixed(2)} por pagar a Vakeva. Transfiérela y sube tu comprobante antes del ${this.dateLabel(payBy)} para que tus grupos sigan recibiendo miembros.`,
+        : `Tienes una comisión de $${total.toFixed(2)} por pagar a Partly. Transfiérela y sube tu comprobante antes del ${this.dateLabel(payBy)} para que tus grupos sigan recibiendo miembros.`,
     });
   }
 
@@ -182,7 +182,7 @@ export class CommissionsService {
 
   /**
    * Comisión vencida sin pagar: el vendedor no puede abrir grupos nuevos ni recibir miembros.
-   * Mientras Vakeva no publique su cuenta bancaria no hay a dónde pagar, así que tampoco se restringe a nadie.
+   * Mientras Partly no publique su cuenta bancaria no hay a dónde pagar, así que tampoco se restringe a nadie.
    */
   async getRestriction(sellerId: string, db: Db = this.prisma) {
     if (!(await this.hasBankAccount(db))) {
@@ -364,7 +364,7 @@ export class CommissionsService {
     return { charges: charges.map((c) => this.toChargeView(c, bankAccount !== null)), bankAccount, restriction, graceDays: COMMISSION_GRACE_DAYS };
   }
 
-  /** El vendedor sube su comprobante de la transferencia a Vakeva: el cobro queda en revisión del admin. */
+  /** El vendedor sube su comprobante de la transferencia a Partly: el cobro queda en revisión del admin. */
   async uploadReceipt(chargeId: string, sellerId: string, file: Express.Multer.File) {
     const extension = EXTENSION_BY_MIMETYPE[file.mimetype];
     if (!extension) {
@@ -578,8 +578,8 @@ export class CommissionsService {
         userId: charge.seller.id,
         type: overdue ? NotificationType.COMMISSION_OVERDUE : NotificationType.COMMISSION_REMINDER,
         payload: overdue
-          ? `Recordatorio de Vakeva: tu comisión de $${Number(charge.amount).toFixed(2)} está vencida. Págala y sube tu comprobante para que tus grupos sigan recibiendo miembros.`
-          : `Recordatorio de Vakeva: tienes una comisión de $${Number(charge.amount).toFixed(2)} por pagar antes del ${this.dateLabel(charge.payBy)}. Transfiérela y sube tu comprobante.`,
+          ? `Recordatorio de Partly: tu comisión de $${Number(charge.amount).toFixed(2)} está vencida. Págala y sube tu comprobante para que tus grupos sigan recibiendo miembros.`
+          : `Recordatorio de Partly: tienes una comisión de $${Number(charge.amount).toFixed(2)} por pagar antes del ${this.dateLabel(charge.payBy)}. Transfiérela y sube tu comprobante.`,
         emailDedupeKey: `manual-reminder:${charge.seller.id}:${today}`,
         emailImmediate: true,
       });
@@ -589,7 +589,7 @@ export class CommissionsService {
     return { sentTo: 'SELLER' as const, name: charge.seller.name, inApp: charge.seller.inAppNotifications, email: charge.seller.emailNotifications };
   }
 
-  // ------------------------------------------------------------------ cuenta bancaria de Vakeva
+  // ------------------------------------------------------------------ cuenta bancaria de Partly
 
   private async hasBankAccount(db: Db): Promise<boolean> {
     const settings = await db.platformSettings.findUnique({ where: { id: SETTINGS_ID } });
@@ -690,8 +690,8 @@ export class CommissionsService {
         type: NotificationType.SYSTEM,
         groupId: membership.groupId,
         payload: halted
-          ? `El grupo de ${platform} donde apartaste tu cupo está detenido: el vendedor tiene un pendiente con Vakeva y no puede iniciarlo por ahora. Tu reserva sigue en pie y no pagas nada. Si prefieres no esperar, puedes salirte sin costo y buscar otro grupo.`
-          : `Buenas noticias: el vendedor del grupo de ${platform} ya quedó al corriente con Vakeva y puede iniciarlo. Tu cupo sigue reservado y no pagas nada hasta que arranque.`,
+          ? `El grupo de ${platform} donde apartaste tu cupo está detenido: el vendedor tiene un pendiente con Partly y no puede iniciarlo por ahora. Tu reserva sigue en pie y no pagas nada. Si prefieres no esperar, puedes salirte sin costo y buscar otro grupo.`
+          : `Buenas noticias: el vendedor del grupo de ${platform} ya quedó al corriente con Partly y puede iniciarlo. Tu cupo sigue reservado y no pagas nada hasta que arranque.`,
       });
     }
   }

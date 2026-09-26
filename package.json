@@ -1,8 +1,8 @@
 {
-  "name": "vakeva",
+  "name": "partly",
   "version": "0.1.0",
   "private": true,
-  "description": "Plataforma Vakeva para compartir y comercializar suscripciones digitales",
+  "description": "Plataforma Partly para compartir y comercializar suscripciones digitales",
   "scripts": {
     "build": "npm run build --prefix backend && npm run build --prefix frontend",
     "test": "npm test --prefix backend && npm test --prefix frontend -- --watch=false",

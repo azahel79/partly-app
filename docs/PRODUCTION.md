@@ -1,4 +1,4 @@
-# Salida a producción de Vakeva
+# Salida a producción de Partly
 
 Esta guía convierte el repositorio en un despliegue reproducible, pero no sustituye la revisión legal, financiera y de seguridad correspondiente al país donde opere el servicio.
 

@@ -2,7 +2,7 @@
   <div class="max-w-[1480px] mx-auto rounded-[28px] bg-crema/95 backdrop-blur-md border border-white/60 shadow-neu-raised overflow-hidden">
   <div class="public-header-row px-6 h-20 flex items-center justify-between">
     <a class="flex items-center group" routerLink="/" (click)="closeMobileMenu()">
-      <img src="vakeva-logo.png" alt="Vakeva" class="h-11 w-auto group-hover:scale-105 transition-transform" />
+      <img src="partly-logo.png" alt="Partly" class="h-11 w-auto group-hover:scale-105 transition-transform" />
     </a>
 
     <nav class="hidden xl:flex items-center gap-1 p-1.5">
@@ -72,14 +72,14 @@
   </div>
 </header>
 
-<aside class="floating-socials" aria-label="Redes sociales de Vakeva">
+<aside class="floating-socials" aria-label="Redes sociales de Partly">
   @if (socialNotice()) {
     <div class="social-notice" role="status">
       <span>{{ socialNotice() }}</span>
       <button type="button" (click)="socialNotice.set('')" aria-label="Cerrar aviso">×</button>
     </div>
   }
-  <div id="vakeva-social-links" class="social-links" [class.is-open]="socialMenuOpen()">
+  <div id="partly-social-links" class="social-links" [class.is-open]="socialMenuOpen()">
     <button type="button" class="social-button instagram" aria-label="Instagram: enlace pendiente de configurar" title="Instagram" (click)="showSocialNotice('Instagram')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
       <span class="social-label">Instagram</span>
@@ -93,7 +93,7 @@
       <span class="social-label">WhatsApp</span>
     </button>
   </div>
-  <button type="button" class="social-toggle" [attr.aria-expanded]="socialMenuOpen()" aria-controls="vakeva-social-links" [attr.aria-label]="socialMenuOpen() ? 'Cerrar redes sociales' : 'Abrir redes sociales'" (click)="socialMenuOpen.set(!socialMenuOpen()); socialNotice.set('')">
+  <button type="button" class="social-toggle" [attr.aria-expanded]="socialMenuOpen()" aria-controls="partly-social-links" [attr.aria-label]="socialMenuOpen() ? 'Cerrar redes sociales' : 'Abrir redes sociales'" (click)="socialMenuOpen.set(!socialMenuOpen()); socialNotice.set('')">
     <span class="material-symbols-outlined" aria-hidden="true">{{ socialMenuOpen() ? 'close' : 'chat_bubble' }}</span>
   </button>
 </aside>

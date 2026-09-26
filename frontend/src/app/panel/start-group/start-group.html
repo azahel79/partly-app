@@ -53,7 +53,7 @@
         </div>
         <dl class="space-y-2 text-sm">
           <div class="flex justify-between"><dt class="text-on-surface-variant">Cobras a tus miembros</dt><dd class="font-bold text-ink tabular-nums">{{ money(p.now.gross) }}</dd></div>
-          <div class="flex justify-between"><dt class="text-on-surface-variant">Comisión de Vakeva{{ p.commissionPercentage !== null ? ' (' + p.commissionPercentage + '%)' : '' }}</dt><dd class="font-bold text-ink tabular-nums">− {{ money(p.now.commission) }}</dd></div>
+          <div class="flex justify-between"><dt class="text-on-surface-variant">Comisión de Partly{{ p.commissionPercentage !== null ? ' (' + p.commissionPercentage + '%)' : '' }}</dt><dd class="font-bold text-ink tabular-nums">− {{ money(p.now.commission) }}</dd></div>
           <div class="flex justify-between"><dt class="text-on-surface-variant">Costo de tu cuenta</dt><dd class="font-bold text-ink tabular-nums">− {{ money(p.accountCost) }}</dd></div>
         </dl>
         <div class="pt-3 border-t border-slate-100 flex justify-between items-baseline">
@@ -69,7 +69,7 @@
         </div>
         <dl class="space-y-2 text-sm">
           <div class="flex justify-between"><dt class="text-on-surface-variant">Cobras a tus miembros</dt><dd class="font-bold text-ink tabular-nums">{{ money(p.full.gross) }}</dd></div>
-          <div class="flex justify-between"><dt class="text-on-surface-variant">Comisión de Vakeva{{ p.commissionPercentage !== null ? ' (' + p.commissionPercentage + '%)' : '' }}</dt><dd class="font-bold text-ink tabular-nums">− {{ money(p.full.commission) }}</dd></div>
+          <div class="flex justify-between"><dt class="text-on-surface-variant">Comisión de Partly{{ p.commissionPercentage !== null ? ' (' + p.commissionPercentage + '%)' : '' }}</dt><dd class="font-bold text-ink tabular-nums">− {{ money(p.full.commission) }}</dd></div>
           <div class="flex justify-between"><dt class="text-on-surface-variant">Costo de tu cuenta</dt><dd class="font-bold text-ink tabular-nums">− {{ money(p.accountCost) }}</dd></div>
         </dl>
         <div class="pt-3 border-t border-slate-100 flex justify-between items-baseline">
@@ -82,7 +82,7 @@
     @if (p.commissionPercentage === null) {
       <div class="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-900">
         <span class="material-symbols-outlined shrink-0">info</span>
-        <p class="text-sm">Vakeva todavía no te asigna el porcentaje de comisión, por eso no podemos calcular tu ganancia exacta.</p>
+        <p class="text-sm">Partly todavía no te asigna el porcentaje de comisión, por eso no podemos calcular tu ganancia exacta.</p>
       </div>
     }
 

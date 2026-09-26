@@ -31,10 +31,10 @@ describe('landing scenes with the GSAP runtime', () => {
   it('can finish entrances and revert without leaving triggers or inline styles', () => {
     host = document.createElement('main');
     host.innerHTML = `
-      <section class="landing-hero"><div class="hero-inner"><p class="hero-description">Vakeva</p>
+      <section class="landing-hero"><div class="hero-inner"><p class="hero-description">Partly</p>
         <div class="phone-shell"><div class="subscription-list"><article>Netflix</article></div></div>
       </div></section>
-      <section class="comparison-card"><div class="bar individual"><b>$219</b></div><div class="bar vakeva"><b>$49</b></div></section>
+      <section class="comparison-card"><div class="bar individual"><b>$219</b></div><div class="bar partly"><b>$49</b></div></section>
       <section class="process-section"><div class="process-grid"><article class="process-card"><h3>Explora</h3><p>Elige tu grupo</p></article></div></section>
       <section class="security-section"><div class="shield-visual"></div></section>
       <section class="platforms-showcase"><div class="platform-art">Disney+</div></section>

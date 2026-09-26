@@ -88,10 +88,10 @@ export class ProviderOrdersService {
     return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
   }
 
-  /** Sin la cuenta de Vakeva publicada no hay a dónde pagar: no se abre ninguna compra. */
+  /** Sin la cuenta de Partly publicada no hay a dónde pagar: no se abre ninguna compra. */
   private async assertPaymentAccount(): Promise<void> {
     if (!(await this.commissionsService.getBankAccount())) {
-      throw new BadRequestException('El mayoreo todavía no está disponible: Vakeva no ha publicado su cuenta para recibir el pago.');
+      throw new BadRequestException('El mayoreo todavía no está disponible: Partly no ha publicado su cuenta para recibir el pago.');
     }
   }
 

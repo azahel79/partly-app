@@ -62,8 +62,8 @@ export const routes: Routes = [
       { path: 'usuarios', loadComponent: () => import('./admin/users-list/users-list').then((m) => m.UsersList) },
     ],
   },
-  { path: 'vakeva-ops-b70ae4/login', redirectTo: 'admin/login', pathMatch: 'full' },
-  { path: 'vakeva-ops-b70ae4', redirectTo: 'admin', pathMatch: 'full' },
-  { path: 'vakeva-ops-b70ae4/incidencias/:id', redirectTo: 'admin/incidencias/:id' },
-  { path: 'vakeva-ops-b70ae4/:section', redirectTo: 'admin/:section' },
+  { path: 'partly-ops-b70ae4/login', redirectTo: 'admin/login', pathMatch: 'full' },
+  { path: 'partly-ops-b70ae4', redirectTo: 'admin', pathMatch: 'full' },
+  { path: 'partly-ops-b70ae4/incidencias/:id', redirectTo: 'admin/incidencias/:id' },
+  { path: 'partly-ops-b70ae4/:section', redirectTo: 'admin/:section' },
 ];

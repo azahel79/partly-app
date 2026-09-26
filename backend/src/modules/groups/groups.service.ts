@@ -140,7 +140,7 @@ export class GroupsService {
       await this.notificationsService.create(this.prisma, {
         userId: group.ownerId,
         type: NotificationType.SYSTEM,
-        payload: `Tu grupo de ${platform} quedó en revisión de Vakeva. Para que puedan revisarlo, envía las credenciales de la cuenta desde "Gestionar grupo".`,
+        payload: `Tu grupo de ${platform} quedó en revisión de Partly. Para que puedan revisarlo, envía las credenciales de la cuenta desde "Gestionar grupo".`,
         groupId: group.id,
       });
       const admins = await this.prisma.user.findMany({ where: { role: Role.ADMIN, deletedAt: null, id: { not: group.ownerId } }, select: { id: true } });
@@ -484,7 +484,7 @@ export class GroupsService {
     if (group.approvalStatus !== GroupApprovalStatus.PENDING) {
       throw new BadRequestException('Solo puedes solicitar credenciales mientras el grupo está pendiente de revisión.');
     }
-    // El vendedor primero tiene que saber cuánto se lleva Vakeva para decidir si le conviene; sin comisión
+    // El vendedor primero tiene que saber cuánto se lleva Partly para decidir si le conviene; sin comisión
     // definida no se le piden credenciales.
     if (group.commissionPercentage === null) {
       throw new BadRequestException('Define primero la comisión del grupo: el vendedor debe conocerla antes de enviar sus credenciales.');
@@ -503,7 +503,7 @@ export class GroupsService {
         userId: group.ownerId,
         type: NotificationType.SYSTEM,
         payload:
-          `El equipo de Vakeva solicita las credenciales de ${group.plan.platform.name}. Entra a tu grupo y usa el botón "Enviar credenciales al administrador" para continuar con la revisión.` +
+          `El equipo de Partly solicita las credenciales de ${group.plan.platform.name}. Entra a tu grupo y usa el botón "Enviar credenciales al administrador" para continuar con la revisión.` +
           (group.commissionPercentage ? ` ${this.commissionSummary(group)}` : ''),
         groupId: group.id,
       });
@@ -514,7 +514,7 @@ export class GroupsService {
   private commissionSummary(group: { commissionPercentage: Prisma.Decimal | null; pricePerSlot: Prisma.Decimal; availableSlots: number }): string {
     const pct = Number(group.commissionPercentage);
     const gross = Number(group.pricePerSlot) * group.availableSlots;
-    return `Comisión de Vakeva para tu grupo: ${pct}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirías $${(gross * (1 - pct / 100)).toFixed(2)} al mes; si quieres, ajusta tu precio.`;
+    return `Comisión de Partly para tu grupo: ${pct}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirías $${(gross * (1 - pct / 100)).toFixed(2)} al mes; si quieres, ajusta tu precio.`;
   }
 
   /**
@@ -543,10 +543,10 @@ export class GroupsService {
         userId: group.ownerId,
         type: NotificationType.SYSTEM,
         payload:
-          `Vakeva definió la comisión de tu grupo de ${group.plan.platform.name}. ${this.commissionSummary(updated)}` +
+          `Partly definió la comisión de tu grupo de ${group.plan.platform.name}. ${this.commissionSummary(updated)}` +
           (updated.credentialReviewStatus === CredentialReviewStatus.SUBMITTED
             ? ''
-            : ' Cuando estés de acuerdo, envía las credenciales de la cuenta desde "Gestionar grupo" para que Vakeva pueda revisarla y aprobar tu grupo.'),
+            : ' Cuando estés de acuerdo, envía las credenciales de la cuenta desde "Gestionar grupo" para que Partly pueda revisarla y aprobar tu grupo.'),
         groupId: group.id,
       });
       return updated;
@@ -593,7 +593,7 @@ export class GroupsService {
         commissionPercentage = Number(group.commissionPercentage);
       }
       if (commissionPercentage === undefined) {
-        throw new BadRequestException('Asigna el porcentaje de comisión de Vakeva para este grupo antes de aprobarlo.');
+        throw new BadRequestException('Asigna el porcentaje de comisión de Partly para este grupo antes de aprobarlo.');
       }
       if (commissionPercentage < COMMISSION_MIN_PCT || commissionPercentage > COMMISSION_MAX_PCT) {
         throw new BadRequestException(`La comisión debe estar entre ${COMMISSION_MIN_PCT}% y ${COMMISSION_MAX_PCT}%.`);
@@ -620,7 +620,7 @@ export class GroupsService {
         type: NotificationType.SYSTEM,
         payload:
           newStatus === GroupApprovalStatus.APPROVED
-            ? `Tu grupo de ${group.plan.platform.name} fue aprobado con una comisión de Vakeva del ${commissionPercentage}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirás $${(Number(group.pricePerSlot) * group.availableSlots * (1 - commissionPercentage! / 100)).toFixed(2)} al mes, y ya puede aparecer en el marketplace.`
+            ? `Tu grupo de ${group.plan.platform.name} fue aprobado con una comisión de Partly del ${commissionPercentage}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirás $${(Number(group.pricePerSlot) * group.availableSlots * (1 - commissionPercentage! / 100)).toFixed(2)} al mes, y ya puede aparecer en el marketplace.`
             : `Tu grupo de ${group.plan.platform.name} fue rechazado: ${reason!.trim()}`,
         groupId: group.id,
       });
@@ -694,7 +694,7 @@ export class GroupsService {
         throw new BadRequestException('Este grupo no está buscando miembros ahora mismo.');
       }
       if (group.approvalStatus !== GroupApprovalStatus.APPROVED) {
-        throw new BadRequestException('Este grupo todavía no ha sido aprobado por Vakeva.');
+        throw new BadRequestException('Este grupo todavía no ha sido aprobado por Partly.');
       }
       if (!group.credential) {
         throw new BadRequestException('El vendedor todavía no ha subido las credenciales de acceso a la cuenta.');
@@ -1017,7 +1017,7 @@ export class GroupsService {
 
   /**
    * Números que ve el vendedor antes de decidir si inicia: cuánto cobraría con los cupos ya
-   * reservados, cuánto se lleva Vakeva y qué le queda contra lo que le costó la cuenta.
+   * reservados, cuánto se lleva Partly y qué le queda contra lo que le costó la cuenta.
    */
   async getStartPreview(groupId: string, requester: AuthenticatedUser) {
     const group = await this.prisma.group.findUnique({
@@ -1102,7 +1102,7 @@ export class GroupsService {
       throw new BadRequestException('Este grupo ya inició.');
     }
     if (group.approvalStatus !== GroupApprovalStatus.APPROVED) {
-      throw new BadRequestException('Vakeva todavía no aprueba este grupo.');
+      throw new BadRequestException('Partly todavía no aprueba este grupo.');
     }
     if (!group.credential) {
       throw new BadRequestException('Sube las credenciales de la cuenta antes de iniciar el grupo.');
@@ -1363,10 +1363,10 @@ export class GroupsService {
     if (group.ownerId !== requester.id) {
       throw new ForbiddenException('Solo el owner de este grupo puede establecer la credencial compartida.');
     }
-    // Con el grupo en revisión, las credenciales solo se envían cuando Vakeva las pide (o para corregir unas
+    // Con el grupo en revisión, las credenciales solo se envían cuando Partly las pide (o para corregir unas
     // ya enviadas): antes de eso el vendedor todavía no sabe si acepta la comisión.
     if (group.approvalStatus === GroupApprovalStatus.PENDING && group.credentialReviewStatus === CredentialReviewStatus.NOT_REQUESTED) {
-      throw new ForbiddenException('Vakeva todavía no te pide las credenciales. Te avisaremos cuando definan tu comisión y puedas enviarlas.');
+      throw new ForbiddenException('Partly todavía no te pide las credenciales. Te avisaremos cuando definan tu comisión y puedas enviarlas.');
     }
     const key = this.configService.get<string>('credentialsEncryptionKey')!;
     const data = {

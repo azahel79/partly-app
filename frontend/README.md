@@ -1,6 +1,6 @@
-# Vakeva Web
+# Partly Web
 
-Aplicación Angular 22 de Vakeva. Incluye landing pública, autenticación, panel de compradores/vendedores y panel administrativo.
+Aplicación Angular 22 de Partly. Incluye landing pública, autenticación, panel de compradores/vendedores y panel administrativo.
 
 ## Desarrollo
 

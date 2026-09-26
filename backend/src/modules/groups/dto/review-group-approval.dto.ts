@@ -8,7 +8,7 @@ export class ReviewGroupApprovalDto {
   status: GroupApprovalStatus;
 
   @ApiPropertyOptional({
-    example: 'La plataforma que describes no está permitida en el catálogo de Vakeva.',
+    example: 'La plataforma que describes no está permitida en el catálogo de Partly.',
     description: 'Obligatorio si status es REJECTED — el vendedor lo ve tal cual.',
   })
   @IsOptional()
@@ -18,7 +18,7 @@ export class ReviewGroupApprovalDto {
 
   @ApiPropertyOptional({
     example: 12,
-    description: 'Obligatorio si status es APPROVED — % que se queda Vakeva de cada cobro a los miembros de este grupo (rango permitido 10%-15%).',
+    description: 'Obligatorio si status es APPROVED — % que se queda Partly de cada cobro a los miembros de este grupo (rango permitido 10%-15%).',
   })
   @IsOptional()
   @IsNumber()

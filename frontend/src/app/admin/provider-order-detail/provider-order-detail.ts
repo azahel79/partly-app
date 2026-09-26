@@ -55,7 +55,7 @@ export class ProviderOrderDetail implements OnInit {
     return o ? KIND_LABEL[o.kind] : '';
   });
 
-  /** Lo que le deja a Vakeva vender esta cuenta frente a lo que cuesta oficialmente, para dimensionar el descuento que se le da al vendedor. */
+  /** Lo que le deja a Partly vender esta cuenta frente a lo que cuesta oficialmente, para dimensionar el descuento que se le da al vendedor. */
   protected readonly discountPct = computed(() => {
     const o = this.order();
     if (!o) return 0;

@@ -693,7 +693,7 @@ export class GroupDetail implements OnInit {
     });
   }
 
-  /** Copia el enlace público de este grupo para que el owner lo comparta fuera de Vakeva. */
+  /** Copia el enlace público de este grupo para que el owner lo comparta fuera de Partly. */
   protected shareGroupLink(): void {
     const group = this.group();
     if (!group) {

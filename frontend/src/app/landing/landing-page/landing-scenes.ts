@@ -84,9 +84,9 @@ export function mountLandingScenes(
   // Prices remain real text; only chart geometry animates, not the amounts.
   sequence('.comparison-card', [
     { selector: '.bar.individual', from: { scaleY: 0, transformOrigin: 'center bottom' }, to: { scaleY: 1, duration: 1.2, stagger: 0.12 }, at: 0.1 },
-    { selector: '.bar.vakeva', from: { scaleY: 0, transformOrigin: 'center bottom' }, to: { scaleY: 1, duration: 1, stagger: 0.12, ease: 'back.out(1.4)' }, at: 0.45 },
+    { selector: '.bar.partly', from: { scaleY: 0, transformOrigin: 'center bottom' }, to: { scaleY: 1, duration: 1, stagger: 0.12, ease: 'back.out(1.4)' }, at: 0.45 },
     { selector: '.bar b, .bar > span', from: { opacity: 0, y: 8 }, at: 0.85 },
-    { selector: '.vakeva-price > *', from: { opacity: 0, y: 18 }, at: 0.55 },
+    { selector: '.partly-price > *', from: { opacity: 0, y: 18 }, at: 0.55 },
   ]);
   sequence('.grace-payment-card', [
     { selector: '.plan-features > span', from: { opacity: 0, x: -16 }, at: 0.1 },

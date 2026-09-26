@@ -104,7 +104,7 @@ export class AdminLayout implements OnInit, OnDestroy {
     if (n.type.startsWith('WHOLESALE_ACCESS_')) return 'Acceso a mayoreo';
     if (n.type.startsWith('COMMISSION_')) return 'Comisiones';
     if (n.type.startsWith('PAYMENT_')) return 'Pagos';
-    return n.groupId ? 'Grupo' : 'Aviso de Vakeva';
+    return n.groupId ? 'Grupo' : 'Aviso de Partly';
   }
 
   protected openNotification(n: Notification): void {

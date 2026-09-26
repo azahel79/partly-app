@@ -29,8 +29,8 @@ async function bootstrap() {
 
   if (configService.get<boolean>('swaggerEnabled')) {
     const swaggerConfig = new DocumentBuilder()
-      .setTitle('Vakeva API')
-      .setDescription('API de Vakeva para grupos, pagos, comisiones, proveedores y soporte.')
+      .setTitle('Partly API')
+      .setDescription('API de Partly para grupos, pagos, comisiones, proveedores y soporte.')
       .setVersion('0.1.0')
       .addBearerAuth()
       .build();
@@ -41,7 +41,7 @@ async function bootstrap() {
   const port = configService.get<number>('port') ?? 3000;
   await app.listen(port);
   // eslint-disable-next-line no-console
-  console.log(`Vakeva API escuchando en http://localhost:${port}/api`);
+  console.log(`Partly API escuchando en http://localhost:${port}/api`);
 }
 
 bootstrap();

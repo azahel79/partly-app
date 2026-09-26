@@ -1,4 +1,4 @@
-// Esquema canónico de Vakeva: identidad, catálogo, grupos, pagos, comisiones,
+// Esquema canónico de Partly: identidad, catálogo, grupos, pagos, comisiones,
 // proveedores, mayoreo, correo, notificaciones y soporte.
 
 generator client {
@@ -104,7 +104,7 @@ enum EmailStatus {
   SKIPPED
 }
 
-// Estado de cada ganancia registrada por un pago validado, respecto a la comisión de Vakeva.
+// Estado de cada ganancia registrada por un pago validado, respecto a la comisión de Partly.
 enum CommissionEntryStatus {
   ACCRUED // generada, todavía no se le cobra al vendedor
   BILLED  // incluida en un cobro de comisión que el vendedor debe pagar
@@ -169,7 +169,7 @@ enum WholesaleAccessStatus {
   REVOKED
 }
 
-// Una compra al mayoreo se paga por transferencia a la cuenta de Vakeva con comprobante:
+// Una compra al mayoreo se paga por transferencia a la cuenta de Partly con comprobante:
 // AWAITING_PAYMENT = reservada, el comprador tiene un plazo para transferir y subir su
 // comprobante; PENDING_APPROVAL = comprobante subido, el admin lo valida; PENDING_DELIVERY =
 // pago validado, falta entregar la cuenta.
@@ -590,11 +590,11 @@ model PayoutRequest {
   @@map("payout_requests")
 }
 
-// ---------- Ganancias y comisión de Vakeva ----------
+// ---------- Ganancias y comisión de Partly ----------
 
-// Una fila por cada pago que el vendedor validó: cuánto entró, cuánto es comisión de Vakeva
+// Una fila por cada pago que el vendedor validó: cuánto entró, cuánto es comisión de Partly
 // y cuánto se queda el vendedor. El dinero del comprador va directo a la cuenta del vendedor;
-// la comisión NO se descuenta de ningún saldo, el vendedor la transfiere a Vakeva (ver
+// la comisión NO se descuenta de ningún saldo, el vendedor la transfiere a Partly (ver
 // CommissionCharge).
 model EarningEntry {
   id                   String                @id @default(uuid())
@@ -623,9 +623,9 @@ model EarningEntry {
   @@map("earning_entries")
 }
 
-// Lo que el vendedor le debe a Vakeva por sus ganancias ya exigibles: uno solo abierto por
+// Lo que el vendedor le debe a Partly por sus ganancias ya exigibles: uno solo abierto por
 // vendedor que junta la comisión de todos sus grupos. Se paga por transferencia a la cuenta
-// de Vakeva (PlatformSettings) con comprobante, que el admin valida.
+// de Partly (PlatformSettings) con comprobante, que el admin valida.
 model CommissionCharge {
   id                String                 @id @default(uuid())
   sellerId          String                 @map("seller_id")
@@ -653,7 +653,7 @@ model CommissionCharge {
   @@map("commission_charges")
 }
 
-// Ajustes de la plataforma (una sola fila): la cuenta bancaria de Vakeva donde los vendedores
+// Ajustes de la plataforma (una sola fila): la cuenta bancaria de Partly donde los vendedores
 // transfieren la comisión y, más adelante, donde se paga el mayoreo.
 model PlatformSettings {
   id              String   @id @default("default")

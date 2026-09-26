@@ -5,7 +5,7 @@ import { filter } from 'rxjs';
 import { CommissionsService } from '../../shared/commissions.service';
 
 /**
- * Aviso del panel para el vendedor que debe comisión a Vakeva (o la tiene en revisión). No
+ * Aviso del panel para el vendedor que debe comisión a Partly (o la tiene en revisión). No
  * aparece si no debe nada, así que a quien solo compra nunca se le muestra.
  */
 @Component({

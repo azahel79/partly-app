@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Vakeva — Comparte tus suscripciones y paga solo tu parte</title>
-  <meta name="description" content="Divide el costo de Netflix, Spotify, Disney+ y más con quien tú quieras. Cupos verificados, credenciales cifradas con AES-256 y pagas solo por los días que usas. Ahorra hasta 75% en tus suscripciones con Vakeva.">
+  <title>Partly — Comparte tus suscripciones y paga solo tu parte</title>
+  <meta name="description" content="Divide el costo de Netflix, Spotify, Disney+ y más con quien tú quieras. Cupos verificados, credenciales cifradas con AES-256 y pagas solo por los días que usas. Ahorra hasta 75% en tus suscripciones con Partly.">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#F6F4EF">
   <base href="/">
@@ -11,40 +11,40 @@
   <!-- Modo oscuro del panel y el admin: se pinta antes de que arranque Angular para que no parpadee en claro. -->
   <script>
     try {
-      if (localStorage.getItem('vakeva.theme') === 'dark' && /^\/(panel|admin(?!\/login)|vakeva-ops-b70ae4(?!\/login))(\/|$)/.test(location.pathname)) {
+      if (localStorage.getItem('partly.theme') === 'dark' && /^\/(panel|admin(?!\/login)|partly-ops-b70ae4(?!\/login))(\/|$)/.test(location.pathname)) {
         document.documentElement.classList.add('dark');
       }
     } catch (e) {}
   </script>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="icon" type="image/png" sizes="256x256" href="vakeva-icon-square.png">
+  <link rel="icon" type="image/png" sizes="256x256" href="partly-icon-square.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
   <!--
-    TODO: replace https://vakeva.mx below with the real production domain
+    TODO: replace https://partly.mx below with the real production domain
     before deploying — canonical/og:url/twitter must point at the live site,
     not a placeholder, or search engines and social previews will be wrong.
   -->
-  <link rel="canonical" href="https://vakeva.mx/">
+  <link rel="canonical" href="https://partly.mx/">
 
   <!-- Open Graph (Facebook, WhatsApp, LinkedIn, Slack, iMessage previews) -->
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Vakeva">
+  <meta property="og:site_name" content="Partly">
   <meta property="og:locale" content="es_MX">
-  <meta property="og:url" content="https://vakeva.mx/">
-  <meta property="og:title" content="Vakeva — Comparte tus suscripciones y paga solo tu parte">
+  <meta property="og:url" content="https://partly.mx/">
+  <meta property="og:title" content="Partly — Comparte tus suscripciones y paga solo tu parte">
   <meta property="og:description" content="Divide el costo de Netflix, Spotify, Disney+ y más con quien tú quieras. Cupos verificados, credenciales cifradas y pagas solo por los días que usas.">
-  <meta property="og:image" content="https://vakeva.mx/og-image.png">
+  <meta property="og:image" content="https://partly.mx/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Vakeva — comparte tus suscripciones y paga solo tu parte">
+  <meta property="og:image:alt" content="Partly — comparte tus suscripciones y paga solo tu parte">
 
   <!-- Twitter / X card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Vakeva — Comparte tus suscripciones y paga solo tu parte">
+  <meta name="twitter:title" content="Partly — Comparte tus suscripciones y paga solo tu parte">
   <meta name="twitter:description" content="Divide el costo de Netflix, Spotify, Disney+ y más con quien tú quieras. Ahorra hasta 75% con cupos verificados y credenciales cifradas.">
-  <meta name="twitter:image" content="https://vakeva.mx/og-image.png">
-  <meta name="twitter:image:alt" content="Vakeva — comparte tus suscripciones y paga solo tu parte">
+  <meta name="twitter:image" content="https://partly.mx/og-image.png">
+  <meta name="twitter:image:alt" content="Partly — comparte tus suscripciones y paga solo tu parte">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,10 +55,10 @@
   {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "Vakeva",
-    "url": "https://vakeva.mx/",
-    "logo": "https://vakeva.mx/vakeva-logo.png",
-    "description": "Vakeva permite compartir suscripciones de streaming y otras plataformas digitales de forma segura, con credenciales cifradas y pagando solo por los días que usas.",
+    "name": "Partly",
+    "url": "https://partly.mx/",
+    "logo": "https://partly.mx/partly-logo.png",
+    "description": "Partly permite compartir suscripciones de streaming y otras plataformas digitales de forma segura, con credenciales cifradas y pagando solo por los días que usas.",
     "sameAs": []
   }
   </script>

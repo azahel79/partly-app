@@ -199,7 +199,7 @@ export class AdminGroupDetail implements OnInit {
       logoUrl: platformLogoSrc(platform.name) ?? platform.logoUrl,
       background: 'linear-gradient(118deg,#0d1431 0%,#123e4a 65%,#079a79 145%)',
       accent: '#35d3a5',
-      description: platform.categoryName ? `Servicio de ${platform.categoryName.toLowerCase()}.` : 'Suscripción compartida mediante Vakeva.',
+      description: platform.categoryName ? `Servicio de ${platform.categoryName.toLowerCase()}.` : 'Suscripción compartida mediante Partly.',
     };
   });
 

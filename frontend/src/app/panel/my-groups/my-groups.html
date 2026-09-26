@@ -76,7 +76,7 @@
                         Tú eres el admin
                       </span>
                       @if (group.approvalStatus === 'PENDING') {
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300">En revisión de Vakeva</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300">En revisión de Partly</span>
                       } @else if (group.approvalStatus === 'REJECTED') {
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-400/20 text-red-300">Rechazado</span>
                       } @else if (!group.hasCredentials) {
@@ -94,7 +94,7 @@
                       }
                     </div>
                     @if (group.approvalStatus === 'PENDING') {
-                      <p class="text-[10px] text-white/50 font-medium mt-1">No aparece en el marketplace hasta que Vakeva lo apruebe.</p>
+                      <p class="text-[10px] text-white/50 font-medium mt-1">No aparece en el marketplace hasta que Partly lo apruebe.</p>
                     } @else if (!group.hasCredentials) {
                       <p class="text-[10px] text-white/50 font-medium mt-1">Sube el correo y contraseña de la cuenta para que aparezca en el marketplace.</p>
                     }

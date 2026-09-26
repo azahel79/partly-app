@@ -9,7 +9,7 @@ import { toErrorMessage } from './http-error.util';
 export class ProviderListingsService {
   private readonly http = inject(HttpClient);
 
-  /** Cuentas activas de Vakeva disponibles para comprar al por mayor — lo que ve el vendedor. */
+  /** Cuentas activas de Partly disponibles para comprar al por mayor — lo que ve el vendedor. */
   findAvailable(page = 1, limit = 20): Observable<PaginatedProviderListings> {
     const params = new HttpParams().set('active', 'true').set('page', page).set('limit', limit);
     return this.http
