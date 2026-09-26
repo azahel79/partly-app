@@ -7,6 +7,13 @@
       <span class="tour-badge"><i></i> Vista fiel del producto · datos demostrativos</span>
       <h2 id="product-tour-title">Así se siente usar <span>Partly</span></h2>
       <p>Explora las pantallas y flujos principales con datos ficticios, sin exponer información de usuarios y sin salir de esta página.</p>
+      <div class="heading-actions">
+        <button type="button" (click)="toggleGuide()" [attr.aria-label]="isPlaying() ? 'Pausar demostración guiada' : 'Reproducir demostración guiada'">
+          <span class="material-symbols-outlined">{{ isPlaying() ? 'pause' : 'play_arrow' }}</span>
+          {{ isPlaying() ? 'Pausar recorrido' : 'Ver recorrido guiado' }}
+        </button>
+        <span><i></i> 3 pantallas · 10 segundos</span>
+      </div>
     </header>
 
     <div class="tour-layout">
@@ -32,7 +39,8 @@
         </div>
       </nav>
 
-      <article appReveal appRevealVariant="right" [appRevealDelay]="90" class="product-window">
+      <div appReveal appRevealVariant="right" [appRevealDelay]="90" class="demo-stage">
+      <article class="product-window">
         <header class="window-bar">
           <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
           <div class="window-address"><span class="material-symbols-outlined">lock</span>app.partly.mx</div>
@@ -45,6 +53,12 @@
           <span class="demo-avatar">AD</span>
         </div>
 
+        <div class="guide-progress" [class.is-playing]="isPlaying()" aria-hidden="true">
+          <i [class.is-active]="activeView() === 'explore'" [class.is-done]="activeView() !== 'explore'"></i>
+          <i [class.is-active]="activeView() === 'join'" [class.is-done]="activeView() === 'manage'"></i>
+          <i [class.is-active]="activeView() === 'manage'"></i>
+        </div>
+
         @switch (activeView()) {
           @case ('explore') {
             <div id="product-view-explore" class="demo-screen explore-screen" role="tabpanel">
@@ -53,6 +67,7 @@
                 <label class="demo-search"><span class="material-symbols-outlined">search</span><span>Buscar plataforma</span></label>
               </div>
               <div class="filter-row"><strong>Todos</strong><span>Entretenimiento</span><span>Música</span><span>Productividad</span></div>
+              <div class="screen-insights"><span><i class="material-symbols-outlined">verified_user</i>Grupos verificados</span><span><i class="material-symbols-outlined">bolt</i>Entrada inmediata</span><span><i class="material-symbols-outlined">savings</i>Hasta 75% menos</span></div>
               <div class="demo-group-grid">
                 <article class="demo-group-card">
                   <header><img src="logos/netflix.png" alt="" /><p><strong>Netflix</strong><small>Premium 4K</small></p><span>1 libre</span></header>
@@ -90,6 +105,7 @@
                   <small>Resumen de tu ingreso</small><h3>Tu parte este ciclo</h3>
                   <div class="summary-price"><strong>$47.46</strong><span>MXN</span></div>
                   <p>Precio prorrateado por los 16 días restantes.</p>
+                  <div class="saving-comparison"><span>Precio completo <s>$349</s></span><strong>Ahorras $301.54</strong></div>
                   <dl><div><dt>Próximos ciclos</dt><dd>$89.00</dd></div><div><dt>Protección Partly Shield</dt><dd>Incluida</dd></div><div><dt>Renovación</dt><dd>12 de octubre</dd></div></dl>
                   <a routerLink="/crear-cuenta">Crear cuenta y unirme<span class="material-symbols-outlined">arrow_forward</span></a>
                   <span class="secure-note"><span class="material-symbols-outlined">lock</span>Pago cifrado y protegido</span>
@@ -106,6 +122,7 @@
                 <article><span class="material-symbols-outlined">payments</span><p><strong>$267</strong><small>Recibido este ciclo</small></p><b>100%</b></article>
                 <article><span class="material-symbols-outlined">savings</span><p><strong>$260</strong><small>Tu ahorro mensual</small></p><b>−75%</b></article>
               </div>
+              <div class="activity-line"><span class="material-symbols-outlined">sync</span><p><strong>Información actualizada</strong><small>Pagos y movimientos sincronizados en tiempo real.</small></p><b>Ahora</b></div>
               <div class="management-grid">
                 <article class="cycle-card"><header><div><small>Netflix Premium</small><strong>Ciclo de septiembre</strong></div><span>Al corriente</span></header><div class="cycle-progress"><i></i></div><div class="cycle-labels"><span>Inicio · 12 sep</span><strong>18 días transcurridos</strong><span>Corte · 12 oct</span></div><footer><span class="material-symbols-outlined">notifications_active</span><p><strong>Recordatorios automáticos activos</strong><small>Partly avisará a cada miembro antes del corte.</small></p></footer></article>
                 <article class="members-card"><header><strong>Miembros</strong><span>4 activos</span></header><ul><li><i>A</i><p><strong>Andrea Díaz</strong><small>Anfitriona</small></p><b>Pagado</b></li><li><i>M</i><p><strong>Marco Ruiz</strong><small>Cupo 2</small></p><b>Pagado</b></li><li><i>L</i><p><strong>Laura Gómez</strong><small>Cupo 3</small></p><b>Pagado</b></li></ul></article>
@@ -114,6 +131,55 @@
           }
         }
       </article>
+
+      <aside class="demo-phone" aria-label="Vista móvil sincronizada de Partly">
+        <div class="phone-speaker" aria-hidden="true"></div>
+        <div class="phone-status"><strong>9:41</strong><span>● ◔ ▰</span></div>
+        <header><img src="partly-wordmark.png" alt="Partly" /><span class="material-symbols-outlined">notifications</span></header>
+
+        @switch (activeView()) {
+          @case ('explore') {
+            <div class="phone-view">
+              <small>Hola, Andrea</small><h3>Encuentra tu grupo</h3>
+              <div class="phone-search"><span class="material-symbols-outlined">search</span>Buscar plataforma</div>
+              <article class="phone-service"><img src="logos/netflix.png" alt="" /><p><strong>Netflix Premium</strong><small>1 lugar · $89/mes</small></p><b>4.9</b></article>
+              <article class="phone-service"><img src="logos/spotify.png" alt="" /><p><strong>Spotify Familiar</strong><small>2 lugares · $35/mes</small></p><b>5.0</b></article>
+              <div class="phone-trust"><span class="material-symbols-outlined">verified_user</span><p><strong>Partly Shield</strong><small>Todos los pagos protegidos</small></p></div>
+            </div>
+          }
+          @case ('join') {
+            <div class="phone-view phone-checkout">
+              <button type="button" (click)="selectView('explore')"><span class="material-symbols-outlined">arrow_back</span>Detalle del grupo</button>
+              <div class="phone-plan"><img src="logos/netflix.png" alt="" /><p><strong>Netflix Premium</strong><small>Cupo personal · Ultra HD</small></p></div>
+              <small>Tu parte este ciclo</small><h3>$47.46 <em>MXN</em></h3><p>16 días restantes</p>
+              <dl><div><dt>Próximo ciclo</dt><dd>$89</dd></div><div><dt>Partly Shield</dt><dd>Incluido</dd></div></dl>
+              <span class="phone-action">Unirme al grupo</span>
+              <div class="phone-lock"><span class="material-symbols-outlined">lock</span>Pago cifrado</div>
+            </div>
+          }
+          @case ('manage') {
+            <div class="phone-view">
+              <small>Tu grupo</small><h3>Netflix Premium</h3>
+              <div class="phone-cycle"><span><small>Próximo corte</small><strong>12 OCT</strong></span><i><b></b></i><p>62% del ciclo completado</p></div>
+              <article class="phone-member"><i>A</i><p><strong>Andrea</strong><small>Anfitriona</small></p><b>Pagado</b></article>
+              <article class="phone-member"><i>M</i><p><strong>Marco</strong><small>Cupo 2</small></p><b>Pagado</b></article>
+              <article class="phone-member"><i>L</i><p><strong>Laura</strong><small>Cupo 3</small></p><b>Pagado</b></article>
+              <div class="phone-trust"><span class="material-symbols-outlined">notifications_active</span><p><strong>Recordatorios activos</strong><small>Partly avisa por ti</small></p></div>
+            </div>
+          }
+        }
+
+        <nav aria-label="Navegación móvil ilustrativa"><span class="material-symbols-outlined">home</span><span class="material-symbols-outlined">travel_explore</span><span class="phone-nav-main material-symbols-outlined">add</span><span class="material-symbols-outlined">groups</span><span class="material-symbols-outlined">person</span></nav>
+        <div class="phone-home" aria-hidden="true"></div>
+      </aside>
+      </div>
+    </div>
+
+    <div appReveal class="tour-facts" aria-label="Funciones representadas en la demostración">
+      <article><span class="material-symbols-outlined">calculate</span><p><strong>Prorrateo automático</strong><small>El precio cambia según los días restantes.</small></p></article>
+      <article><span class="material-symbols-outlined">encrypted</span><p><strong>Protección integrada</strong><small>Pagos y accesos bajo Partly Shield.</small></p></article>
+      <article><span class="material-symbols-outlined">notifications_active</span><p><strong>Seguimiento del ciclo</strong><small>Fechas, pagos y recordatorios visibles.</small></p></article>
+      <article><span class="material-symbols-outlined">devices</span><p><strong>Diseño adaptable</strong><small>La misma experiencia en móvil y escritorio.</small></p></article>
     </div>
 
     <footer appReveal class="tour-footer">
