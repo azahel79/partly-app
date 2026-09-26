@@ -1,0 +1,937 @@
+// Esquema canónico de Vakeva: identidad, catálogo, grupos, pagos, comisiones,
+// proveedores, mayoreo, correo, notificaciones y soporte.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
+enum BillingPeriod {
+  MONTHLY
+  QUARTERLY
+  SEMIANNUAL
+  ANNUAL
+}
+
+enum GroupStatus {
+  SEARCHING_MEMBERS
+  READY_TO_START
+  ACTIVE
+  FULL
+  PAUSED
+  CANCELLED
+}
+
+// Moderación de admin, independiente del ciclo de vida de negocio (GroupStatus): un grupo
+// puede estar PENDING de aprobación y a la vez PAUSED, por ejemplo. Solo los APPROVED
+// aparecen en el marketplace público (GET /groups).
+enum GroupApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CredentialReviewStatus {
+  NOT_REQUESTED
+  REQUESTED
+  SUBMITTED
+  APPROVED
+}
+
+enum MembershipStatus {
+  RESERVED
+  ACTIVE
+  PENDING_PAYMENT
+  SUSPENDED
+  FINISHED
+  CANCELLED
+}
+
+enum BillingCycleStatus {
+  OPEN
+  CLOSED
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethodType {
+  CARD
+  WALLET
+}
+
+enum WalletTransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+}
+
+// Ciclo de vida de un correo en la bandeja de salida: QUEUED (por enviar) -> SENDING (lo tomó el
+// despachador) -> SENT o FAILED (después de agotar reintentos). SKIPPED = no se envió a propósito
+// (la persona desactivó los correos o no tiene dirección).
+enum EmailStatus {
+  QUEUED
+  SENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+// Estado de cada ganancia registrada por un pago validado, respecto a la comisión de Vakeva.
+enum CommissionEntryStatus {
+  ACCRUED // generada, todavía no se le cobra al vendedor
+  BILLED  // incluida en un cobro de comisión que el vendedor debe pagar
+  SETTLED // comisión ya pagada (o retenida antes de este esquema)
+}
+
+enum CommissionChargeStatus {
+  PENDING   // el vendedor debe transferir la comisión y subir su comprobante
+  IN_REVIEW // ya subió comprobante, el admin lo revisa
+  PAID      // el admin confirmó que llegó
+}
+
+enum NotificationType {
+  CREDENTIAL_UPDATED
+  PAYMENT_DUE_SOON
+  PAYMENT_FAILED
+  MEMBERSHIP_CANCELLED
+  PAYOUT_PAID
+  SYSTEM
+  PROVIDER_STATUS_CHANGED
+  PROVIDER_ORDER_PLACED
+  PROVIDER_ORDER_APPROVED
+  PROVIDER_ORDER_REJECTED
+  PROVIDER_ORDER_DELIVERED
+  INCIDENT_OPENED
+  INCIDENT_MESSAGE
+  INCIDENT_STATUS_CHANGED
+  PAYMENT_RECEIPT_UPLOADED
+  PAYMENT_RECEIPT_REJECTED
+  PAYMENT_CONFIRMED
+  COMMISSION_DUE
+  COMMISSION_REMINDER
+  COMMISSION_OVERDUE
+  COMMISSION_RECEIPT_UPLOADED
+  COMMISSION_PAID
+  COMMISSION_REJECTED
+  PROVIDER_ORDER_RECEIPT_UPLOADED
+  PROVIDER_ORDER_RECEIPT_REJECTED
+  PROVIDER_ORDER_EXPIRING
+  PROVIDER_ORDER_EXPIRED
+  PROVIDER_ORDER_CANCELLED
+  WHOLESALE_ACCESS_REQUESTED
+  WHOLESALE_ACCESS_APPROVED
+  WHOLESALE_ACCESS_REJECTED
+  GROUP_READY_TO_START
+  GROUP_FULL
+  GROUP_START_REMINDER
+}
+
+enum ProviderProfileStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+  REJECTED
+}
+
+// Acceso a comprar al mayoreo: no es para cualquiera, se gana con reputación y el admin lo autoriza.
+enum WholesaleAccessStatus {
+  REQUESTED  // cumple los requisitos y pidió acceso
+  AUTHORIZED
+  REJECTED
+  REVOKED
+}
+
+// Una compra al mayoreo se paga por transferencia a la cuenta de Vakeva con comprobante:
+// AWAITING_PAYMENT = reservada, el comprador tiene un plazo para transferir y subir su
+// comprobante; PENDING_APPROVAL = comprobante subido, el admin lo valida; PENDING_DELIVERY =
+// pago validado, falta entregar la cuenta.
+enum ProviderOrderStatus {
+  AWAITING_PAYMENT
+  PENDING_APPROVAL
+  PENDING_DELIVERY
+  FULFILLED
+  REJECTED
+  CANCELLED
+}
+
+enum IncidentContext {
+  GROUP_MEMBERSHIP
+  PROVIDER_ORDER
+}
+
+enum IncidentStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  ESCALATED
+}
+
+// ---------- Identidad y auth ----------
+
+model User {
+  id              String       @id @default(uuid())
+  name            String
+  email           String       @unique
+  passwordHash    String?      @map("password_hash")
+  phone           String?
+  role            Role         @default(USER)
+  authProvider    AuthProvider @default(LOCAL) @map("auth_provider")
+  googleId        String?      @unique @map("google_id")
+  avatarUrl       String?      @map("avatar_url")
+  emailVerified   Boolean      @default(false) @map("email_verified")
+  ratingAvg       Decimal      @default(0) @map("rating_avg") @db.Decimal(3, 2)
+  marketingOptOut Boolean      @default(false) @map("marketing_opt_out")
+  emailNotifications Boolean   @default(true) @map("email_notifications")
+  inAppNotifications Boolean   @default(true) @map("in_app_notifications")
+  notifyPayments    Boolean    @default(true) @map("notify_payments")
+  notifyGroups      Boolean    @default(true) @map("notify_groups")
+  notifyCredentials Boolean    @default(true) @map("notify_credentials")
+  notifyPayouts     Boolean    @default(true) @map("notify_payouts")
+  profileNameVisible   Boolean @default(true) @map("profile_name_visible")
+  profileAvatarVisible Boolean @default(true) @map("profile_avatar_visible")
+  timezone          String     @default("America/Mexico_City")
+  payoutAccountHolder String?  @map("payout_account_holder")
+  payoutBankName      String?  @map("payout_bank_name")
+  payoutClabeEncrypted String? @map("payout_clabe_encrypted")
+  payoutClabeLast4    String?  @map("payout_clabe_last4")
+  payoutVerified      Boolean  @default(false) @map("payout_verified")
+  deletedAt       DateTime?    @map("deleted_at")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+  ownedGroups         Group[]              @relation("GroupOwner")
+  reviewedGroups      Group[]              @relation("GroupReviewer")
+  memberships         GroupMembership[]
+  wallet              Wallet?
+  paymentMethods      PaymentMethod[]
+  payoutRequests      PayoutRequest[]
+  earningEntries      EarningEntry[]       @relation("SellerEarnings")
+  commissionCharges   CommissionCharge[]   @relation("SellerCommissionCharges")
+  reviewedCommissionCharges CommissionCharge[] @relation("CommissionChargeReviewer")
+  notifications       Notification[]
+  reviews             Review[]
+  adminActionLogs     AdminActionLog[]     @relation("AdminActor")
+  credentialChanges   CredentialHistory[]  @relation("CredentialChanger")
+
+  providerProfile          ProviderProfile?  @relation("ProviderUser")
+  reviewedProviderProfiles ProviderProfile[] @relation("ProviderReviewer")
+  providerOrders           ProviderOrder[]   @relation("ProviderOrderBuyer")
+  wholesaleAccess          WholesaleAccess?  @relation("WholesaleUser")
+  reviewedWholesaleAccess  WholesaleAccess[] @relation("WholesaleReviewer")
+  reportedIncidents        Incident[]        @relation("IncidentReporter")
+  assignedIncidents        Incident[]        @relation("IncidentAssignee")
+  incidentMessages         IncidentMessage[] @relation("IncidentMessageAuthor")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  userAgent String?   @map("user_agent")
+  ip        String?
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+// ---------- Catálogo administrado ----------
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  platforms PlatformCategory[]
+
+  @@map("categories")
+}
+
+model Platform {
+  id      String  @id @default(uuid())
+  name    String
+  logoUrl String? @map("logo_url")
+  active  Boolean @default(true)
+
+  plans      Plan[]
+  categories PlatformCategory[]
+
+  @@map("platforms")
+}
+
+// Tabla puente N:N: un servicio puede caer en varias categorías
+// (ej. YouTube Premium = Entretenimiento y Música) y viceversa.
+model PlatformCategory {
+  platformId String @map("platform_id")
+  categoryId String @map("category_id")
+
+  platform Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([platformId, categoryId])
+  @@index([categoryId])
+  @@map("platform_categories")
+}
+
+model Plan {
+  id                   String        @id @default(uuid())
+  platformId           String        @map("platform_id")
+  tierName             String        @map("tier_name")
+  officialPrice        Decimal       @map("official_price") @db.Decimal(10, 2)
+  maxSlots             Int           @map("max_slots")
+  billingPeriod        BillingPeriod @default(MONTHLY) @map("billing_period")
+  commissionPercentage Decimal       @map("commission_percentage") @db.Decimal(5, 2)
+  active               Boolean       @default(true)
+
+  platform         Platform          @relation(fields: [platformId], references: [id], onDelete: Restrict)
+  groups           Group[]
+  providerListings ProviderListing[]
+
+  @@index([platformId])
+  @@map("plans")
+}
+
+// ---------- Grupos y acceso compartido ----------
+
+model Group {
+  id                String      @id @default(uuid())
+  planId            String      @map("plan_id")
+  ownerId           String      @map("owner_id")
+  availableSlots    Int         @map("available_slots")
+  occupiedSlots     Int         @default(0) @map("occupied_slots")
+  pricePerSlot      Decimal     @map("price_per_slot") @db.Decimal(10, 2)
+  status            GroupStatus @default(SEARCHING_MEMBERS)
+  billingDay        Int         @map("billing_day")
+  nextRenewalDate   DateTime    @map("next_renewal_date")
+  bankAccountNumber String?     @map("bank_account_number")
+  createdAt         DateTime    @default(now()) @map("created_at")
+
+  approvalStatus   GroupApprovalStatus @default(APPROVED) @map("approval_status")
+  reviewedByUserId String?             @map("reviewed_by_user_id")
+  reviewedAt       DateTime?           @map("reviewed_at")
+  rejectionReason  String?             @map("rejection_reason")
+  internalNotes    String?             @map("internal_notes")
+  // El servicio arranca cuando el vendedor pulsa "Iniciar grupo" (con >=75% de cupos
+  // reservados). Hasta entonces nadie paga: billingDay y nextRenewalDate se recalculan
+  // desde startedAt.
+  startedAt              DateTime? @map("started_at")
+  // Avisos al vendedor antes de iniciar: readyNotifiedAt = último "ya tienes el 75%" (o "se llenó") y
+  // fullNotifiedAt = último "se llenó". Sirven de enfriamiento para no repetirle el aviso si el grupo
+  // sube y baja del umbral. readySince = desde cuándo está listo para iniciar (null si no lo está) y
+  // readyReminderStage = cuántos recordatorios de "inícialo" ya se le mandaron en esa espera.
+  readyNotifiedAt        DateTime? @map("ready_notified_at")
+  fullNotifiedAt         DateTime? @map("full_notified_at")
+  readySince             DateTime? @map("ready_since")
+  readyReminderStage     Int       @default(0) @map("ready_reminder_stage")
+
+  credentialReviewStatus CredentialReviewStatus @default(NOT_REQUESTED) @map("credential_review_status")
+  credentialsRequestedAt DateTime? @map("credentials_requested_at")
+  credentialsSubmittedAt DateTime? @map("credentials_submitted_at")
+  credentialsReviewedAt  DateTime? @map("credentials_reviewed_at")
+  // La asigna un ADMIN al aprobar el grupo (10%-13% sugerido) — reemplaza el % fijo del
+  // Plan para este grupo específico. Null mientras no se ha aprobado todavía.
+  commissionPercentage   Decimal?  @db.Decimal(5, 2) @map("commission_percentage")
+
+  plan              Plan                @relation(fields: [planId], references: [id], onDelete: Restrict)
+  owner             User                @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  reviewedBy        User?               @relation("GroupReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  credential        Credential?
+  credentialHistory CredentialHistory[]
+  memberships       GroupMembership[]
+  billingCycles     BillingCycle[]
+  reviews           Review[]
+  notifications     Notification[]
+  profiles          GroupProfile[]
+  earningEntries    EarningEntry[]
+  sourceProviderOrder ProviderOrder?
+
+  @@index([ownerId])
+  @@index([planId])
+  @@index([approvalStatus])
+  @@map("groups")
+}
+
+model Credential {
+  id                String   @id @default(uuid())
+  groupId           String   @unique @map("group_id")
+  usernameEncrypted String   @map("username_encrypted")
+  passwordEncrypted String   @map("password_encrypted")
+  notesEncrypted    String?  @map("notes_encrypted")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@map("credentials")
+}
+
+model CredentialHistory {
+  id              String   @id @default(uuid())
+  groupId         String   @map("group_id")
+  changedByUserId String   @map("changed_by_user_id")
+  changedAt       DateTime @default(now()) @map("changed_at")
+  changeReason    String?  @map("change_reason")
+
+  group     Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  changedBy User  @relation("CredentialChanger", fields: [changedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([groupId])
+  @@map("credential_history")
+}
+
+model GroupMembership {
+  id               String           @id @default(uuid())
+  groupId          String           @map("group_id")
+  userId           String           @map("user_id")
+  status           MembershipStatus @default(PENDING_PAYMENT)
+  autoRenew        Boolean          @default(true) @map("auto_renew")
+  joinedAt         DateTime         @default(now()) @map("joined_at")
+  leftAt           DateTime?        @map("left_at")
+  currentPeriodEnd DateTime         @map("current_period_end")
+  // Cuándo se le pidió dejar su reseña (una sola vez, a los 7 días de su primer pago validado).
+  reviewReminderSentAt DateTime?    @map("review_reminder_sent_at")
+
+  group     Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  payments  Payment[]
+  review    Review?
+  incidents Incident[]
+  profile   GroupProfile?
+
+  @@index([groupId])
+  @@index([userId])
+  @@map("group_memberships")
+}
+
+// Perfil dentro de la cuenta compartida (al estilo Netflix): uno por cupo del grupo. Se crean
+// automáticamente (uno por cada availableSlots) la primera vez que el owner sube la credencial,
+// y el owner puede renombrarlos o agregar/quitar extras. Al aprobar un comprobante de pago por
+// primera vez, el owner elige cuál perfil libre le asigna al comprador (reviewReceipt en
+// payments.service.ts); se libera de nuevo si esa membresía se cancela o vence.
+model GroupProfile {
+  id                   String   @id @default(uuid())
+  groupId              String   @map("group_id")
+  label                String
+  assignedMembershipId String?  @unique @map("assigned_membership_id")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  group              Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  assignedMembership GroupMembership? @relation(fields: [assignedMembershipId], references: [id], onDelete: SetNull)
+
+  @@index([groupId])
+  @@map("group_profiles")
+}
+
+// ---------- Facturación y pagos ----------
+
+model BillingCycle {
+  id          String             @id @default(uuid())
+  groupId     String             @map("group_id")
+  periodStart DateTime           @map("period_start")
+  periodEnd   DateTime           @map("period_end")
+  status      BillingCycleStatus @default(OPEN)
+
+  group          Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  payments       Payment[]
+  earningEntries EarningEntry[]
+
+  @@index([groupId])
+  @@map("billing_cycles")
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  billingCycleId    String        @map("billing_cycle_id")
+  membershipId      String        @map("membership_id")
+  paymentMethodId   String?       @map("payment_method_id")
+  amount            Decimal       @db.Decimal(10, 2)
+  status            PaymentStatus @default(PENDING)
+  retryCount        Int           @default(0) @map("retry_count")
+  graceUntil        DateTime?     @map("grace_until")
+  gatewayReference  String?       @map("gateway_reference")
+  paidAt            DateTime?     @map("paid_at")
+  reminderSentAt    DateTime?     @map("reminder_sent_at")
+  receiptPath       String?       @map("receipt_path")
+  receiptUploadedAt DateTime?     @map("receipt_uploaded_at")
+  // Último recordatorio automático que se le mandó al comprador (0 = ninguno): así cada aviso
+  // (3 días antes, el día del corte, ya vencido) sale una sola vez.
+  reminderStage     Int           @default(0) @map("reminder_stage")
+  // Periodo que cubre este pago. En una entrada tardía es solo lo que resta del ciclo en
+  // curso (proratedDays); si faltaban muy pocos días, includesNextCycle indica que también
+  // paga el ciclo siguiente completo y la renovación automática lo salta.
+  coveredFrom       DateTime?     @map("covered_from")
+  coveredUntil      DateTime?     @map("covered_until")
+  proratedDays      Int?          @map("prorated_days")
+  includesNextCycle Boolean       @default(false) @map("includes_next_cycle")
+  // Cobro por adelantado del ciclo siguiente (renovación generada 3 días antes del corte, o lugar que
+  // se liberó y tomó alguien que lo había apartado). Cuelga del ciclo en curso: cubre desde su fin.
+  forNextCycle      Boolean       @default(false) @map("for_next_cycle")
+
+  billingCycle      BillingCycle       @relation(fields: [billingCycleId], references: [id], onDelete: Cascade)
+  membership        GroupMembership    @relation(fields: [membershipId], references: [id], onDelete: Restrict)
+  paymentMethod     PaymentMethod?     @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
+  walletTransaction WalletTransaction?
+  earningEntry      EarningEntry?
+
+  @@index([billingCycleId])
+  @@index([membershipId])
+  @@map("payments")
+}
+
+model PaymentMethod {
+  id           String            @id @default(uuid())
+  userId       String            @map("user_id")
+  type         PaymentMethodType
+  gatewayToken String            @map("gateway_token")
+  isDefault    Boolean           @default(false) @map("is_default")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@index([userId])
+  @@map("payment_methods")
+}
+
+// ---------- Dinero: wallet, payouts ----------
+
+model Wallet {
+  id       String  @id @default(uuid())
+  userId   String  @unique @map("user_id")
+  balance  Decimal @default(0) @db.Decimal(12, 2)
+  currency String  @default("MXN")
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id              String                @id @default(uuid())
+  walletId        String                @map("wallet_id")
+  type            WalletTransactionType
+  amount          Decimal               @db.Decimal(10, 2)
+  relatedRef      String?               @map("related_ref")
+  paymentId       String?               @unique @map("payment_id")
+  payoutRequestId String?               @map("payout_request_id")
+  createdAt       DateTime              @default(now()) @map("created_at")
+
+  wallet        Wallet         @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  payment       Payment?       @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  payoutRequest PayoutRequest? @relation(fields: [payoutRequestId], references: [id], onDelete: SetNull)
+
+  @@index([walletId])
+  @@index([payoutRequestId])
+  @@map("wallet_transactions")
+}
+
+model PayoutRequest {
+  id          String       @id @default(uuid())
+  ownerId     String       @map("owner_id")
+  amount      Decimal      @db.Decimal(10, 2)
+  status      PayoutStatus @default(PENDING)
+  method      String
+  requestedAt DateTime     @default(now()) @map("requested_at")
+  paidAt      DateTime?    @map("paid_at")
+
+  owner              User                @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  walletTransactions WalletTransaction[]
+
+  @@index([ownerId])
+  @@map("payout_requests")
+}
+
+// ---------- Ganancias y comisión de Vakeva ----------
+
+// Una fila por cada pago que el vendedor validó: cuánto entró, cuánto es comisión de Vakeva
+// y cuánto se queda el vendedor. El dinero del comprador va directo a la cuenta del vendedor;
+// la comisión NO se descuenta de ningún saldo, el vendedor la transfiere a Vakeva (ver
+// CommissionCharge).
+model EarningEntry {
+  id                   String                @id @default(uuid())
+  paymentId            String                @unique @map("payment_id")
+  sellerId             String                @map("seller_id")
+  groupId              String                @map("group_id")
+  billingCycleId       String                @map("billing_cycle_id")
+  gross                Decimal               @db.Decimal(10, 2)
+  commissionPercentage Decimal               @map("commission_percentage") @db.Decimal(5, 2)
+  commission           Decimal               @db.Decimal(10, 2)
+  net                  Decimal               @db.Decimal(10, 2)
+  status               CommissionEntryStatus @default(ACCRUED)
+  chargeId             String?               @map("charge_id")
+  createdAt            DateTime              @default(now()) @map("created_at")
+
+  payment      Payment           @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  seller       User              @relation("SellerEarnings", fields: [sellerId], references: [id], onDelete: Restrict)
+  group        Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  billingCycle BillingCycle      @relation(fields: [billingCycleId], references: [id], onDelete: Cascade)
+  charge       CommissionCharge? @relation(fields: [chargeId], references: [id], onDelete: SetNull)
+
+  @@index([sellerId, status])
+  @@index([groupId])
+  @@index([billingCycleId])
+  @@index([chargeId])
+  @@map("earning_entries")
+}
+
+// Lo que el vendedor le debe a Vakeva por sus ganancias ya exigibles: uno solo abierto por
+// vendedor que junta la comisión de todos sus grupos. Se paga por transferencia a la cuenta
+// de Vakeva (PlatformSettings) con comprobante, que el admin valida.
+model CommissionCharge {
+  id                String                 @id @default(uuid())
+  sellerId          String                 @map("seller_id")
+  amount            Decimal                @db.Decimal(10, 2)
+  status            CommissionChargeStatus @default(PENDING)
+  // Desde cuándo es exigible, y hasta cuándo puede pagarla antes de que se restrinjan sus grupos.
+  dueAt             DateTime               @map("due_at")
+  payBy             DateTime               @map("pay_by")
+  receiptPath       String?                @map("receipt_path")
+  receiptUploadedAt DateTime?              @map("receipt_uploaded_at")
+  rejectionReason   String?                @map("rejection_reason")
+  reviewedByUserId  String?                @map("reviewed_by_user_id")
+  reviewedAt        DateTime?              @map("reviewed_at")
+  paidAt            DateTime?              @map("paid_at")
+  reminderSentAt    DateTime?              @map("reminder_sent_at")
+  overdueNotifiedAt DateTime?              @map("overdue_notified_at")
+  createdAt         DateTime               @default(now()) @map("created_at")
+
+  seller     User           @relation("SellerCommissionCharges", fields: [sellerId], references: [id], onDelete: Restrict)
+  reviewedBy User?          @relation("CommissionChargeReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  entries    EarningEntry[]
+
+  @@index([sellerId, status])
+  @@index([status, payBy])
+  @@map("commission_charges")
+}
+
+// Ajustes de la plataforma (una sola fila): la cuenta bancaria de Vakeva donde los vendedores
+// transfieren la comisión y, más adelante, donde se paga el mayoreo.
+model PlatformSettings {
+  id              String   @id @default("default")
+  bankHolder      String?  @map("bank_holder")
+  bankName        String?  @map("bank_name")
+  bankClabe       String?  @map("bank_clabe")
+  bankReference   String?  @map("bank_reference")
+  updatedByUserId String?  @map("updated_by_user_id")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("platform_settings")
+}
+
+// ---------- Correo electrónico ----------
+
+// Bandeja de salida: todo correo que sale de la app queda registrado aquí (patrón "outbox"), así
+// se puede reintentar, evitar duplicados (dedupeKey) y auditar qué se le mandó a quién. Con
+// MAIL_PROVIDER=log nada sale de verdad: queda guardado y visible para el admin en modo simulado.
+model EmailMessage {
+  id                String      @id @default(uuid())
+  toEmail           String      @map("to_email")
+  toUserId          String?     @map("to_user_id")
+  // Clave de la plantilla (notice, password-reset, manual-reminder...).
+  template          String
+  subject           String
+  html              String      @db.Text
+  text              String      @db.Text
+  status            EmailStatus @default(QUEUED)
+  // Quién lo envió: log, resend, brevo o smtp.
+  provider          String?
+  providerMessageId String?     @map("provider_message_id")
+  error             String?
+  attempts          Int         @default(0)
+  // Un correo con la misma dedupeKey no se vuelve a crear (recordatorios, aviso manual diario).
+  dedupeKey         String?     @unique @map("dedupe_key")
+  // No se manda antes de esta hora: los recordatorios no despiertan a nadie de madrugada.
+  sendAfter         DateTime?   @map("send_after")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  // Cambia con cada movimiento: así se detecta un envío que se quedó a medias (SENDING).
+  updatedAt         DateTime    @default(now()) @updatedAt @map("updated_at")
+  sentAt            DateTime?   @map("sent_at")
+
+  @@index([status, sendAfter])
+  @@index([toUserId, createdAt])
+  @@index([createdAt])
+  @@map("email_messages")
+}
+
+// ---------- Notificaciones, reseñas, auditoría ----------
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  payload   String
+  groupId   String?          @map("group_id")
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model Review {
+  id           String   @id @default(uuid())
+  groupId      String   @map("group_id")
+  membershipId String   @unique @map("membership_id")
+  authorUserId String   @map("author_user_id")
+  rating       Int
+  comment      String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  // Respuesta pública del vendedor a la reseña (puede editarla, pero no borrar la reseña).
+  sellerReply   String?   @map("seller_reply")
+  sellerReplyAt DateTime? @map("seller_reply_at")
+
+  group      Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  membership GroupMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  author     User            @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+  @@map("reviews")
+}
+
+model AdminActionLog {
+  id           String   @id @default(uuid())
+  adminUserId  String   @map("admin_user_id")
+  actionType   String   @map("action_type")
+  targetEntity String   @map("target_entity")
+  targetId     String   @map("target_id")
+  reason       String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  admin User @relation("AdminActor", fields: [adminUserId], references: [id], onDelete: Restrict)
+
+  @@index([adminUserId])
+  @@map("admin_action_logs")
+}
+
+// ---------- Proveedores externos (venta al por mayor de credenciales a vendedores) ----------
+
+// Perfil de proveedor sobre un User existente (igual que "ser vendedor" hoy es solo tener
+// un Group con ownerId propio: no es un Role nuevo, es una capacidad que se activa/aprueba).
+model ProviderProfile {
+  id               String                @id @default(uuid())
+  userId           String                @unique @map("user_id")
+  businessName     String                @map("business_name")
+  status           ProviderProfileStatus @default(PENDING)
+  reviewedByUserId String?               @map("reviewed_by_user_id")
+  reviewedAt       DateTime?             @map("reviewed_at")
+  createdAt        DateTime              @default(now()) @map("created_at")
+
+  user       User              @relation("ProviderUser", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy User?             @relation("ProviderReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  listings   ProviderListing[]
+
+  @@map("provider_profiles")
+}
+
+// Lo que el proveedor (el admin) pone a la venta al por mayor: es la cuenta completa de un
+// Plan ya existente en el catálogo — así el vendedor ve gratis cuántos perfiles trae y el
+// precio oficial (para calcular su margen) sin que el admin los vuelva a capturar. Solo
+// wholesalePrice y stockQuantity son propios de este listing; la comisión normal del Plan
+// sigue aplicando aparte, cuando el vendedor revenda cupos dentro de la app vía Group.
+model ProviderListing {
+  id                String   @id @default(uuid())
+  providerProfileId String   @map("provider_profile_id")
+  planId            String   @map("plan_id")
+  wholesalePrice    Decimal  @map("wholesale_price") @db.Decimal(10, 2)
+  stockQuantity     Int      @default(0) @map("stock_quantity")
+  active            Boolean  @default(true)
+  // Renovable: la misma cuenta sigue vigente si el vendedor paga la renovación. No renovable:
+  // la cuenta "se cambia" cada periodo (validityDays) y hay que comprar una reposición.
+  renewable         Boolean  @default(true)
+  validityDays      Int      @default(30) @map("validity_days")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  providerProfile ProviderProfile @relation(fields: [providerProfileId], references: [id], onDelete: Cascade)
+  plan            Plan            @relation(fields: [planId], references: [id], onDelete: Restrict)
+  orders          ProviderOrder[]
+
+  @@index([providerProfileId])
+  @@index([planId])
+  @@map("provider_listings")
+}
+
+// Una orden = una cuenta comprada por un vendedor a un proveedor. El pago se resuelve de
+// inmediato contra las wallets (mismo criterio que el resto de la app: no hay pasarela real
+// todavía), y la entrega de credenciales queda como paso aparte del proveedor — igual que
+// Group/Credential hoy: crear el grupo y cargar la credencial son dos pasos distintos.
+model ProviderOrder {
+  id          String              @id @default(uuid())
+  listingId   String              @map("listing_id")
+  buyerUserId String              @map("buyer_user_id")
+  unitPrice   Decimal             @map("unit_price") @db.Decimal(10, 2)
+  status      ProviderOrderStatus @default(PENDING_DELIVERY)
+  createdAt   DateTime            @default(now()) @map("created_at")
+  cancelledAt DateTime?           @map("cancelled_at")
+
+  // Condiciones de la cuenta al momento de comprarla (el listing puede cambiar después).
+  renewable    Boolean @default(true)
+  validityDays Int     @default(30) @map("validity_days")
+
+  // Pago por transferencia: plazo para subir el comprobante, el comprobante y su validación.
+  paymentDueAt          DateTime? @map("payment_due_at")
+  receiptPath           String?   @map("receipt_path")
+  receiptUploadedAt     DateTime? @map("receipt_uploaded_at")
+  receiptRejectionReason String?  @map("receipt_rejection_reason")
+  paidAt                DateTime? @map("paid_at")
+  // Si se cancela una orden ya pagada, el reembolso se hace a mano por transferencia.
+  refundedAt            DateTime? @map("refunded_at")
+
+  // Hasta cuándo sirve la cuenta entregada, y el último aviso de vencimiento que se mandó (0-4).
+  expiresAt         DateTime? @map("expires_at")
+  expiryNoticeStage Int       @default(0) @map("expiry_notice_stage")
+
+  // Una renovación (renewsOrderId) o una reposición (replacesOrderId) es otra orden que sigue
+  // el mismo flujo de pago; la renovación no consume stock y alarga la vigencia de la original.
+  renewsOrderId   String? @map("renews_order_id")
+  replacesOrderId String? @map("replaces_order_id")
+
+  // Se llena cuando el comprador usa esta orden (ya FULFILLED) para crear su Group —
+  // evita que la misma cuenta entregada se use para crear dos grupos por accidente.
+  resultingGroupId String? @unique @map("resulting_group_id")
+
+  listing       ProviderListing          @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  buyer         User                     @relation("ProviderOrderBuyer", fields: [buyerUserId], references: [id], onDelete: Restrict)
+  credential    ProviderOrderCredential?
+  incidents     Incident[]
+  resultingGroup Group?                  @relation(fields: [resultingGroupId], references: [id], onDelete: SetNull)
+  renews        ProviderOrder?           @relation("OrderRenewals", fields: [renewsOrderId], references: [id], onDelete: SetNull)
+  renewals      ProviderOrder[]          @relation("OrderRenewals")
+  replaces      ProviderOrder?           @relation("OrderReplacements", fields: [replacesOrderId], references: [id], onDelete: SetNull)
+  replacements  ProviderOrder[]          @relation("OrderReplacements")
+
+  @@index([listingId])
+  @@index([buyerUserId])
+  @@index([status, paymentDueAt])
+  @@map("provider_orders")
+}
+
+// Quién puede comprar al mayoreo. Sin fila = nunca lo ha pedido. Se gana con reputación
+// (ver WholesaleAccessService) y el admin lo autoriza a mano; monthlyCap limita cuántas
+// cuentas nuevas puede comprar por mes (null = sin tope).
+model WholesaleAccess {
+  userId           String                @id @map("user_id")
+  status           WholesaleAccessStatus
+  monthlyCap       Int?                  @map("monthly_cap")
+  requestedAt      DateTime?             @map("requested_at")
+  reviewedAt       DateTime?             @map("reviewed_at")
+  reviewedByUserId String?               @map("reviewed_by_user_id")
+  note             String?
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+
+  user       User  @relation("WholesaleUser", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("WholesaleReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@map("wholesale_access")
+}
+
+model ProviderOrderCredential {
+  id                String   @id @default(uuid())
+  orderId           String   @unique @map("order_id")
+  usernameEncrypted String   @map("username_encrypted")
+  passwordEncrypted String   @map("password_encrypted")
+  notesEncrypted    String?  @map("notes_encrypted")
+  deliveredAt       DateTime @default(now()) @map("delivered_at")
+
+  order ProviderOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("provider_order_credentials")
+}
+
+// ---------- Soporte / incidencias ----------
+
+// Un solo modelo de incidencia para los dos casos que se hablaron: comprador reporta
+// problema con la cuenta que le vendió su vendedor (contexto GROUP_MEMBERSHIP), o vendedor
+// reporta problema con la cuenta que le vendió el proveedor (contexto PROVIDER_ORDER).
+// Exactamente uno de los dos FKs va lleno según el contexto — se valida en el servicio.
+model Incident {
+  id                String          @id @default(uuid())
+  context           IncidentContext
+  groupMembershipId String?         @map("group_membership_id")
+  providerOrderId   String?         @map("provider_order_id")
+  reportedByUserId  String          @map("reported_by_user_id")
+  assignedToUserId  String          @map("assigned_to_user_id")
+  subject           String
+  status            IncidentStatus  @default(OPEN)
+  createdAt         DateTime        @default(now()) @map("created_at")
+  resolvedAt        DateTime?       @map("resolved_at")
+
+  groupMembership GroupMembership?  @relation(fields: [groupMembershipId], references: [id], onDelete: Cascade)
+  providerOrder   ProviderOrder?    @relation(fields: [providerOrderId], references: [id], onDelete: Cascade)
+  reportedBy      User              @relation("IncidentReporter", fields: [reportedByUserId], references: [id], onDelete: Restrict)
+  assignedTo      User              @relation("IncidentAssignee", fields: [assignedToUserId], references: [id], onDelete: Restrict)
+  messages        IncidentMessage[]
+
+  @@index([groupMembershipId])
+  @@index([providerOrderId])
+  @@index([reportedByUserId])
+  @@index([assignedToUserId])
+  @@map("incidents")
+}
+
+model IncidentMessage {
+  id           String   @id @default(uuid())
+  incidentId   String   @map("incident_id")
+  authorUserId String   @map("author_user_id")
+  body         String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  author   User     @relation("IncidentMessageAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+
+  @@index([incidentId])
+  @@map("incident_messages")
+}

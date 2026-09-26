@@ -1,0 +1,134 @@
+<main class="app-login-page">
+  <div class="login-shape shape-top anim-in-scale" style="animation-duration: 1.3s" aria-hidden="true"></div>
+  <div class="login-shape shape-bottom anim-in-scale" style="animation-duration: 1.3s; animation-delay: 0.08s" aria-hidden="true"></div>
+
+  <a routerLink="/" class="back-link anim-in-down">
+    <span class="material-symbols-outlined">arrow_back</span>
+    Volver a Vakeva
+  </a>
+
+  <section class="login-card anim-in-scale" style="animation-delay: 0.05s" aria-labelledby="login-title">
+    <header class="login-header">
+      <a routerLink="/" aria-label="Ir al inicio de Vakeva" class="anim-in-bounce" style="animation-delay: 0.18s">
+        <img src="vakeva-logo.png" alt="Vakeva" class="login-logo" />
+      </a>
+      <h1 id="login-title" class="anim-in" style="animation-delay: 0.26s">Bienvenido de <span>vuelta</span></h1>
+      <p class="anim-in" style="animation-delay: 0.32s">Inicia sesión para ver tus grupos<br />y pagos compartidos.</p>
+    </header>
+
+    <button type="button" (click)="continueWithGoogle()" class="google-button anim-in" style="animation-delay: 0.4s">
+      <span class="google-copy">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
+        </svg>
+        Continuar con Google
+      </span>
+      <span class="material-symbols-outlined">arrow_forward</span>
+    </button>
+
+    <div class="auth-divider anim-in" style="animation-delay: 0.46s">
+      <span></span>
+      <p>o continúa con tu correo</p>
+      <span></span>
+    </div>
+
+    <form (submit)="onSubmit($event, emailInput, passwordInput)" class="login-form">
+      <div class="field-group anim-in" style="animation-delay: 0.52s">
+        <label for="login-email">Correo electrónico</label>
+        <div class="field-shell">
+          <span class="material-symbols-outlined field-icon">mail</span>
+          <input
+            #emailInput
+            id="login-email"
+            type="email"
+            autocomplete="username"
+            required
+            placeholder="tucorreo@ejemplo.com"
+            [disabled]="submitting()"
+          />
+        </div>
+      </div>
+
+      <div class="field-group anim-in" style="animation-delay: 0.58s">
+        <label for="login-password">Contraseña</label>
+        <div class="field-shell">
+          <span class="material-symbols-outlined field-icon">lock</span>
+          <input
+            #passwordInput
+            id="login-password"
+            [type]="showPassword() ? 'text' : 'password'"
+            autocomplete="current-password"
+            required
+            placeholder="Ingresa tu contraseña"
+            [disabled]="submitting()"
+          />
+          <button type="button" (click)="togglePassword()" class="password-toggle" [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+            <span class="material-symbols-outlined">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <a routerLink="/" class="forgot-link anim-in" style="animation-delay: 0.64s">¿Olvidaste tu contraseña?</a>
+
+      <label class="remember-option anim-in" style="animation-delay: 0.68s">
+        <input type="checkbox" checked />
+        <span class="custom-check"><span class="material-symbols-outlined">check</span></span>
+        <span>Mantener sesión iniciada</span>
+      </label>
+
+      @if (errorMessage()) {
+        <div class="login-alert" role="alert">
+          <span class="material-symbols-outlined">error</span>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <button type="submit" [disabled]="submitting()" class="submit-button anim-in-bounce" style="animation-delay: 0.76s">
+        <span>{{ submitting() ? 'Entrando…' : 'Iniciar sesión' }}</span>
+        @if (!submitting()) {
+          <span class="material-symbols-outlined">arrow_forward</span>
+        }
+      </button>
+    </form>
+
+    <div class="platform-pill anim-in" style="animation-delay: 0.86s">
+      <div class="platform-icons" aria-hidden="true">
+        <span class="netflix">N</span>
+        <span class="spotify">●</span>
+        <span class="disney">D+</span>
+      </div>
+      <span>División automática: Netflix, Spotify, Disney+ y más</span>
+      <span class="material-symbols-outlined">chevron_right</span>
+    </div>
+
+    <div class="signup-row anim-in" style="animation-delay: 0.92s">
+      <span>¿No tienes cuenta?</span>
+      <a routerLink="/crear-cuenta">Crear cuenta <span class="material-symbols-outlined">arrow_forward</span></a>
+    </div>
+
+    <div class="trust-features">
+      <div class="trust-item anim-in-bounce" style="animation-delay: 0.98s">
+        <span class="material-symbols-outlined">verified_user</span>
+        <strong>Seguro y confiable</strong>
+        <small>Tus datos están protegidos</small>
+      </div>
+      <div class="trust-item anim-in-bounce" style="animation-delay: 1.04s">
+        <span class="material-symbols-outlined">lock</span>
+        <strong>No almacenamos<br />tu contraseña</strong>
+      </div>
+      <div class="trust-item anim-in-bounce" style="animation-delay: 1.1s">
+        <span class="material-symbols-outlined">bolt</span>
+        <strong>Cancela cuando quieras</strong>
+        <small>Sin permanencias</small>
+      </div>
+    </div>
+  </section>
+
+  <footer class="login-footer anim-in" style="animation-delay: 1.2s">
+    <p>Juntos hacemos un mejor control de tus suscripciones</p>
+    <span><i></i></span>
+  </footer>
+</main>

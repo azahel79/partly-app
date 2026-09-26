@@ -1,0 +1,31 @@
+.profile-menu-wrap{position:relative}.profile-trigger{height:43px;display:flex;align-items:center;gap:8px;padding:4px 8px 4px 4px;border:1px solid transparent;border-radius:14px;background:transparent;color:#111735;cursor:pointer;transition:.2s}.profile-trigger:hover,.profile-trigger.open{border-color:#e7ebed;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.05)}.profile-trigger-avatar{width:34px;height:34px;display:grid;place-items:center;flex:none;overflow:hidden;border-radius:50%;background:#101631;color:#fff;font-size:10px;font-weight:900}.profile-trigger-avatar img{width:100%;height:100%;object-fit:cover}.profile-trigger-copy{min-width:0;display:grid;text-align:left;line-height:1.2}.profile-trigger-copy strong{max-width:115px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}.profile-trigger-copy small{color:#7a849b;font-size:8px}.profile-chevron{color:#727d94;font-size:17px;transition:.2s}.profile-trigger.open .profile-chevron{rotate:180deg}.profile-dropdown{position:absolute;z-index:50;right:0;top:49px;width:270px;padding:9px;border:1px solid #e8ecee;border-radius:17px;background:#fff;box-shadow:0 20px 48px rgba(17,29,52,.17)}.profile-dropdown header{display:flex;align-items:center;gap:10px;padding:8px 8px 12px;border-bottom:1px solid #edf0f2}.profile-dropdown header div{min-width:0}.profile-dropdown header strong,.profile-dropdown header small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.profile-dropdown header strong{font-size:10px}.profile-dropdown header small{margin-top:2px;color:#7d879c;font-size:8px}.profile-dropdown>a,.profile-dropdown>button{width:100%;display:grid;grid-template-columns:33px 1fr 16px;align-items:center;gap:9px;padding:10px 8px;border:0;border-radius:11px;background:transparent;color:#17203b;text-decoration:none;text-align:left;cursor:pointer}.profile-dropdown>a:hover,.profile-dropdown>button:hover{background:#f1f8f6;color:#008f6e}.profile-dropdown>a>span,.profile-dropdown>button>span{width:32px;height:32px;display:grid;place-items:center;border-radius:10px;background:#e8f6f2;color:#009777;font-size:17px}.profile-dropdown>a div,.profile-dropdown>button div{display:grid;gap:2px}.profile-dropdown>a strong,.profile-dropdown>button strong{font-size:9.5px}.profile-dropdown>a small,.profile-dropdown>button small{color:#7d879c;font-size:7.5px}.profile-dropdown>a>i{font-size:15px}.profile-dropdown>button{margin-top:3px;border-top:1px solid #edf0f2;border-radius:0;color:#c93449}.profile-dropdown>button>span{background:#fff0f2;color:#d23b50}@media(max-width:700px){.profile-trigger-copy{display:none}.profile-trigger{padding-right:4px}.profile-chevron{display:none}.profile-dropdown{position:fixed;right:12px;top:67px;width:min(285px,calc(100vw - 24px))}}
+
+
+@media (max-width: 1023px) {
+  .profile-trigger-copy, .profile-chevron { display: none; }
+  .profile-trigger { padding: 4px; min-width: 44px; min-height: 44px; }
+  .profile-dropdown { position: fixed; top: 126px; right: 12px; width: min(300px, calc(100vw - 24px)); max-height: calc(100dvh - 142px); overflow-y: auto; }
+}
+
+
+/* ---------- Modo oscuro ---------- */
+:host-context(html.dark) .profile-trigger { color: #eaf5f1; }
+:host-context(html.dark) .profile-trigger:hover,
+:host-context(html.dark) .profile-trigger.open { border-color: rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.05); box-shadow: none; }
+:host-context(html.dark) .profile-trigger-avatar { background: linear-gradient(135deg, #34d399, #0d9488); color: #03241b; }
+:host-context(html.dark) .profile-trigger-copy small { color: #8fa9a1; }
+:host-context(html.dark) .profile-chevron { color: #8fa9a1; }
+:host-context(html.dark) .profile-dropdown { border-color: rgba(52, 211, 153, 0.22); background: #0a1d19; box-shadow: 0 26px 70px rgba(0, 0, 0, 0.65); }
+:host-context(html.dark) .profile-dropdown header { border-bottom-color: rgba(255, 255, 255, 0.08); }
+:host-context(html.dark) .profile-dropdown header small { color: #8fa9a1; }
+:host-context(html.dark) .profile-dropdown > a,
+:host-context(html.dark) .profile-dropdown > button { color: #eaf5f1; }
+:host-context(html.dark) .profile-dropdown > a:hover,
+:host-context(html.dark) .profile-dropdown > button:hover { background: rgba(16, 185, 129, 0.12); color: #34d399; }
+:host-context(html.dark) .profile-dropdown > a > span,
+:host-context(html.dark) .profile-dropdown > button > span { background: rgba(16, 185, 129, 0.16); color: #34d399; }
+:host-context(html.dark) .profile-dropdown > a small,
+:host-context(html.dark) .profile-dropdown > button small { color: #8fa9a1; }
+:host-context(html.dark) .profile-dropdown > button { border-top-color: rgba(255, 255, 255, 0.08); color: #f87171; }
+:host-context(html.dark) .profile-dropdown > button:hover { background: rgba(248, 113, 113, 0.12); color: #fca5a5; }
+:host-context(html.dark) .profile-dropdown > button > span { background: rgba(248, 113, 113, 0.14); color: #f87171; }

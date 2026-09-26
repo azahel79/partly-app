@@ -1,0 +1,163 @@
+<div class="create-page">
+  <div class="page-tools">
+    <a routerLink="/panel/grupos"><span class="material-symbols-outlined">arrow_back</span>Volver a mis grupos</a>
+    <span class="help-pill"><span class="material-symbols-outlined">help</span>¿Necesitas ayuda?</span>
+  </div>
+
+  <header class="create-hero">
+    <p><span class="material-symbols-outlined">dataset</span>Auditoría Vakeva · Paso a paso</p>
+    <h1>Crea tu grupo y <em>comparte los gastos</em></h1>
+    <span>Tú decides la plataforma, el precio y los cupos. Nosotros nos encargamos de cobrar automáticamente a cada miembro cada mes.</span>
+  </header>
+
+  @if (providerOrderId() && loadingOrder()) {
+    <div class="order-status-card"><span class="material-symbols-outlined spin">progress_activity</span><p>Cargando los datos de tu compra…</p></div>
+  } @else if (providerOrderId() && !orderReady()) {
+    <div class="order-status-card error"><span class="material-symbols-outlined">error</span><p>{{ errorMessage() || 'No se pudo cargar esta compra.' }}</p><a routerLink="/panel/mayoreo">Volver a mayoreo</a></div>
+  } @else {
+
+  <nav class="stepper" aria-label="Pasos para crear el grupo">
+    <button type="button" (click)="goToStep(1)" [class.active]="step() === 1">
+      <b>1</b><span><strong>Plataforma</strong><small>Define tu suscripción</small></span>
+    </button>
+    <i [class.complete]="maxStepReached() >= 2"></i>
+    <button type="button" (click)="goToStep(2)" [disabled]="maxStepReached() < 2" [class.active]="step() === 2">
+      <b>2</b><span><strong>Cupos y tarifa</strong><small>Configura los cupos</small></span>
+    </button>
+    <i [class.complete]="maxStepReached() >= 3"></i>
+    <button type="button" (click)="goToStep(3)" [disabled]="maxStepReached() < 3" [class.active]="step() === 3">
+      <b>3</b><span><strong>Cobro y seguridad</strong><small>Revisa y crea</small></span>
+    </button>
+  </nav>
+
+  <form (submit)="onSubmit($event)">
+    <div class="builder-grid">
+      <section class="form-card">
+        @if (step() === 1) {
+          <div class="section-heading">
+            <span class="material-symbols-outlined">dataset</span>
+            <div><h2>Paso 1 · Define tu plataforma</h2><p>Escribe la plataforma que ya pagas. Puede ser cualquier servicio, no depende de un catálogo.</p></div>
+          </div>
+
+          @if (providerOrderId()) {
+            <div class="review-notice wholesale-notice">
+              <span class="material-symbols-outlined">verified</span>
+              <p><strong>Cuenta comprada a {{ providerName() }}.</strong> La plataforma, el plan y tu costo ya vienen de tu compra — y la credencial se cargó sola, no necesitas escribirla.</p>
+            </div>
+          }
+
+          <div class="two-fields">
+            <label><strong>Plataforma</strong><span class="input-shell"><span class="material-symbols-outlined">search</span><input type="text" [value]="platformName()" (input)="platformName.set($any($event.target).value)" [disabled]="providerOrderId() !== null" placeholder="Ej. Netflix, Crunchyroll, Notion..." /></span></label>
+            <label><strong>Nombre del plan (opcional)</strong><span class="input-shell"><span class="material-symbols-outlined">layers</span><input type="text" [value]="tierName()" (input)="tierName.set($any($event.target).value)" [disabled]="providerOrderId() !== null" placeholder="Ej. Premium 4 pantallas" /></span></label>
+          </div>
+
+          <div class="field-section slots-section">
+            <span class="section-icon material-symbols-outlined">groups</span>
+            <div class="field-copy"><strong>Cupos totales del plan</strong><small>¿Cuántas cuentas o pantallas soporta esta suscripción en total?</small></div>
+            <div class="slot-options">
+              @for (slot of slotOptions; track slot) {
+                <button type="button" (click)="setMaxSlots(slot)" [disabled]="providerOrderId() !== null" [class.selected]="maxSlots() === slot">{{ slot === 6 ? '6+' : slot }}</button>
+              }
+            </div>
+            <div class="owner-choice">
+              <span class="material-symbols-outlined">group_add</span>
+              <div><strong>¿Vas a usar un cupo tú también?</strong><small>Si activas esta opción, uno de los cupos será tuyo.</small></div>
+              <div class="segmented"><button type="button" (click)="setOwnerUsesSlot(true)" [class.active]="ownerUsesSlot()"><i></i>Sí, yo también</button><button type="button" (click)="setOwnerUsesSlot(false)" [class.active]="!ownerUsesSlot()">No, solo vendo</button></div>
+            </div>
+          </div>
+
+          <div class="money-row">
+            <span class="section-icon material-symbols-outlined">attach_money</span>
+            <div class="field-copy"><strong>Tu costo mensual (opcional)</strong><small>{{ providerOrderId() ? 'Lo que ya pagaste al comprar esta cuenta al por mayor.' : 'Cuánto pagas tú, personalmente, por esta suscripción.' }}</small></div>
+            <label class="money-input"><b>$</b><input type="number" min="0" [value]="officialPrice()" (input)="officialPrice.set($any($event.target).value ? +$any($event.target).value : null)" [disabled]="providerOrderId() !== null" placeholder="0" /><span>MXN</span></label>
+          </div>
+
+          <div class="money-row sale-row">
+            <span class="section-icon material-symbols-outlined">bar_chart</span>
+            <div class="field-copy"><strong>Precio de venta por cupo (opcional)</strong><small>Cuánto cobrarías cada mes por uno de los cupos.</small></div>
+            <label class="money-input"><b>$</b><input type="number" min="0" [value]="pricePerSlot() || ''" (input)="pricePerSlot.set(+$any($event.target).value || 0)" placeholder="0" /><span>MXN</span></label>
+            <p class="calculation-note"><span class="material-symbols-outlined">info</span>La vista previa calcula automáticamente tu posible ganancia.</p>
+          </div>
+        }
+
+        @if (step() === 2) {
+          <div class="section-heading"><span class="material-symbols-outlined">groups</span><div><h2>Paso 2 · Configura los cupos y la tarifa</h2><p>Define cuántos lugares vas a ofrecer y el precio por cada uno.</p></div></div>
+          <div class="slots-heading"><span class="section-icon material-symbols-outlined">person_add</span><div class="field-copy"><strong>Cupos disponibles para miembros</strong><small>Selecciona cuántos lugares vas a compartir.</small></div><p><span class="material-symbols-outlined">info</span>Puedes ofrecer hasta {{ sellableSlots() }} cupos en este plan.</p></div>
+          <div class="available-options">
+            @for (slot of availableSlotOptions(); track slot) {
+              <button type="button" (click)="setAvailableSlots(slot)" [class.selected]="availableSlots() === slot"><b>{{ slot }}</b><span>{{ slot === 1 ? 'cupo' : 'cupos' }}</span>@if (availableSlots() === slot) { <i class="material-symbols-outlined">check_circle</i> }</button>
+            }
+          </div>
+          <div class="price-config">
+            <span class="section-icon material-symbols-outlined">paid</span><div class="field-copy"><strong>Precio mensual por cupo</strong><small>Establece cuánto pagará cada miembro.</small></div>
+            <label class="money-input price-input"><b>$</b><input type="number" min="1" [value]="pricePerSlot() || ''" (input)="pricePerSlot.set(+$any($event.target).value || 0)" placeholder="0" /><span>MXN</span></label>
+            @if (breakEvenPricePerSlot(); as breakEven) { <button type="button" class="price-suggestion" (click)="applyBreakEvenPrice()"><span class="material-symbols-outlined">auto_awesome</span><span><strong>Sugerencia de precio</strong><small>Cubre tu costo aun con la comisión más alta ({{ commissionMax }}%).</small><b>Usar ${{ breakEven }} MXN</b></span></button> }
+          </div>
+          <div class="owner-toggle-row"><span class="section-icon material-symbols-outlined">person</span><div class="field-copy"><strong>¿Quieres un cupo para ti también?</strong><small>Uno de los cupos será tuyo y solo pagarás tu parte.</small></div><button type="button" role="switch" [attr.aria-checked]="ownerUsesSlot()" (click)="setOwnerUsesSlot(!ownerUsesSlot())" class="switch" [class.on]="ownerUsesSlot()"><i></i></button><b>{{ ownerUsesSlot() ? 'Sí, incluir mi cupo' : 'No, ofrecer todos' }}</b></div>
+          <div class="charge-preview"><header><span class="material-symbols-outlined">calculate</span><div><strong>Vista previa del cobro</strong><small>Así se dividirá el costo del grupo.</small></div></header><div class="charge-boxes"><div><small>Precio total a miembros</small><strong>${{ totalCollected().toFixed(2) }}</strong><span>MXN/mes</span></div><div><small>Cupos ofrecidos</small><strong>{{ availableSlots() }}</strong><span>cupos</span></div><div><small>Cada miembro paga</small><strong>${{ pricePerSlot().toFixed(2) }}</strong><span>MXN/mes</span></div></div><p [class.loss]="lossLevel() !== 'none'"><span class="material-symbols-outlined">{{ lossLevel() === 'none' ? 'check_circle' : 'warning' }}</span><strong>{{ lossLevel() === 'loss' ? 'Con este precio no cubres tu costo, ni con la comisión más baja.' : lossLevel() === 'risk' ? 'Con la comisión más alta podrías no cubrir tu costo. Sube un poco el precio.' : 'Recibirías aprox. ' + formatRange(netReceivedRange()) + ' MXN al mes.' }}</strong></p><p class="commission-disclaimer"><span class="material-symbols-outlined">info</span>Estimado con una comisión de {{ commissionMin }}% a {{ commissionMax }}%. Vakeva fija el % exacto al aprobar tu grupo y te avisa cuánto ganarás.</p></div>
+        }
+
+        @if (step() === 3) {
+          <div class="section-heading"><span class="material-symbols-outlined">verified_user</span><div><h2>Paso 3 · Cobro y seguridad</h2><p>Revisa cómo se cobrará y confirma tus datos antes de enviar el grupo a aprobación.</p></div></div>
+          <div class="day-section start-note"><span class="section-icon material-symbols-outlined">rocket_launch</span><div class="field-copy"><strong>¿Cuándo empiezas a cobrar?</strong><small>Nadie paga al reservar. Cuando tengas el 75% de los cupos apartados te avisamos, y tú decides cuándo iniciar: ese día arranca el servicio y se fija la fecha de renovación.</small></div></div>
+          <div class="bank-section"><span class="section-icon material-symbols-outlined">account_balance</span><div class="field-copy"><strong>CLABE de abono (opcional)</strong><small>{{ bankFromProfile() ? 'Usamos la cuenta que guardaste en tu perfil (Retiros). Puedes cambiarla solo para este grupo.' : 'Detectamos automáticamente la institución y validamos los 18 dígitos.' }}</small></div><div class="bank-fields"><div class="detected-bank" [class.found]="clabeInfo().bankName"><span class="material-symbols-outlined">account_balance</span><div><small>Institución detectada</small><strong>{{ clabeInfo().bankName || (clabeInfo().digits.length >= 3 ? 'Institución no reconocida' : 'Esperando CLABE') }}</strong></div></div><label class="input-shell clabe-input" [class.valid]="clabeInfo().isValid" [class.invalid]="clabeInfo().isComplete && !clabeInfo().isValid"><span class="material-symbols-outlined">account_balance_wallet</span><input type="text" inputmode="numeric" maxlength="18" autocomplete="off" [value]="bankAccountNumber()" (input)="updateClabe($any($event.target).value)" placeholder="CLABE de 18 dígitos" /><b>{{ clabeInfo().digits.length }}/18</b></label></div>@if (clabeInfo().digits.length > 0) { <p class="clabe-status" [class.valid]="clabeInfo().isValid" [class.invalid]="clabeInfo().isComplete && !clabeInfo().isValid"><span class="material-symbols-outlined">{{ clabeInfo().isValid ? 'check_circle' : clabeInfo().isComplete ? 'error' : 'info' }}</span>{{ clabeInfo().isValid ? 'CLABE válida · banco detectado correctamente' : clabeInfo().isComplete ? 'La CLABE no supera la validación del dígito verificador' : 'Escribe los ' + (18 - clabeInfo().digits.length) + ' dígitos restantes' }}</p> }</div>
+          <div class="security-section"><span class="section-icon material-symbols-outlined">lock</span><div class="field-copy"><strong>Seguridad y revisión</strong><small>Tu grupo será revisado por el equipo de Vakeva antes de publicarse.</small></div><div class="security-grid"><div><span class="material-symbols-outlined">verified_user</span><p><strong>Revisión manual</strong><small>Verificamos plataforma, plan y precio.</small></p></div><div><span class="material-symbols-outlined">credit_card</span><p><strong>Cobros automáticos y seguros</strong><small>Usamos encriptación y pasarelas confiables.</small></p></div><div><span class="material-symbols-outlined">groups</span><p><strong>Solo miembros verificados</strong><small>Todos pasan por un proceso de verificación.</small></p></div></div></div>
+          <div class="review-notice"><span class="material-symbols-outlined">info</span><p>Una vez creado, tu grupo quedará en revisión. Te avisaremos cuando sea aprobado y se publique en el marketplace.</p></div>
+        }
+
+        @if (errorMessage()) { <div class="form-error"><span class="material-symbols-outlined">error</span>{{ errorMessage() }}</div> }
+      </section>
+
+      <aside class="preview-card">
+        <div class="preview-top">
+          <button type="button" class="preview-edit" (click)="goToStep(1)"><span class="material-symbols-outlined">edit</span>Editar</button>
+          <h2>Vista previa del grupo</h2><p>Así se verá para los miembros.</p>
+          <div class="group-preview">
+            <app-platform-logo class="platform-logo" [name]="platformName() || '?'" />
+            <div class="preview-name"><strong>{{ platformName().trim() || 'Tu plataforma' }}</strong><small>{{ tierName().trim() || 'Plan por definir' }}</small></div>
+            <span class="slot-badge">{{ maxSlots() }} cupos</span>
+            <div class="members">
+              <div class="avatars">@for (_ of previewSlots(); track $index) { <i><span class="material-symbols-outlined">person</span></i> } @if (maxSlots() > 5) { <b>+{{ maxSlots() - 5 }}</b> }</div>
+              <small>{{ ownerUsesSlot() ? 1 : 0 }}/{{ maxSlots() }} miembros</small>
+            </div>
+          </div>
+        </div>
+        <div class="summary">
+          <h3>Resumen de configuración <button type="button" (click)="goToStep(1)"><span class="material-symbols-outlined">edit</span>Editar</button></h3>
+          <dl>
+            <div><dt><span class="material-symbols-outlined">dataset</span>Plataforma</dt><dd>{{ platformName().trim() || 'Por definir' }}</dd></div>
+            <div><dt><span class="material-symbols-outlined">layers</span>Plan</dt><dd>{{ tierName().trim() || 'Por definir' }}</dd></div>
+            <div><dt><span class="material-symbols-outlined">groups</span>Cupos totales</dt><dd>{{ maxSlots() }}</dd></div>
+            <div><dt><span class="material-symbols-outlined">person</span>Cupo para ti</dt><dd>{{ ownerUsesSlot() ? 'Sí' : 'No' }}</dd></div>
+            <div><dt><span class="material-symbols-outlined">paid</span>Tu costo mensual</dt><dd>${{ (officialPrice() || 0).toFixed(0) }} MXN</dd></div>
+            <div><dt><span class="material-symbols-outlined">payments</span>Precio por cupo</dt><dd>${{ pricePerSlot().toFixed(0) }} MXN</dd></div>
+            @if (step() === 3) {
+              <div><dt><span class="material-symbols-outlined">calendar_month</span>Día de cobro</dt><dd>Al iniciar</dd></div>
+              <div><dt><span class="material-symbols-outlined">account_balance</span>Cuenta de abono</dt><dd>{{ bankName() || bankAccountNumber() ? (bankName() || 'Configurada') : 'No configurada' }}</dd></div>
+            }
+          </dl>
+        </div>
+        <div class="profit-card" [class.loss]="estimatedFullMarginRange().high < 0"><span class="material-symbols-outlined">bar_chart</span><div><small>Ganancia estimada <span class="material-symbols-outlined">info</span></small><strong>{{ formatRange(estimatedFullMarginRange()) }} <b>MXN / mes</b></strong><small class="profit-note">Con comisión de {{ commissionMin }}% a {{ commissionMax }}%</small></div></div>
+        @if (step() === 2) {
+          <div class="preview-tip"><span class="material-symbols-outlined">lightbulb</span><div><strong>Tip</strong><p>Entre más cupos compartas, menor será el costo para cada miembro y más fácil será llenar tu grupo.</p></div></div>
+        }
+      </aside>
+    </div>
+
+    <div class="trust-strip">
+      <div><span class="material-symbols-outlined">shield_lock</span><p><strong>Credenciales seguras</strong><small>Cifradas con AES-256, nunca en texto plano.</small></p></div>
+      <i></i><div><span class="material-symbols-outlined">lock</span><p><strong>Garantía antifraude</strong><small>El acceso se entrega bajo confirmación.</small></p></div>
+      <i></i><div><span class="material-symbols-outlined">groups</span><p><strong>Libertad total</strong><small>Pausa el grupo cuando quieras.</small></p></div>
+    </div>
+
+    <div class="form-actions">
+      @if (step() === 1) { <a routerLink="/panel/grupos">Cancelar</a> } @else { <button type="button" class="back-button" (click)="prevStep()"><span class="material-symbols-outlined">arrow_back</span>Atrás</button> }
+      @if (step() < 3) {
+        <button type="button" class="primary-button" (click)="nextStep()" [disabled]="step() === 1 ? !canAdvanceFromStep1() : !canAdvanceFromStep2()">Continuar<span class="material-symbols-outlined">arrow_forward</span></button>
+      } @else {
+        <button type="submit" class="primary-button" [disabled]="submitting() || (bankAccountNumber().length > 0 && !clabeInfo().isValid)">{{ submitting() ? 'Enviando…' : 'Crear grupo' }}<span class="material-symbols-outlined">arrow_forward</span></button>
+      }
+    </div>
+  </form>
+  }
+</div>

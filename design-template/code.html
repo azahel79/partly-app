@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vakeva — Comparte tus suscripciones y paga solo tu parte</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "ink": "#14142B",
+            "ink-surface": "#1B1B36",
+            "ink-card": "#181830",
+            "pink": "#FF3168",
+            "pink-deep": "#910032",
+            "pink-dark": "#5A123C",
+            "crema": "#F6F4EF",
+            "crema-dim": "#EBE8DF",
+            "crema-inset": "#ECEAE3",
+            "crema-border": "#E4E1D7",
+            "surface-dim": "#dbdad5",
+            "primary": "#14142B",
+            "secondary": "#FF3168",
+            "background": "#F6F4EF",
+            "on-background": "#14142B",
+            "on-surface-variant": "#62616D"
+          },
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "sans-serif"]
+          },
+          boxShadow: {
+            "neu-raised": "-8px -8px 20px rgba(255, 255, 255, 0.95), 8px 8px 20px rgba(20, 20, 43, 0.08)",
+            "neu-raised-sm": "-4px -4px 10px rgba(255, 255, 255, 0.95), 4px 4px 10px rgba(20, 20, 43, 0.08)",
+            "neu-raised-lg": "-12px -12px 30px rgba(255, 255, 255, 0.95), 12px 12px 30px rgba(20, 20, 43, 0.12)",
+            "neu-inset": "inset -3px -3px 7px rgba(255, 255, 255, 0.9), inset 3px 3px 7px rgba(20, 20, 43, 0.08)",
+            "neu-inset-sm": "inset -2px -2px 5px rgba(255, 255, 255, 0.85), inset 2px 2px 5px rgba(20, 20, 43, 0.07)",
+            "neu-dark-raised": "-6px -6px 16px rgba(255, 255, 255, 0.04), 6px 6px 16px rgba(0, 0, 0, 0.5)",
+            "neu-dark-inset": "inset -3px -3px 7px rgba(255, 255, 255, 0.05), inset 3px 3px 7px rgba(0, 0, 0, 0.6)"
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #F6F4EF;
+        color: #14142B;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        scroll-behavior: smooth;
+      }
+    }
+    .neu-btn-interactive {
+      transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .neu-btn-interactive:active,
+    .neu-tile-interactive:hover {
+      box-shadow: inset -2px -2px 6px rgba(255, 255, 255, 0.9), inset 2px 2px 6px rgba(20, 20, 43, 0.12) !important;
+      transform: translateY(1px);
+    }
+    .neu-tile-interactive {
+      transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-crema antialiased text-ink">
+<!-- 1. NAVBAR -->
+<header class="fixed top-0 w-full z-50 bg-[#F6F4EF]/75 backdrop-blur-xl border-b border-crema-border/50 shadow-[0_2px_12px_rgba(20,20,43,0.03)] transition-all">
+<div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+<!-- Logo Left -->
+<a class="flex items-center gap-3 group" href="#">
+<div class="w-9 h-9 rounded-xl bg-ink flex items-center justify-center shadow-[-3px_-3px_8px_rgba(255,255,255,0.9),3px_3px_8px_rgba(20,20,43,0.15)] group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-pink text-xl">grain</span>
+</div>
+<span class="font-extrabold text-2xl tracking-tight text-ink lowercase">vakeva</span>
+</a>
+<!-- Center Links -->
+<nav class="hidden md:flex items-center gap-1 bg-crema/60 p-1.5 rounded-full shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.8),inset_2px_2px_5px_rgba(20,20,43,0.05)] border border-white/60">
+<a class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:text-ink rounded-full transition-colors" href="#como-funciona">Cómo funciona</a>
+<a class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:text-ink rounded-full transition-colors" href="#plataformas">Explorar</a>
+<a class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:text-ink rounded-full transition-colors" href="#owners">Para dueños de grupo</a>
+<a class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:text-ink rounded-full transition-colors" href="#comparativa">Precios</a>
+</nav>
+<!-- Right CTA -->
+<div class="flex items-center gap-4">
+<a class="hidden sm:inline-block text-sm font-semibold text-on-surface-variant hover:text-ink transition-colors px-3 py-2" href="#">Iniciar sesión</a>
+<a class="neu-btn-interactive px-5 py-2.5 bg-crema font-bold text-sm text-ink rounded-full shadow-[-4px_-4px_10px_rgba(255,255,255,0.95),4px_4px_10px_rgba(20,20,43,0.08)] hover:shadow-[-5px_-5px_12px_rgba(255,255,255,1),5px_5px_12px_rgba(20,20,43,0.12)] active:shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.9),inset_2px_2px_5px_rgba(20,20,43,0.1)] transition-all" href="#cta-final">
+          Crear cuenta
+        </a>
+</div>
+</div>
+</header>
+<main class="w-full pt-20">
+<!-- 2. HERO SECTION (Stripe-style diagonal mesh gradient) -->
+<section class="relative overflow-hidden pt-12 pb-24 lg:pt-16 lg:pb-32">
+<!-- Diagonal Slanted Background Canvas with Vakeva Mesh Gradient -->
+<div class="absolute inset-x-0 -top-28 h-[860px] -skew-y-3 origin-top-left -z-10 overflow-hidden pointer-events-none">
+<div class="w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-pink via-pink-dark to-ink opacity-90"></div>
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-[#F6F4EF]/35 to-crema"></div>
+<!-- Angled soft illumination beam -->
+<div class="absolute -top-40 -left-20 w-[65vw] h-[650px] bg-gradient-to-r from-white/25 via-pink/10 to-transparent transform rotate-12 blur-3xl"></div>
+</div>
+<div class="max-w-7xl mx-auto px-6 relative">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+<!-- Left Column -->
+<div class="lg:col-span-7 flex flex-col items-start z-10">
+<!-- Announcement Pill -->
+<a class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-crema/80 backdrop-blur-md shadow-[-3px_-3px_8px_rgba(255,255,255,0.9),3px_3px_8px_rgba(20,20,43,0.1)] hover:shadow-[-4px_-4px_10px_rgba(255,255,255,1),4px_4px_10px_rgba(20,20,43,0.14)] transition-all mb-6" href="#como-funciona">
+<span class="w-2 h-2 rounded-full bg-pink animate-pulse"></span>
+<span class="text-xs tracking-wider uppercase font-bold text-ink">Nuevo</span>
+<span class="text-ink/30 font-semibold">·</span>
+<span class="text-xs font-semibold text-ink">Renovación automática sin sorpresas</span>
+<span class="material-symbols-outlined text-xs text-pink">arrow_forward</span>
+</a>
+<!-- Headline gigante 4 líneas -->
+<h1 class="text-5xl sm:text-6xl lg:text-[64px] font-extrabold text-ink tracking-tight leading-[1.05] mb-6">
+              Comparte tus<br/>
+              suscripciones<br/>
+              y paga solo<br/>
+<span class="bg-gradient-to-r from-ink via-pink-deep to-pink bg-clip-text text-transparent">tu parte</span>
+</h1>
+<!-- Subcopy -->
+<p class="text-lg text-on-surface-variant max-w-xl leading-relaxed mb-8">
+              Únete a miles de personas que ya dividen el costo de Netflix, Spotify y Disney+ con Vakeva — cupos verificados, credenciales cifradas y renovación automática.
+            </p>
+<!-- CTA Input Form -->
+<form class="w-full max-w-md p-1.5 rounded-full bg-crema shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_14px_rgba(20,20,43,0.1)] flex items-center gap-2 mb-8 border border-white/60" onsubmit="event.preventDefault(); alert('¡Gracias! Te avisaremos para tu cupo verificado.');">
+<div class="flex-1 flex items-center pl-4">
+<span class="material-symbols-outlined text-on-surface-variant text-lg mr-2">mail</span>
+<input class="w-full bg-transparent text-sm text-ink placeholder-on-surface-variant/60 focus:outline-none border-none focus:ring-0 p-0" placeholder="Correo electrónico" required="" type="email"/>
+</div>
+<button class="px-6 py-3.5 rounded-full bg-ink text-crema font-bold text-sm flex items-center gap-2 hover:bg-[#20203D] active:scale-[0.98] transition-all shadow-[0_6px_18px_rgba(20,20,43,0.25)] hover:shadow-[0_8px_24px_rgba(255,49,104,0.35)] shrink-0 group" type="submit">
+<span>Empezar ahora</span>
+<span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</form>
+<!-- Social proof -->
+<div class="flex items-center gap-4">
+<div class="flex -space-x-2">
+<img alt="Usuario Vakeva" class="inline-block h-9 w-9 rounded-full shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.15)] object-cover ring-2 ring-crema" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA2PANtUv24bTBhk7P8YEG6v-NQtceWVnjZ4N5qKzlQKZJeqvSHx1tIkNYthevZ8XiYoJyGG2JAoSjSAqACnqqmn1axuTLXjcrmwBcF2O_WzQrDqASmJM5J_x03U87LCXw8X1-RO3u8BvixQbB3ZFpWFFKRODjHlJX_JsLracwxqucKPOh9iQp4q9ox8laPsqfYbk_V31Fri8z9C4a48MqbgBxOMIgNsyHdlaHgaU7rrMNcpAqt-fJ"/>
+<img alt="Usuario Vakeva" class="inline-block h-9 w-9 rounded-full shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.15)] object-cover ring-2 ring-crema" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8enF0iaONqI9BDf3EUMQ7Li9FV36YG4C3j4ESaUYC2w61xoQ1Ok33lbxiU8biNEgTmH50MrtYFKLcrM-t0EQNDCXOGp0j9nU1bhTkhDteTdeRJpHTaNgKsFCM1AE-lxaeNCpY_3Omu71Lohik3gUIoWch3Oy3FTSQKTR30ypu_pRZ3IfTlgG3bY4tDNhZ4jfiL08OuzR2P2BRTbK9-EbvCy9LnsXm8InQXOj16GtsjmMztLXwV2QC"/>
+<img alt="Usuario Vakeva" class="inline-block h-9 w-9 rounded-full shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.15)] object-cover ring-2 ring-crema" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWePuNpu7fve8z0lUbN8ajW9z9cns7Vd6-0de0f2FczKc1dkCvQrO7sgCXsVO1Z9Uh0J6dBOFFIoAG3KC3KI9kTstm4ZNfHYQTSChWvgI4Zpfi0F6VfiSzsmOvOWBvXQNASOYMVp0CwgUIzoak3lyjjc4JbkSuahjB5spGpdaRGw9wBefA99__8ocZgdh1aiFSIkHXjfenEZsl5uiKFTjyRve31FXbxpO0VKFSYusA4YPCPWzc2GI"/>
+</div>
+<div class="text-sm">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-pink" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm text-pink" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm text-pink" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm text-pink" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm text-pink" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-bold text-ink ml-1 tabular-nums">4.9/5</span>
+</div>
+<span class="text-xs text-on-surface-variant font-medium">Más de 24,000 suscriptores activos</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Stripe-style Stratified Neumorphic Mockups -->
+<div class="lg:col-span-5 relative flex justify-center items-center">
+<!-- Glow detrás -->
+<div class="absolute w-72 h-72 rounded-full bg-pink/20 blur-3xl -top-10 -right-4 pointer-events-none"></div>
+<!-- Dashboard Panel (Fondo / Offset) -->
+<div class="absolute -top-8 -right-4 sm:right-2 w-[340px] rounded-[24px] bg-crema p-5 shadow-[-12px_-12px_28px_rgba(255,255,255,0.95),12px_12px_28px_rgba(20,20,43,0.12)] transform rotate-3 hidden sm:block border border-white/60">
+<div class="flex items-center justify-between pb-3 mb-3 border-b border-crema-border/40">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-crema flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.08)]">
+<span class="material-symbols-outlined text-pink text-base">account_balance_wallet</span>
+</div>
+<div>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Hoy</p>
+<p class="text-xs font-bold text-ink">Wallet de Owner</p>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-crema text-[11px] font-bold text-ink shadow-[inset_-1px_-1px_3px_rgba(255,255,255,0.9),inset_1px_1px_3px_rgba(20,20,43,0.08)] flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Conectado
+                </span>
+</div>
+<div class="flex items-baseline justify-between mb-2">
+<div>
+<span class="text-[11px] text-on-surface-variant font-medium">Volumen neto recaudado</span>
+<div class="text-2xl font-black text-ink tabular-nums tracking-tight">
+                    $3,528.00 <span class="text-xs font-semibold text-on-surface-variant">MXN</span>
+</div>
+</div>
+<div class="flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-xs font-bold">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+<span>+32.8%</span>
+</div>
+</div>
+<!-- Sparkline SVG -->
+<div class="w-full h-20 my-1 relative">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 300 70">
+<defs>
+<lineargradient id="heroSparkline" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#FF3168" stop-opacity="0.35"></stop>
+<stop offset="100%" stop-color="#FF3168" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<path d="M 0,55 Q 35,58 75,38 T 150,42 T 225,20 T 300,6 L 300,70 L 0,70 Z" fill="url(#heroSparkline)"></path>
+<path d="M 0,55 Q 35,58 75,38 T 150,42 T 225,20 T 300,6" fill="none" stroke="#FF3168" stroke-linecap="round" stroke-width="2.5"></path>
+<circle cx="300" cy="6" fill="#14142B" r="4" stroke="#FFFFFF" stroke-width="2"></circle>
+</svg>
+</div>
+<div class="grid grid-cols-3 gap-2 pt-1 text-center">
+<div class="p-2 rounded-xl bg-crema shadow-[inset_-2px_-2px_4px_rgba(255,255,255,0.85),inset_2px_2px_4px_rgba(20,20,43,0.06)]">
+<span class="block text-[10px] text-on-surface-variant">Próx. Cobros</span>
+<span class="text-xs font-bold text-ink">Mañana</span>
+</div>
+<div class="p-2 rounded-xl bg-crema shadow-[inset_-2px_-2px_4px_rgba(255,255,255,0.85),inset_2px_2px_4px_rgba(20,20,43,0.06)]">
+<span class="block text-[10px] text-on-surface-variant">Grupos</span>
+<span class="text-xs font-bold text-ink">4 activos</span>
+</div>
+<div class="p-2 rounded-xl bg-crema shadow-[inset_-2px_-2px_4px_rgba(255,255,255,0.85),inset_2px_2px_4px_rgba(20,20,43,0.06)]">
+<span class="block text-[10px] text-on-surface-variant">Miembros</span>
+<span class="text-xs font-bold text-ink">16 al día</span>
+</div>
+</div>
+</div>
+<!-- Front Phone Mockup (Checkout Card) -->
+<div class="w-full max-w-[340px] rounded-[28px] bg-crema p-6 shadow-[-12px_-12px_28px_rgba(255,255,255,0.9),12px_12px_32px_rgba(20,20,43,0.16)] relative z-20 transform -rotate-1 hover:rotate-0 transition-transform duration-300 border border-white/80">
+<!-- Subscription Header -->
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="w-11 h-11 rounded-2xl bg-ink flex items-center justify-center shadow-[-3px_-3px_7px_rgba(255,255,255,0.9),3px_3px_8px_rgba(20,20,43,0.2)]">
+<span class="text-xl font-black text-[#E50914] tracking-tighter">N</span>
+</div>
+<div>
+<h2 class="text-sm font-bold text-ink">Netflix Premium 4K</h2>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-emerald-600">verified</span>
+<span class="text-xs text-on-surface-variant font-medium">Cupo 3 de 4 verificado</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<span class="text-xl font-extrabold text-ink tabular-nums">$89</span>
+<span class="block text-[11px] text-on-surface-variant">/mes</span>
+</div>
+</div>
+<!-- Quick Express Button -->
+<button class="w-full py-2.5 px-4 mb-4 rounded-xl bg-crema text-xs font-bold text-ink shadow-[-3px_-3px_7px_rgba(255,255,255,0.95),3px_3px_7px_rgba(20,20,43,0.08)] hover:shadow-[-4px_-4px_9px_rgba(255,255,255,1),4px_4px_9px_rgba(20,20,43,0.12)] active:shadow-[inset_-2px_-2px_4px_rgba(255,255,255,0.9),inset_2px_2px_4px_rgba(20,20,43,0.08)] flex items-center justify-center gap-2 transition-all">
+<span class="material-symbols-outlined text-base text-ink">bolt</span>
+<span>Pagar con tarjeta guardada</span>
+</button>
+<!-- Inset divider -->
+<div class="flex items-center gap-2 mb-3">
+<div class="flex-1 h-px bg-crema-border"></div>
+<span class="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">o ingresa tarjeta</span>
+<div class="flex-1 h-px bg-crema-border"></div>
+</div>
+<!-- Inset Form Fields -->
+<div class="space-y-3 mb-4">
+<div>
+<label class="block text-[11px] font-semibold text-on-surface-variant mb-1">Número de tarjeta</label>
+<div class="w-full h-10 px-3 rounded-xl bg-crema-inset shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.95),inset_2px_2px_5px_rgba(20,20,43,0.09)] flex items-center justify-between border border-black/5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-base">credit_card</span>
+<span class="text-xs font-medium tracking-wider text-ink tabular-nums">4242 •••• •••• 4242</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-ink/10 text-[9px] font-black text-ink">VISA</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div>
+<label class="block text-[11px] font-semibold text-on-surface-variant mb-1">Vigencia</label>
+<div class="w-full h-10 px-3 rounded-xl bg-crema-inset shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.95),inset_2px_2px_5px_rgba(20,20,43,0.09)] flex items-center border border-black/5">
+<span class="text-xs font-medium text-ink tabular-nums">12 / 28</span>
+</div>
+</div>
+<div>
+<label class="block text-[11px] font-semibold text-on-surface-variant mb-1">CVC</label>
+<div class="w-full h-10 px-3 rounded-xl bg-crema-inset shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.95),inset_2px_2px_5px_rgba(20,20,43,0.09)] flex items-center justify-between border border-black/5">
+<span class="text-xs font-medium text-ink">•••</span>
+<span class="material-symbols-outlined text-on-surface-variant text-xs">lock</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Guarantee badge -->
+<div class="p-2.5 rounded-xl bg-crema shadow-[inset_-1px_-1px_3px_rgba(255,255,255,0.9),inset_1px_1px_3px_rgba(20,20,43,0.06)] mb-4 flex items-start gap-2">
+<span class="material-symbols-outlined text-pink text-base shrink-0 mt-0.5">shield</span>
+<p class="text-[11px] leading-tight text-on-surface-variant">
+<strong class="text-ink">Garantía Vakeva:</strong> Fondos retenidos hasta que tu perfil quede activo y funcionando.
+                </p>
+</div>
+<!-- Action Checkout Button -->
+<button class="w-full py-3 px-4 rounded-2xl bg-pink text-white font-bold text-sm shadow-[0_10px_22px_rgba(255,49,104,0.35),-2px_-2px_6px_rgba(255,255,255,0.8)] hover:shadow-[0_12px_26px_rgba(255,49,104,0.45)] active:scale-[0.98] transition-all flex items-center justify-between">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-base">lock</span>
+<span>Pagar $89 MXN</span>
+</span>
+<span class="px-2 py-0.5 rounded-full bg-black/20 text-xs font-semibold">Cupo #3</span>
+</button>
+<div class="flex items-center justify-center gap-1.5 mt-2.5">
+<span class="material-symbols-outlined text-on-surface-variant text-xs">encrypted</span>
+<span class="text-[11px] text-on-surface-variant font-medium">Encriptación bancaria AES-256</span>
+</div>
+</div>
+<!-- Mini floating tag badge -->
+<div class="absolute -bottom-5 left-4 sm:-left-6 z-30 px-3.5 py-2 rounded-full bg-crema shadow-[-5px_-5px_12px_rgba(255,255,255,0.95),5px_5px_12px_rgba(20,20,43,0.12)] flex items-center gap-2 border border-white/80 transform -rotate-2">
+<div class="w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm font-bold">check</span>
+</div>
+<span class="text-xs font-bold text-ink">Ahorro promedio: 75%</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. BANNER DE MÉTRICAS (4 tiles neumórficos raised en fila) -->
+<section class="py-12 bg-crema relative z-10 border-t border-crema-border/40">
+<div class="max-w-7xl mx-auto px-6">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Metric Tile 1 -->
+<div class="p-6 rounded-[24px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg transition-all">
+<span class="text-[11px] font-bold text-pink tracking-widest uppercase mb-2 block">Grupos Activos</span>
+<div class="text-3xl lg:text-4xl font-black text-ink tabular-nums tracking-tight">+12,400</div>
+<span class="text-xs text-on-surface-variant mt-2">En más de 18 plataformas</span>
+</div>
+<!-- Metric Tile 2 -->
+<div class="p-6 rounded-[24px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg transition-all">
+<span class="text-[11px] font-bold text-pink tracking-widest uppercase mb-2 block">Ahorrados por Usuarios</span>
+<div class="text-3xl lg:text-4xl font-black text-ink tabular-nums tracking-tight">$2.1M</div>
+<span class="text-xs text-on-surface-variant mt-2">Dólares ahorrados colectivamente</span>
+</div>
+<!-- Metric Tile 3 -->
+<div class="p-6 rounded-[24px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg transition-all">
+<span class="text-[11px] font-bold text-pink tracking-widest uppercase mb-2 block">Rating Promedio de Owners</span>
+<div class="text-3xl lg:text-4xl font-black text-ink tabular-nums tracking-tight flex items-center gap-1.5">
+              4.8/5
+              <span class="material-symbols-outlined text-pink text-2xl" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<span class="text-xs text-on-surface-variant mt-2">Basado en 14,200+ reseñas</span>
+</div>
+<!-- Metric Tile 4 -->
+<div class="p-6 rounded-[24px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg transition-all">
+<span class="text-[11px] font-bold text-pink tracking-widest uppercase mb-2 block">Renovación Automática</span>
+<div class="text-3xl lg:text-4xl font-black text-ink tabular-nums tracking-tight">98%</div>
+<span class="text-xs text-on-surface-variant mt-2">Continuidad sin interrupción</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. CÓMO FUNCIONA (Pipeline horizontal de 4 pasos) -->
+<section class="py-20 bg-crema relative" id="como-funciona">
+<div class="max-w-7xl mx-auto px-6">
+<!-- Section Header -->
+<div class="text-center max-w-2xl mx-auto mb-16">
+<div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-crema shadow-neu-raised-sm border border-white/70 mb-4">
+<span class="w-2 h-2 rounded-full bg-pink"></span>
+<span class="text-[11px] font-extrabold uppercase tracking-wider text-pink">Proceso paso a paso</span>
+</div>
+<h2 class="text-3xl lg:text-4xl font-extrabold text-ink tracking-tight mb-4">
+            Divide gastos en 4 pasos sencillos
+          </h2>
+<p class="text-on-surface-variant text-base">
+            Diseñado para que unirse o compartir sea tan fluido como presionar play. Sin coordinar chats ni pedir comprobantes.
+          </p>
+</div>
+<!-- Pipeline Horizontal -->
+<div class="relative">
+<!-- Connecting subtle line (desktop) -->
+<div class="hidden lg:block absolute top-10 left-[12%] right-[12%] h-1 bg-crema-inset shadow-[inset_0_1px_2px_rgba(20,20,43,0.1)] rounded-full -z-0"></div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
+<!-- Paso 1 -->
+<div class="flex flex-col items-center text-center p-6 rounded-[24px] bg-crema shadow-neu-raised border border-white/60 group hover:shadow-neu-raised-lg transition-all">
+<div class="w-16 h-16 rounded-full bg-crema flex items-center justify-center text-xl font-black text-ink shadow-neu-raised group-hover:scale-105 transition-transform mb-5">
+                1
+              </div>
+<h3 class="text-base font-bold text-ink mb-2">Explora un grupo</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed">
+                Elige entre cientos de suscripciones públicas verificadas o únete con enlace de invitación privada.
+              </p>
+</div>
+<!-- Paso 2 (Activo con estado Inset y glow Pink) -->
+<div class="flex flex-col items-center text-center p-6 rounded-[24px] bg-crema shadow-neu-inset border-2 border-pink/30 group transition-all relative overflow-hidden">
+<div class="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-pink/15 blur-xl pointer-events-none"></div>
+<div class="w-16 h-16 rounded-full bg-crema-inset flex items-center justify-center text-xl font-black text-pink shadow-[inset_-3px_-3px_6px_rgba(255,255,255,0.9),inset_3px_3px_6px_rgba(255,49,104,0.3)] ring-2 ring-pink/40 mb-5">
+                2
+              </div>
+<h3 class="text-base font-bold text-ink mb-2">Únete y paga tu parte</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed">
+                Paga únicamente el valor prorrateado de tu cupo mediante métodos seguros con tarjeta o wallet digital.
+              </p>
+</div>
+<!-- Paso 3 -->
+<div class="flex flex-col items-center text-center p-6 rounded-[24px] bg-crema shadow-neu-raised border border-white/60 group hover:shadow-neu-raised-lg transition-all">
+<div class="w-16 h-16 rounded-full bg-crema flex items-center justify-center text-xl font-black text-ink shadow-neu-raised group-hover:scale-105 transition-transform mb-5">
+                3
+              </div>
+<h3 class="text-base font-bold text-ink mb-2">Acceso seguro</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed">
+                Recibe credenciales cifradas y tu perfil personal configurado sin exponer contraseñas maestras.
+              </p>
+</div>
+<!-- Paso 4 -->
+<div class="flex flex-col items-center text-center p-6 rounded-[24px] bg-crema shadow-neu-raised border border-white/60 group hover:shadow-neu-raised-lg transition-all">
+<div class="w-16 h-16 rounded-full bg-crema flex items-center justify-center text-xl font-black text-ink shadow-neu-raised group-hover:scale-105 transition-transform mb-5">
+                4
+              </div>
+<h3 class="text-base font-bold text-ink mb-2">Renovación automática</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed">
+                Tu cupo se renueva mes a mes sin demoras. Si alguien deja el grupo, Vakeva cubre el cupo de inmediato.
+              </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. POR QUÉ COMPARTIR CON VAKEVA (4 feature cards neumórficas) -->
+<section class="py-20 bg-crema relative border-t border-crema-border/40">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-crema shadow-neu-raised-sm border border-white/70 mb-4">
+<span class="w-2 h-2 rounded-full bg-pink"></span>
+<span class="text-[11px] font-extrabold uppercase tracking-wider text-pink">Ventajas clave</span>
+</div>
+<h2 class="text-3xl lg:text-4xl font-extrabold text-ink tracking-tight mb-4">
+            La forma inteligente de tener todo tu streaming
+          </h2>
+<p class="text-on-surface-variant text-base">
+            Protección de datos, automatización financiera y tranquilidad absoluta tanto para miembros como para dueños de cuenta.
+          </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Card 1: Ahorro real -->
+<div class="p-8 rounded-[24px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg transition-all">
+<div>
+<div class="w-14 h-14 rounded-2xl bg-crema-inset shadow-neu-inset flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-pink text-2xl">savings</span>
+</div>
+<h3 class="text-xl font-bold text-ink mb-3">Ahorro real de hasta 75%</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-6">
+                En vez de asumir el coste individual completo de un plan familiar, paga exactamente el espacio que utilizas mes a mes.
+              </p>
+<!-- Comparativa visual -->
+<div class="p-4 rounded-2xl bg-crema-inset shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.9),inset_2px_2px_5px_rgba(20,20,43,0.08)] flex items-center justify-around mb-4 border border-black/5">
+<div class="text-center">
+<span class="text-[11px] font-semibold text-on-surface-variant block">Solo pagas tú</span>
+<span class="text-lg font-bold text-ink line-through opacity-60 tabular-nums">$349 MXN</span>
+</div>
+<span class="material-symbols-outlined text-pink text-xl">arrow_forward</span>
+<div class="text-center">
+<span class="text-[11px] font-bold text-pink block">Con Vakeva</span>
+<span class="text-xl font-black text-pink tabular-nums">$89 MXN</span>
+</div>
+</div>
+</div>
+<ul class="space-y-2 text-xs text-on-surface-variant font-medium pt-2">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink text-sm">check_circle</span> Ahorra más de $3,100 MXN al año por servicio</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink text-sm">check_circle</span> Sin compromisos de permanencia obligatoria</li>
+</ul>
+</div>
+<!-- Card 2: Credenciales cifradas -->
+<div class="p-8 rounded-[24px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg transition-all">
+<div>
+<div class="w-14 h-14 rounded-2xl bg-crema-inset shadow-neu-inset flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-pink text-2xl">enhanced_encryption</span>
+</div>
+<h3 class="text-xl font-bold text-ink mb-3">Credenciales cifradas AES-256</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-6">
+                Protección de grado bancario. Las contraseñas se almacenan en bóvedas criptográficas con control de acceso por token temporal y perfil individual.
+              </p>
+<div class="p-4 rounded-2xl bg-crema-inset shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.9),inset_2px_2px_5px_rgba(20,20,43,0.08)] flex items-center justify-between border border-black/5 mb-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-600 text-xl">verified_user</span>
+<div>
+<span class="text-xs font-bold text-ink block">Zero-Knowledge Vault</span>
+<span class="text-[10px] text-on-surface-variant">Nadie ve tu contraseña principal</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase">Activo</span>
+</div>
+</div>
+<ul class="space-y-2 text-xs text-on-surface-variant font-medium pt-2">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink text-sm">check_circle</span> Protección estricta de perfiles individuales</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink text-sm">check_circle</span> Notificación inmediata en caso de cambio de clave</li>
+</ul>
+</div>
+<!-- Card 3: Pagos prorrateados automáticos -->
+<div class="p-8 rounded-[24px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg transition-all">
+<div>
+<div class="w-14 h-14 rounded-2xl bg-crema-inset shadow-neu-inset flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-pink text-2xl">autorenew</span>
+</div>
+<h3 class="text-xl font-bold text-ink mb-3">Pagos prorrateados automáticos</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-6">
+                Olvídate de cobrar por WhatsApp o sufrir transferencias atrasadas. Los cobros ocurren el mismo día en que se renueva el servicio sin demoras.
+              </p>
+<div class="p-4 rounded-2xl bg-crema-inset shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.9),inset_2px_2px_5px_rgba(20,20,43,0.08)] flex items-center justify-between border border-black/5 mb-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-pink/20 flex items-center justify-center text-pink">
+<span class="material-symbols-outlined text-sm">calendar_month</span>
+</div>
+<div>
+<span class="text-xs font-bold text-ink block">Cobro puntual programado</span>
+<span class="text-[10px] text-on-surface-variant">Cero fricción social</span>
+</div>
+</div>
+<span class="text-xs font-bold text-pink tabular-nums">Día 15 / mes</span>
+</div>
+</div>
+<ul class="space-y-2 text-xs text-on-surface-variant font-medium pt-2">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink text-sm">check_circle</span> Notificaciones antes de cada cargo</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink text-sm">check_circle</span> Recibos fiscales descargables en PDF</li>
+</ul>
+</div>
+<!-- Card 4: Wallet y retiros transparentes -->
+<div class="p-8 rounded-[24px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg transition-all">
+<div>
+<div class="w-14 h-14 rounded-2xl bg-crema-inset shadow-neu-inset flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-pink text-2xl">account_balance</span>
+</div>
+<h3 class="text-xl font-bold text-ink mb-3">Wallet y retiros transparentes</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-6">
+                Para los administradores de grupo: todo lo recolectado se acumula en tu Wallet Vakeva y se transfiere directo a tu cuenta bancaria o CLABE en 24 horas.
+              </p>
+<div class="p-4 rounded-2xl bg-crema-inset shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.9),inset_2px_2px_5px_rgba(20,20,43,0.08)] flex items-center justify-between border border-black/5 mb-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-ink text-xl">payments</span>
+<div>
+<span class="text-xs font-bold text-ink block">Liquidación en 24 horas</span>
+<span class="text-[10px] text-on-surface-variant">Sin comisiones sorpresa</span>
+</div>
+</div>
+<span class="text-xs font-bold text-emerald-700">SPEI / Directo</span>
+</div>
+</div>
+<ul class="space-y-2 text-xs text-on-surface-variant font-medium pt-2">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink text-sm">check_circle</span> Retiros automáticos semanales o bajo demanda</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink text-sm">check_circle</span> Panel con analítica de ganancias históricas</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<!-- 6. TABLA COMPARATIVA (2 paneles lado a lado) -->
+<section class="py-20 bg-crema relative" id="comparativa">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-crema shadow-neu-raised-sm border border-white/70 mb-4">
+<span class="w-2 h-2 rounded-full bg-pink"></span>
+<span class="text-[11px] font-extrabold uppercase tracking-wider text-pink">Comparativa de costos y experiencia</span>
+</div>
+<h2 class="text-3xl lg:text-4xl font-extrabold text-ink tracking-tight mb-4">
+            Pagar solo nunca más
+          </h2>
+<p class="text-on-surface-variant text-base">
+            Descubre la diferencia entre asumir costos individuales y compartir con la infraestructura segura de Vakeva.
+          </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
+<!-- Panel Suscripción Individual (Raised Neutro) -->
+<div class="p-8 rounded-[28px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-4">
+<span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Método tradicional</span>
+<span class="px-3 py-1 rounded-full bg-crema-inset text-xs font-semibold text-on-surface-variant shadow-neu-inset">Individual</span>
+</div>
+<h3 class="text-2xl font-black text-ink mb-2">Suscripción individual</h3>
+<p class="text-sm text-on-surface-variant mb-6">Pagas tú solo el 100% o lidias cobrándole a amigos morosos.</p>
+<div class="text-4xl font-black text-ink mb-6 tabular-nums">
+                $349 - $699 <span class="text-sm font-normal text-on-surface-variant">MXN / mes</span>
+</div>
+<div class="space-y-4 pt-4 border-t border-crema-border/50">
+<div class="flex items-start gap-3 text-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-red-500 text-lg shrink-0 mt-0.5">close</span>
+<span>1 sola persona pagando el 100% del servicio</span>
+</div>
+<div class="flex items-start gap-3 text-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-red-500 text-lg shrink-0 mt-0.5">close</span>
+<span>Gestión manual de transferencias y comprobantes</span>
+</div>
+<div class="flex items-start gap-3 text-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-red-500 text-lg shrink-0 mt-0.5">close</span>
+<span>Alto riesgo de morosidad y roces con conocidos</span>
+</div>
+<div class="flex items-start gap-3 text-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-red-500 text-lg shrink-0 mt-0.5">close</span>
+<span>Contraseñas maestras compartidas en chats inseguros</span>
+</div>
+<div class="flex items-start gap-3 text-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-red-500 text-lg shrink-0 mt-0.5">close</span>
+<span>Cero garantías si el servicio se interrumpe</span>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6">
+<div class="w-full py-3 text-center rounded-2xl bg-crema-inset text-on-surface-variant text-sm font-semibold shadow-neu-inset">
+                Gasto mensual sin optimizar
+              </div>
+</div>
+</div>
+<!-- Panel Con Vakeva (Raised con glow/acento Pink) -->
+<div class="p-8 rounded-[28px] bg-crema shadow-neu-raised border-2 border-pink/30 flex flex-col justify-between relative overflow-hidden ring-4 ring-pink/5">
+<!-- Glow Pink de fondo -->
+<div class="absolute -top-16 -right-16 w-40 h-40 bg-pink/15 rounded-full blur-2xl pointer-events-none"></div>
+<div>
+<div class="flex items-center justify-between mb-4">
+<span class="text-xs font-bold uppercase tracking-wider text-pink">La nueva forma</span>
+<span class="px-3 py-1 rounded-full bg-pink/15 text-xs font-bold text-pink shadow-[-1px_-1px_3px_rgba(255,255,255,0.9),1px_1px_3px_rgba(20,20,43,0.1)]">Recomendado</span>
+</div>
+<h3 class="text-2xl font-black text-ink mb-2">Con Vakeva</h3>
+<p class="text-sm text-on-surface-variant mb-6">Paga solo tu cupo con protección total y cobro automatizado.</p>
+<div class="text-4xl font-black text-pink mb-6 tabular-nums">
+                $55 - $89 <span class="text-sm font-normal text-on-surface-variant">MXN / mes</span>
+</div>
+<div class="space-y-4 pt-4 border-t border-pink/20">
+<div class="flex items-start gap-3 text-sm text-ink font-medium">
+<span class="material-symbols-outlined text-pink text-lg shrink-0 mt-0.5">check_circle</span>
+<span>Hasta <strong>75% menos de costo</strong> en tus suscripciones</span>
+</div>
+<div class="flex items-start gap-3 text-sm text-ink font-medium">
+<span class="material-symbols-outlined text-pink text-lg shrink-0 mt-0.5">check_circle</span>
+<span>División 100% automática y cobro programado</span>
+</div>
+<div class="flex items-start gap-3 text-sm text-ink font-medium">
+<span class="material-symbols-outlined text-pink text-lg shrink-0 mt-0.5">check_circle</span>
+<span>Credenciales encriptadas con PIN seguro y perfil privado</span>
+</div>
+<div class="flex items-start gap-3 text-sm text-ink font-medium">
+<span class="material-symbols-outlined text-pink text-lg shrink-0 mt-0.5">check_circle</span>
+<span>Renovación sin fricción ni recordatorios incómodos</span>
+</div>
+<div class="flex items-start gap-3 text-sm text-ink font-medium">
+<span class="material-symbols-outlined text-pink text-lg shrink-0 mt-0.5">check_circle</span>
+<span><strong>Garantía Vakeva de 48h</strong> o te devolvemos el dinero</span>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6">
+<a class="w-full py-3.5 px-4 rounded-2xl bg-pink text-white text-sm font-bold shadow-[0_8px_20px_rgba(255,49,104,0.35),-2px_-2px_6px_rgba(255,255,255,0.8)] hover:shadow-[0_10px_24px_rgba(255,49,104,0.45)] active:scale-[0.98] transition-all flex items-center justify-center gap-2" href="#cta-final">
+<span>Elegir plan inteligente</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 7. PLATAFORMAS SOPORTADAS (Grid de 12 tiles interactivos raised to inset) -->
+<section class="py-20 bg-crema relative border-t border-crema-border/40" id="plataformas">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-crema shadow-neu-raised-sm border border-white/70 mb-4">
+<span class="w-2 h-2 rounded-full bg-pink"></span>
+<span class="text-[11px] font-extrabold uppercase tracking-wider text-pink">Catálogo de servicios</span>
+</div>
+<h2 class="text-3xl lg:text-4xl font-extrabold text-ink tracking-tight mb-4">
+            Tus plataformas favoritas listas para compartir
+          </h2>
+<p class="text-on-surface-variant text-base">
+            Compatibilidad verificada para planes familiares, multi-perfil y cupos autorizados.
+          </p>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+<!-- 1. Netflix -->
+<div class="neu-tile-interactive p-5 rounded-[22px] bg-crema shadow-neu-raised border border-white/70 flex flex-col items-center justify-center text-center cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-ink text-[#E50914] font-black text-2xl flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.12)] mb-3 group-hover:scale-105 transition-transform">
+              N
+            </div>
+<span class="text-sm font-bold text-ink mb-1">Netflix</span>
+<span class="text-[11px] font-semibold text-pink tabular-nums">Desde $89/mes</span>
+</div>
+<!-- 2. Spotify -->
+<div class="neu-tile-interactive p-5 rounded-[22px] bg-crema shadow-neu-raised border border-white/70 flex flex-col items-center justify-center text-center cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-[#1DB954]/15 text-[#1DB954] flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.12)] mb-3 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl font-bold">graphic_eq</span>
+</div>
+<span class="text-sm font-bold text-ink mb-1">Spotify</span>
+<span class="text-[11px] font-semibold text-pink tabular-nums">Desde $55/mes</span>
+</div>
+<!-- 3. Disney+ -->
+<div class="neu-tile-interactive p-5 rounded-[22px] bg-crema shadow-neu-raised border border-white/70 flex flex-col items-center justify-center text-center cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-blue-500/15 text-blue-600 flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.12)] mb-3 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl font-bold">play_circle</span>
+</div>
+<span class="text-sm font-bold text-ink mb-1">Disney+</span>
+<span class="text-[11px] font-semibold text-pink tabular-nums">Desde $65/mes</span>
+</div>
+<!-- 4. HBO Max -->
+<div class="neu-tile-interactive p-5 rounded-[22px] bg-crema shadow-neu-raised border border-white/70 flex flex-col items-center justify-center text-center cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-purple-600/15 text-purple-700 flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.12)] mb-3 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl font-bold">videocam</span>
+</div>
+<span class="text-sm font-bold text-ink mb-1">HBO Max</span>
+<span class="text-[11px] font-semibold text-pink tabular-nums">Desde $59/mes</span>
+</div>
+<!-- 5. YouTube Premium -->
+<div class="neu-tile-interactive p-5 rounded-[22px] bg-crema shadow-neu-raised border border-white/70 flex flex-col items-center justify-center text-center cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-red-500/15 text-red-600 flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.12)] mb-3 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl font-bold">smart_display</span>
+</div>
+<span class="text-sm font-bold text-ink mb-1">YouTube</span>
+<span class="text-[11px] font-semibold text-pink tabular-nums">Desde $49/mes</span>
+</div>
+<!-- 6. Prime Video -->
+<div class="neu-tile-interactive p-5 rounded-[22px] bg-crema shadow-neu-raised border border-white/70 flex flex-col items-center justify-center text-center cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-cyan-600/15 text-cyan-700 flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.12)] mb-3 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl font-bold">movie</span>
+</div>
+<span class="text-sm font-bold text-ink mb-1">Prime Video</span>
+<span class="text-[11px] font-semibold text-pink tabular-nums">Desde $45/mes</span>
+</div>
+<!-- 7. Apple Music -->
+<div class="neu-tile-interactive p-5 rounded-[22px] bg-crema shadow-neu-raised border border-white/70 flex flex-col items-center justify-center text-center cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-pink-500/15 text-pink flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.12)] mb-3 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl font-bold">music_note</span>
+</div>
+<span class="text-sm font-bold text-ink mb-1">Apple Music</span>
+<span class="text-[11px] font-semibold text-pink tabular-nums">Desde $48/mes</span>
+</div>
+<!-- 8. Crunchyroll -->
+<div class="neu-tile-interactive p-5 rounded-[22px] bg-crema shadow-neu-raised border border-white/70 flex flex-col items-center justify-center text-center cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-orange-500/15 text-orange-600 flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.12)] mb-3 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl font-bold">animation</span>
+</div>
+<span class="text-sm font-bold text-ink mb-1">Crunchyroll</span>
+<span class="text-[11px] font-semibold text-pink tabular-nums">Desde $39/mes</span>
+</div>
+<!-- 9. Canva Pro -->
+<div class="neu-tile-interactive p-5 rounded-[22px] bg-crema shadow-neu-raised border border-white/70 flex flex-col items-center justify-center text-center cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-teal-500/15 text-teal-700 flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.12)] mb-3 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl font-bold">palette</span>
+</div>
+<span class="text-sm font-bold text-ink mb-1">Canva Pro</span>
+<span class="text-[11px] font-semibold text-pink tabular-nums">Desde $42/mes</span>
+</div>
+<!-- 10. Duolingo -->
+<div class="neu-tile-interactive p-5 rounded-[22px] bg-crema shadow-neu-raised border border-white/70 flex flex-col items-center justify-center text-center cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-lime-500/15 text-lime-700 flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.12)] mb-3 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl font-bold">language</span>
+</div>
+<span class="text-sm font-bold text-ink mb-1">Duolingo</span>
+<span class="text-[11px] font-semibold text-pink tabular-nums">Desde $35/mes</span>
+</div>
+<!-- 11. ChatGPT Plus -->
+<div class="neu-tile-interactive p-5 rounded-[22px] bg-crema shadow-neu-raised border border-white/70 flex flex-col items-center justify-center text-center cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-emerald-600/15 text-emerald-800 flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.12)] mb-3 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl font-bold">psychology</span>
+</div>
+<span class="text-sm font-bold text-ink mb-1">ChatGPT Plus</span>
+<span class="text-[11px] font-semibold text-pink tabular-nums">Desde $119/mes</span>
+</div>
+<!-- 12. Claude Pro -->
+<div class="neu-tile-interactive p-5 rounded-[22px] bg-crema shadow-neu-raised border border-white/70 flex flex-col items-center justify-center text-center cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-amber-600/15 text-amber-800 flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_5px_rgba(20,20,43,0.12)] mb-3 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl font-bold">bolt</span>
+</div>
+<span class="text-sm font-bold text-ink mb-1">Claude Pro</span>
+<span class="text-[11px] font-semibold text-pink tabular-nums">Desde $119/mes</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 8. TESTIMONIOS (3 cards neumórficas raised con avatares y badges de ahorro) -->
+<section class="py-20 bg-crema relative">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-crema shadow-neu-raised-sm border border-white/70 mb-4">
+<span class="w-2 h-2 rounded-full bg-pink"></span>
+<span class="text-[11px] font-extrabold uppercase tracking-wider text-pink">Comunidad Vakeva</span>
+</div>
+<h2 class="text-3xl lg:text-4xl font-extrabold text-ink tracking-tight mb-4">
+            Lo que dicen dueños y miembros
+          </h2>
+<p class="text-on-surface-variant text-base">
+            Casos reales de personas optimizando sus finanzas digitales cada mes.
+          </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Testimonio 1 -->
+<div class="p-8 rounded-[28px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg transition-all">
+<div>
+<!-- Avatar & Tag Header -->
+<div class="flex items-center gap-3 mb-5">
+<div class="w-12 h-12 rounded-full bg-ink text-crema flex items-center justify-center font-bold text-base shadow-neu-raised border-2 border-crema">
+                  VA
+                </div>
+<div>
+<h3 class="text-base font-bold text-ink">Valeria Arismendi</h3>
+<span class="inline-block px-2 py-0.5 rounded-md bg-crema-inset shadow-neu-inset-sm text-[10px] font-bold text-ink">Miembro activo</span>
+</div>
+</div>
+<!-- Quote -->
+<p class="text-sm text-on-surface-variant leading-relaxed mb-6 italic">
+                “Antes me daba pena pedirle la contraseña a mis amigos y que luego cambiaran la cuenta. Con Vakeva tengo mi perfil con PIN propio y sé que el débito es exacto.”
+              </p>
+</div>
+<!-- Savings Badge -->
+<div class="p-3 rounded-xl bg-crema-inset shadow-neu-inset flex items-center gap-2 border border-black/5">
+<span class="material-symbols-outlined text-pink text-base">trending_down</span>
+<span class="text-xs font-bold text-ink">Ahorro $180/mes compartiendo Netflix y Spotify</span>
+</div>
+</div>
+<!-- Testimonio 2 -->
+<div class="p-8 rounded-[28px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg transition-all">
+<div>
+<div class="flex items-center gap-3 mb-5">
+<div class="w-12 h-12 rounded-full bg-pink text-white flex items-center justify-center font-bold text-base shadow-neu-raised border-2 border-crema">
+                  MR
+                </div>
+<div>
+<h3 class="text-base font-bold text-ink">Mauricio Robledo</h3>
+<span class="inline-block px-2 py-0.5 rounded-md bg-pink/15 text-[10px] font-bold text-pink">Owner verificado</span>
+</div>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-6 italic">
+                “Tenía 3 cupos libres en mi plan familiar de YouTube y Disney. Ahora Vakeva les cobra en automático y me deposita cada semana en mi CLABE sin tener que recordar nada.”
+              </p>
+</div>
+<div class="p-3 rounded-xl bg-crema-inset shadow-neu-inset flex items-center gap-2 border border-black/5">
+<span class="material-symbols-outlined text-emerald-600 text-base">monetization_on</span>
+<span class="text-xs font-bold text-ink">Gano $620/mes cubriendo el costo total de mi cuenta familiar</span>
+</div>
+</div>
+<!-- Testimonio 3 -->
+<div class="p-8 rounded-[28px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg transition-all">
+<div>
+<div class="flex items-center gap-3 mb-5">
+<div class="w-12 h-12 rounded-full bg-ink text-crema flex items-center justify-center font-bold text-base shadow-neu-raised border-2 border-crema">
+                  DL
+                </div>
+<div>
+<h3 class="text-base font-bold text-ink">Daniela Lozano</h3>
+<span class="inline-block px-2 py-0.5 rounded-md bg-crema-inset shadow-neu-inset-sm text-[10px] font-bold text-ink">Miembro activo</span>
+</div>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-6 italic">
+                “Lo mejor es no tener que lidiar con transferencias chuecas ni grupos de WhatsApp molestos. El proceso de pago es idéntico a pagar cualquier servicio premium.”
+              </p>
+</div>
+<div class="p-3 rounded-xl bg-crema-inset shadow-neu-inset flex items-center gap-2 border border-black/5">
+<span class="material-symbols-outlined text-pink text-base">verified</span>
+<span class="text-xs font-bold text-ink">Cero problemas de cobranza o contraseñas compartidas por chat</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 9. SEGURIDAD Y CONFIANZA (Fondo Ink #14142B - Modo oscuro neumórfico) -->
+<section class="py-24 bg-ink text-crema relative overflow-hidden">
+<!-- Glow ambient background -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-pink/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="max-w-7xl mx-auto px-6 relative z-10">
+<!-- Main Dark Neumorphic Panel -->
+<div class="rounded-[32px] bg-ink-card p-8 lg:p-14 shadow-neu-dark-raised border border-white/10 relative overflow-hidden">
+<!-- Inner Shield with pink glow -->
+<div class="flex flex-col items-center text-center max-w-2xl mx-auto mb-14">
+<div class="w-20 h-20 rounded-full bg-ink flex items-center justify-center shadow-neu-dark-inset ring-2 ring-pink/30 mb-6">
+<span class="material-symbols-outlined text-pink text-4xl" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-ink shadow-neu-dark-inset border border-white/5 mb-3">
+<span class="w-2 h-2 rounded-full bg-pink"></span>
+<span class="text-[11px] font-extrabold uppercase tracking-wider text-pink">Protocolo Blindado Vakeva</span>
+</div>
+<h2 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight mb-4">
+              Seguridad de grado bancario para cada usuario
+            </h2>
+<p class="text-gray-400 text-sm leading-relaxed">
+              Tus finanzas y credenciales están aisladas por arquitecturas de encriptación de extremo a extremo y políticas de custodia auditables.
+            </p>
+</div>
+<!-- 4 Key Security Columns -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Col 1 -->
+<div class="p-6 rounded-2xl bg-ink shadow-neu-dark-inset border border-white/5 flex flex-col items-start">
+<div class="w-10 h-10 rounded-xl bg-ink-surface flex items-center justify-center text-pink mb-4 shadow-neu-dark-raised">
+<span class="material-symbols-outlined text-xl">vpn_key</span>
+</div>
+<h3 class="text-base font-bold text-white mb-2">Cifrado AES-256</h3>
+<p class="text-xs text-gray-400 leading-relaxed">
+                Las contraseñas de las cuentas compartidas jamás se almacenan en texto plano. Se cifran con llaves dinámicas por sesión.
+              </p>
+</div>
+<!-- Col 2 -->
+<div class="p-6 rounded-2xl bg-ink shadow-neu-dark-inset border border-white/5 flex flex-col items-start">
+<div class="w-10 h-10 rounded-xl bg-ink-surface flex items-center justify-center text-pink mb-4 shadow-neu-dark-raised">
+<span class="material-symbols-outlined text-xl">account_balance</span>
+</div>
+<h3 class="text-base font-bold text-white mb-2">Custodia de fondos</h3>
+<p class="text-xs text-gray-400 leading-relaxed">
+                El dinero del miembro no se transfiere al dueño hasta confirmar que el perfil funciona correctamente.
+              </p>
+</div>
+<!-- Col 3 -->
+<div class="p-6 rounded-2xl bg-ink shadow-neu-dark-inset border border-white/5 flex flex-col items-start">
+<div class="w-10 h-10 rounded-xl bg-ink-surface flex items-center justify-center text-pink mb-4 shadow-neu-dark-raised">
+<span class="material-symbols-outlined text-xl">privacy_tip</span>
+</div>
+<h3 class="text-base font-bold text-white mb-2">Cumplimiento ARCO</h3>
+<p class="text-xs text-gray-400 leading-relaxed">
+                Anonimización completa de datos personales de acuerdo con la legislación de protección de datos personales.
+              </p>
+</div>
+<!-- Col 4 -->
+<div class="p-6 rounded-2xl bg-ink shadow-neu-dark-inset border border-white/5 flex flex-col items-start">
+<div class="w-10 h-10 rounded-xl bg-ink-surface flex items-center justify-center text-pink mb-4 shadow-neu-dark-raised">
+<span class="material-symbols-outlined text-xl">fingerprint</span>
+</div>
+<h3 class="text-base font-bold text-white mb-2">Verificación antifraude</h3>
+<p class="text-xs text-gray-400 leading-relaxed">
+                Filtro de identidad para owners y grupos verificados para erradicar suspensiones o cancelaciones imprevistas.
+              </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 10. PARA DUEÑOS DE GRUPO (Calculadora interactiva + Wallet Mockup) -->
+<section class="py-20 bg-crema relative border-t border-crema-border/40" id="owners">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-crema shadow-neu-raised-sm border border-white/70 mb-4">
+<span class="w-2 h-2 rounded-full bg-pink"></span>
+<span class="text-[11px] font-extrabold uppercase tracking-wider text-pink">Monetiza tus cupos libres</span>
+</div>
+<h2 class="text-3xl lg:text-4xl font-extrabold text-ink tracking-tight mb-4">
+            Conviértete en Owner de Vakeva
+          </h2>
+<p class="text-on-surface-variant text-base">
+            Si pagas un plan familiar de cualquier plataforma, Vakeva te ayuda a llenar los perfiles vacíos y cobrar sin fricción.
+          </p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Columna Izquierda: Calculadora Neumórfica Interactiva -->
+<div class="lg:col-span-6 p-8 rounded-[28px] bg-crema shadow-neu-raised border border-white/70 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold text-ink">Calcula tus ingresos como Owner</h3>
+<span class="px-3 py-1 rounded-full bg-crema-inset shadow-neu-inset text-xs font-bold text-pink">Simulador</span>
+</div>
+<!-- Selector de Plan -->
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Selecciona tu servicio</label>
+<div class="grid grid-cols-3 gap-2 mb-6">
+<button class="calc-btn active-calc py-2.5 px-3 rounded-xl bg-crema text-xs font-bold text-ink shadow-neu-raised hover:shadow-neu-raised-lg border border-pink/30 transition-all text-center" onclick="updateCalculator(89, 4, 'Netflix Premium')" type="button">
+                  Netflix 4K
+                </button>
+<button class="calc-btn py-2.5 px-3 rounded-xl bg-crema text-xs font-bold text-on-surface-variant shadow-neu-raised hover:shadow-neu-raised-lg transition-all text-center" onclick="updateCalculator(55, 5, 'Spotify Familiar')" type="button">
+                  Spotify Fam.
+                </button>
+<button class="calc-btn py-2.5 px-3 rounded-xl bg-crema text-xs font-bold text-on-surface-variant shadow-neu-raised hover:shadow-neu-raised-lg transition-all text-center" onclick="updateCalculator(65, 3, 'Disney+ Combo')" type="button">
+                  Disney+
+                </button>
+</div>
+<!-- Slider de Cupos Libres -->
+<div class="mb-8">
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs font-bold text-on-surface-variant">Cupos a compartir:</span>
+<span class="text-sm font-extrabold text-ink tabular-nums" id="spots-label">3 cupos libres</span>
+</div>
+<input class="w-full accent-pink cursor-pointer" id="spots-slider" max="4" min="1" oninput="onSliderChange(this.value)" type="range" value="3"/>
+<div class="flex justify-between text-[11px] text-on-surface-variant mt-1">
+<span>1 cupo</span>
+<span>4 cupos</span>
+</div>
+</div>
+<!-- Resultado Tabular Gigante -->
+<div class="p-6 rounded-2xl bg-crema-inset shadow-neu-inset border border-black/5 mb-6 text-center">
+<span class="text-xs font-semibold text-on-surface-variant block mb-1">Ingresos mensuales estimados</span>
+<div class="text-4xl sm:text-5xl font-black text-pink tabular-nums tracking-tight mb-1" id="calc-earnings">
+                  $267 <span class="text-xl font-bold text-ink">MXN / mes</span>
+</div>
+<span class="text-[11px] text-emerald-700 font-bold" id="calc-annual">≈ $3,204 MXN al año que ya no salen de tu bolsillo</span>
+</div>
+</div>
+<!-- CTA Publicar grupo -->
+<a class="w-full py-4 px-6 rounded-2xl bg-ink text-crema text-sm font-bold shadow-[-3px_-3px_8px_rgba(255,255,255,0.8),3px_3px_12px_rgba(20,20,43,0.2)] hover:bg-[#20203D] hover:shadow-[0_6px_20px_rgba(255,49,104,0.3)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group" href="#cta-final">
+<span>Publica tu primer grupo</span>
+<span class="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</a>
+</div>
+<!-- Columna Derecha: Mockup Neumórfico de la Wallet de Owner -->
+<div class="lg:col-span-6 p-8 rounded-[28px] bg-crema shadow-neu-raised border border-white/70">
+<!-- Header Wallet -->
+<div class="flex items-center justify-between pb-4 mb-5 border-b border-crema-border/50">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-crema-inset shadow-neu-inset flex items-center justify-center text-pink">
+<span class="material-symbols-outlined text-xl">account_balance_wallet</span>
+</div>
+<div>
+<h4 class="text-sm font-bold text-ink">Wallet de Administrador</h4>
+<span class="text-[11px] text-on-surface-variant">CLABE vinculada: •••• 8912</span>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Verificado</span>
+</div>
+<!-- Saldo Disponible -->
+<div class="mb-6">
+<span class="text-xs font-semibold text-on-surface-variant block mb-1">Saldo disponible para retiro</span>
+<div class="text-3xl sm:text-4xl font-black text-ink tabular-nums tracking-tight">
+                $2,848.00 <span class="text-sm font-normal text-on-surface-variant">MXN</span>
+</div>
+</div>
+<!-- Desglose de cupos ocupados -->
+<div class="space-y-3 mb-6">
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider block">Grupos administrados</span>
+<!-- Fila 1 -->
+<div class="p-3.5 rounded-xl bg-crema-inset shadow-neu-inset flex items-center justify-between border border-black/5">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-lg bg-ink text-[#E50914] font-black text-xs flex items-center justify-center">N</div>
+<div>
+<span class="text-xs font-bold text-ink block">Netflix Premium 4K</span>
+<span class="text-[10px] text-emerald-600 font-semibold">4 de 4 cupos ocupados</span>
+</div>
+</div>
+<span class="text-xs font-black text-ink tabular-nums">+$356.00 MXN</span>
+</div>
+<!-- Fila 2 -->
+<div class="p-3.5 rounded-xl bg-crema-inset shadow-neu-inset flex items-center justify-between border border-black/5">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-lg bg-emerald-600/20 text-emerald-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">graphic_eq</span>
+</div>
+<div>
+<span class="text-xs font-bold text-ink block">Spotify Familiar</span>
+<span class="text-[10px] text-emerald-600 font-semibold">5 de 5 cupos ocupados</span>
+</div>
+</div>
+<span class="text-xs font-black text-ink tabular-nums">+$275.00 MXN</span>
+</div>
+<!-- Fila 3 -->
+<div class="p-3.5 rounded-xl bg-crema-inset shadow-neu-inset flex items-center justify-between border border-black/5">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-lg bg-blue-600/20 text-blue-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">play_circle</span>
+</div>
+<div>
+<span class="text-xs font-bold text-ink block">Disney+ Premium</span>
+<span class="text-[10px] text-emerald-600 font-semibold">3 de 3 cupos ocupados</span>
+</div>
+</div>
+<span class="text-xs font-black text-ink tabular-nums">+$195.00 MXN</span>
+</div>
+</div>
+<!-- Botón Raised Solicitar retiro -->
+<button class="neu-btn-interactive w-full py-3.5 px-4 rounded-xl bg-crema text-xs font-bold text-ink shadow-neu-raised hover:shadow-neu-raised-lg active:shadow-neu-inset flex items-center justify-center gap-2 border border-white/80" onclick="alert('Solicitud enviada. Tu saldo se transferirá por SPEI a tu cuenta vinculada en 24h.');">
+<span class="material-symbols-outlined text-base text-pink">payments</span>
+<span>Solicitar retiro a banco (SPEI 24h)</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- 11. CTA FINAL (Mesh Gradient Ink->Pink bookend con Hero) -->
+<section class="py-20 relative overflow-hidden" id="cta-final">
+<!-- Mesh background container -->
+<div class="max-w-7xl mx-auto px-6">
+<div class="relative rounded-[36px] overflow-hidden bg-gradient-to-br from-ink via-pink-dark to-pink p-8 sm:p-14 lg:p-20 shadow-[-12px_-12px_28px_rgba(255,255,255,0.9),12px_12px_36px_rgba(20,20,43,0.25)]">
+<!-- Light ray beam -->
+<div class="absolute -top-40 -left-20 w-[60vw] h-[500px] bg-gradient-to-r from-white/20 to-transparent transform rotate-12 blur-3xl pointer-events-none"></div>
+<div class="relative z-10 max-w-3xl mx-auto text-center flex flex-col items-center">
+<!-- Mini icon pill -->
+<div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center shadow-[-2px_-2px_6px_rgba(255,255,255,0.3),2px_2px_8px_rgba(0,0,0,0.3)] mb-6 border border-white/20">
+<span class="material-symbols-outlined text-white text-2xl">grain</span>
+</div>
+<h2 class="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-6">
+              Empieza a ahorrar hoy mismo en <span class="text-pink-300">tus suscripciones</span>
+</h2>
+<p class="text-base sm:text-lg text-white/80 max-w-xl mb-8 leading-relaxed">
+              Crea tu cuenta gratuita en menos de dos minutos. Únete a un grupo activo o comparte tus cupos libres sin riesgo.
+            </p>
+<!-- Form CTA final -->
+<form class="w-full max-w-md p-1.5 rounded-full bg-crema/95 backdrop-blur-md shadow-[-6px_-6px_16px_rgba(255,255,255,0.3),6px_6px_20px_rgba(0,0,0,0.35)] flex items-center gap-2 border border-white" onsubmit="event.preventDefault(); alert('¡Cuenta creada exitosamente! Bienvenido a Vakeva.');">
+<div class="flex-1 flex items-center pl-4">
+<span class="material-symbols-outlined text-on-surface-variant text-base mr-2">mail</span>
+<input class="w-full bg-transparent text-sm text-ink placeholder-on-surface-variant/70 focus:outline-none border-none focus:ring-0 p-0" placeholder="Ingresa tu correo" required="" type="email"/>
+</div>
+<button class="neu-btn-interactive px-6 py-3.5 rounded-full bg-crema text-ink font-extrabold text-sm flex items-center gap-2 shadow-neu-raised hover:shadow-neu-raised-lg active:shadow-neu-inset shrink-0 transition-all border border-white/60" type="submit">
+<span class="material-symbols-outlined text-pink text-base">rocket_launch</span>
+<span>Crear cuenta gratis</span>
+</button>
+</form>
+<span class="text-xs text-white/70 mt-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-emerald-300">lock</span> Sin tarjeta para registrarte · Cancela cuando quieras
+            </span>
+</div>
+</div>
+</div>
+</section>
+<!-- 12. FOOTER (Fondo Ink #14142B sólido, plano, sin neumorfismo) -->
+<footer class="bg-ink text-white/70 py-16 border-t border-white/10">
+<div class="max-w-7xl mx-auto px-6">
+<div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+<!-- Logo & Brand Col -->
+<div class="col-span-2">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-8 h-8 rounded-lg bg-pink flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-lg">grain</span>
+</div>
+<span class="font-extrabold text-2xl text-white tracking-tight lowercase">vakeva</span>
+</div>
+<p class="text-xs text-white/60 max-w-sm leading-relaxed mb-4">
+              Plataforma de división segura de gastos para suscripciones digitales. Automatización financiera, credenciales cifradas y liquidación instantánea para comunidades.
+            </p>
+<div class="flex items-center gap-3 text-white/80">
+<a class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors" href="#">
+<span class="text-xs font-bold">𝕏</span>
+</a>
+<a class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors" href="#">
+<span class="text-xs font-bold">in</span>
+</a>
+<a class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors" href="#">
+<span class="text-xs font-bold">ig</span>
+</a>
+</div>
+</div>
+<!-- Col Producto -->
+<div>
+<h4 class="text-xs font-bold text-white uppercase tracking-wider mb-4">Producto</h4>
+<ul class="space-y-2.5 text-xs">
+<li><a class="hover:text-white transition-colors" href="#plataformas">Explorar servicios</a></li>
+<li><a class="hover:text-white transition-colors" href="#como-funciona">Cómo funciona</a></li>
+<li><a class="hover:text-white transition-colors" href="#owners">Para owners</a></li>
+<li><a class="hover:text-white transition-colors" href="#owners">Calculadora de ahorro</a></li>
+<li><a class="hover:text-white transition-colors" href="#comparativa">Precios y comisiones</a></li>
+</ul>
+</div>
+<!-- Col Compañía -->
+<div>
+<h4 class="text-xs font-bold text-white uppercase tracking-wider mb-4">Compañía</h4>
+<ul class="space-y-2.5 text-xs">
+<li><a class="hover:text-white transition-colors" href="#">Nosotros</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Prensa y medios</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Blog y finanzas</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Bolsa de trabajo</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Contacto de soporte</a></li>
+</ul>
+</div>
+<!-- Col Legal -->
+<div>
+<h4 class="text-xs font-bold text-white uppercase tracking-wider mb-4">Legal</h4>
+<ul class="space-y-2.5 text-xs">
+<li><a class="hover:text-white transition-colors" href="#">Términos de servicio</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Política de privacidad</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Aviso de derechos ARCO</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Garantía Vakeva 48h</a></li>
+<li><a class="hover:text-white transition-colors" href="#">Reporte de seguridad</a></li>
+</ul>
+</div>
+</div>
+<!-- Bottom bar & disclaimer -->
+<div class="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-white/50">
+<p>© 2025 Vakeva Technologies Inc. Todos los derechos reservados.</p>
+<p class="max-w-lg text-center sm:text-right">
+            Las marcas, logotipos y nombres de servicios mencionados pertenecen a sus respectivos propietarios y se utilizan únicamente con fines ilustrativos de compatibilidad.
+          </p>
+</div>
+</div>
+</footer>
+</main>
+<!-- Interactive Logic for Calculator and Controls -->
+<script>
+    let currentPricePerSpot = 89;
+    let currentMaxSpots = 4;
+    let currentSpots = 3;
+
+    function updateCalculator(price, maxSpots, serviceName) {
+      currentPricePerSpot = price;
+      currentMaxSpots = maxSpots;
+      
+      const slider = document.getElementById('spots-slider');
+      slider.max = maxSpots;
+      if (currentSpots > maxSpots) currentSpots = maxSpots;
+      slider.value = currentSpots;
+
+      // Update button styling
+      document.querySelectorAll('.calc-btn').forEach(btn => {
+        btn.classList.remove('border-pink/30', 'text-ink');
+        btn.classList.add('text-on-surface-variant');
+      });
+      event.currentTarget.classList.add('border-pink/30', 'text-ink');
+      event.currentTarget.classList.remove('text-on-surface-variant');
+
+      renderCalc();
+    }
+
+    function onSliderChange(val) {
+      currentSpots = parseInt(val);
+      renderCalc();
+    }
+
+    function renderCalc() {
+      const spotsLabel = document.getElementById('spots-label');
+      spotsLabel.textContent = `${currentSpots} ${currentSpots === 1 ? 'cupo libre' : 'cupos libres'}`;
+
+      const totalMonthly = currentSpots * currentPricePerSpot;
+      const totalAnnual = totalMonthly * 12;
+
+      document.getElementById('calc-earnings').innerHTML = `$${totalMonthly} <span class="text-xl font-bold text-ink">MXN / mes</span>`;
+      document.getElementById('calc-annual').textContent = `≈ $${totalAnnual.toLocaleString('es-MX')} MXN al año que ya no salen de tu bolsillo`;
+    }
+
+    // Scroll appearance listener for navbar glass transition
+    window.addEventListener('scroll', () => {
+      const header = document.querySelector('header');
+      if (window.scrollY > 30) {
+        header.classList.add('shadow-[0_4px_20px_rgba(20,20,43,0.06)]');
+      } else {
+        header.classList.remove('shadow-[0_4px_20px_rgba(20,20,43,0.06)]');
+      }
+    });
+  </script>
+</body></html>

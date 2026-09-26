@@ -1,0 +1,139 @@
+<div class="max-w-4xl mx-auto space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-ink tracking-tight flex items-center gap-2">
+      <span class="material-symbols-outlined text-pink text-2xl">request_quote</span>
+      Comisiones
+    </h1>
+    <p class="text-sm text-on-surface-variant font-medium mt-1">
+      Vakeva cobra una comisión (10%–15% según tu grupo) de lo que ganas. Se paga por transferencia cuando el grupo se llena, o a los 7 días de arrancar el ciclo.
+    </p>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-xl bg-red-50 border border-red-100 text-xs text-red-700 font-semibold">{{ errorMessage() }}</div>
+  }
+  @if (notice()) {
+    <div class="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-900">
+      <span class="material-symbols-outlined">check_circle</span>
+      <p class="text-sm font-semibold">{{ notice() }}</p>
+    </div>
+  }
+
+  @if (data(); as d) {
+    @if (pending().length === 0 && inReview().length === 0) {
+      <section class="p-6 rounded-2xl bg-white border border-slate-200/70 flex items-center gap-4">
+        <span class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-2xl">verified</span></span>
+        <div>
+          <p class="text-base font-extrabold text-ink">Estás al corriente</p>
+          <p class="text-sm text-on-surface-variant mt-0.5">No tienes comisión por pagar. Te avisamos cuando se genere una.</p>
+          <a routerLink="/panel/ganancias" class="inline-flex items-center gap-1 text-xs font-bold text-pink mt-2 hover:underline">Ver mis ganancias<span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+        </div>
+      </section>
+    }
+
+    <!-- Por pagar -->
+    @for (charge of pending(); track charge.id) {
+      <section class="rounded-2xl bg-white border overflow-hidden" [class]="charge.overdue ? 'border-red-200' : 'border-slate-200/70'">
+        <header class="p-6 flex flex-wrap items-start justify-between gap-4" [class]="charge.overdue ? 'bg-red-50' : 'bg-amber-50/60'">
+          <div>
+            <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Comisión por pagar</p>
+            <p class="text-3xl font-black text-ink tabular-nums tracking-tight mt-1">{{ money(charge.amount) }}</p>
+            <p class="text-xs font-semibold mt-1" [class]="charge.overdue ? 'text-red-700' : 'text-amber-800'">
+              @if (charge.overdue) { Venció el {{ formatDate(charge.payBy) }} · tus grupos no reciben miembros hasta que la pagues }
+              @else if (daysLeft(charge) <= 1) { Págala hoy o mañana · límite {{ formatDate(charge.payBy) }} }
+              @else { Págala antes del {{ formatDate(charge.payBy) }} · te quedan {{ daysLeft(charge) }} días }
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-1.5 max-w-sm justify-end">
+            @for (g of charge.groups; track g.groupId) {
+              <span class="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-[11px] font-semibold text-ink">{{ g.platformName }} · {{ g.payments }} {{ g.payments === 1 ? 'pago' : 'pagos' }} · {{ money(g.commission) }}</span>
+            }
+          </div>
+        </header>
+
+        @if (charge.rejectionReason) {
+          <div class="mx-6 mt-5 flex items-start gap-2.5 p-3.5 rounded-xl bg-red-50 border border-red-100 text-red-800">
+            <span class="material-symbols-outlined text-lg">error</span>
+            <p class="text-xs"><strong>Rechazamos tu comprobante anterior:</strong> {{ charge.rejectionReason }}. Sube uno nuevo.</p>
+          </div>
+        }
+
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- 1. Transferir -->
+          <div>
+            <p class="flex items-center gap-2 text-sm font-extrabold text-ink mb-3"><span class="w-6 h-6 rounded-full bg-slate-100 text-ink text-xs font-black flex items-center justify-center">1</span>Transfiere {{ money(charge.amount) }}</p>
+            @if (d.bankAccount; as acc) {
+              <div class="rounded-xl bg-slate-50 border border-slate-200/70 divide-y divide-slate-200/70">
+                <div class="p-3 flex items-center justify-between gap-2"><div class="min-w-0"><p class="text-[11px] text-on-surface-variant">Banco</p><p class="text-sm font-bold text-ink truncate">{{ acc.bankName }}</p></div></div>
+                <div class="p-3 flex items-center justify-between gap-2"><div class="min-w-0"><p class="text-[11px] text-on-surface-variant">Titular</p><p class="text-sm font-bold text-ink truncate">{{ acc.holder }}</p></div><button type="button" (click)="copy('holder-' + charge.id, acc.holder)" class="text-xs font-bold text-pink hover:underline shrink-0">{{ copiedField() === 'holder-' + charge.id ? 'Copiado' : 'Copiar' }}</button></div>
+                <div class="p-3 flex items-center justify-between gap-2"><div class="min-w-0"><p class="text-[11px] text-on-surface-variant">CLABE</p><p class="text-sm font-bold text-ink tabular-nums">{{ acc.clabe }}</p></div><button type="button" (click)="copy('clabe-' + charge.id, acc.clabe)" class="text-xs font-bold text-pink hover:underline shrink-0">{{ copiedField() === 'clabe-' + charge.id ? 'Copiado' : 'Copiar' }}</button></div>
+                <div class="p-3 flex items-center justify-between gap-2"><div class="min-w-0"><p class="text-[11px] text-on-surface-variant">Monto exacto</p><p class="text-sm font-bold text-ink tabular-nums">{{ money(charge.amount) }}</p></div><button type="button" (click)="copy('amount-' + charge.id, charge.amount.toFixed(2))" class="text-xs font-bold text-pink hover:underline shrink-0">{{ copiedField() === 'amount-' + charge.id ? 'Copiado' : 'Copiar' }}</button></div>
+              </div>
+              @if (acc.reference) { <p class="text-xs text-on-surface-variant mt-2.5 flex items-start gap-1.5"><span class="material-symbols-outlined text-sm">info</span>{{ acc.reference }}</p> }
+            } @else {
+              <div class="flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-50 border border-amber-100 text-amber-900">
+                <span class="material-symbols-outlined text-lg">hourglass_top</span>
+                <p class="text-xs"><strong>Vakeva todavía no publica su cuenta.</strong> En cuanto la configure aparecerá aquí. Mientras tanto no se te restringe nada.</p>
+              </div>
+            }
+          </div>
+
+          <!-- 2. Comprobante -->
+          <div>
+            <p class="flex items-center gap-2 text-sm font-extrabold text-ink mb-3"><span class="w-6 h-6 rounded-full bg-slate-100 text-ink text-xs font-black flex items-center justify-center">2</span>Sube tu comprobante</p>
+            <label class="block cursor-pointer rounded-xl border-2 border-dashed border-slate-300 hover:border-pink hover:bg-pink/5 transition-colors p-5 text-center" (dragover)="$event.preventDefault()" (drop)="onFileDropped(charge.id, $event)">
+              <input type="file" class="sr-only" accept="image/jpeg,image/png,image/webp,application/pdf" (change)="onFileChosen(charge.id, $event)" />
+              <span class="material-symbols-outlined text-3xl text-pink">upload_file</span>
+              <p class="text-sm font-bold text-ink mt-1 break-all">{{ selectedFiles()[charge.id]?.name || 'Arrastra tu archivo o haz clic' }}</p>
+              <p class="text-[11px] text-on-surface-variant mt-0.5">JPG, PNG, WEBP o PDF · máx. 8 MB</p>
+            </label>
+            @if (fileErrors()[charge.id]) { <p class="text-xs text-red-600 font-semibold mt-2">{{ fileErrors()[charge.id] }}</p> }
+            <button type="button" (click)="upload(charge)" [disabled]="!selectedFiles()[charge.id] || uploadingId() === charge.id" class="mt-3 w-full py-2.5 px-6 rounded-lg bg-pink hover:bg-[#047857] active:scale-[0.98] text-white text-sm font-bold transition-all disabled:opacity-50 disabled:hover:bg-pink">
+              {{ uploadingId() === charge.id ? 'Enviando…' : 'Enviar comprobante' }}
+            </button>
+            <p class="text-[11px] text-on-surface-variant mt-2">Vakeva confirma que la transferencia llegó y te avisa. Mientras se revisa tus grupos siguen activos.</p>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- En revisión -->
+    @for (charge of inReview(); track charge.id) {
+      <section class="p-6 rounded-2xl bg-blue-50/60 border border-blue-100 flex flex-wrap items-center gap-4">
+        <span class="w-11 h-11 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-2xl">hourglass_top</span></span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-extrabold text-ink">Estamos revisando tu comprobante de {{ money(charge.amount) }}</p>
+          <p class="text-xs text-on-surface-variant mt-0.5">Lo subiste el {{ formatDate(charge.receiptUploadedAt!) }}. Te avisamos en cuanto lo validemos.</p>
+        </div>
+        <button type="button" (click)="viewReceipt(charge)" [disabled]="viewingId() === charge.id" class="py-2 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-ink text-xs font-bold flex items-center gap-1 disabled:opacity-60"><span class="material-symbols-outlined text-sm">visibility</span>Ver comprobante</button>
+      </section>
+    }
+
+    <!-- Historial -->
+    <section class="p-6 rounded-2xl bg-white border border-slate-200/70">
+      <h2 class="text-base font-extrabold text-ink mb-4">Historial de comisiones</h2>
+      @if (history().length === 0) {
+        <p class="text-sm text-on-surface-variant">Todavía no has pagado ninguna comisión.</p>
+      } @else {
+        <ul class="divide-y divide-slate-100">
+          @for (c of history(); track c.id) {
+            <li class="py-3 flex items-center gap-3 flex-wrap">
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-bold text-ink tabular-nums">{{ money(c.amount) }}</p>
+                <p class="text-xs text-on-surface-variant">
+                  {{ c.groups.length ? c.groups[0].platformName + (c.groups.length > 1 ? ' y ' + (c.groups.length - 1) + ' más' : '') + ' · ' : '' }}{{ c.status === 'PAID' && c.paidAt ? 'pagada el ' + formatDate(c.paidAt) : 'generada el ' + formatDate(c.createdAt) }}
+                </p>
+              </div>
+              @if (c.hasReceipt) {
+                <button type="button" (click)="viewReceipt(c)" [disabled]="viewingId() === c.id" class="text-xs font-bold text-pink hover:underline disabled:opacity-60">Ver comprobante</button>
+              }
+              <span class="shrink-0 px-2.5 py-1 rounded-full text-xs font-bold" [class]="statusLabel[c.status].tone">{{ statusLabel[c.status].label }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  } @else if (!errorMessage()) {
+    <div class="p-8 rounded-2xl bg-white border border-slate-200/70 text-center text-sm text-on-surface-variant">Cargando tus comisiones…</div>
+  }
+</div>

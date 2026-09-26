@@ -1,0 +1,60 @@
+<app-navbar [links]="navLinks" />
+
+<main class="sec-page">
+  <div class="sec-bg-orb orb-one"></div><div class="sec-bg-orb orb-two"></div><div class="sec-bg-orb orb-three"></div>
+  <section class="sec-hero" id="resumen">
+    <div appReveal class="sec-hero-copy">
+      <div class="sec-badge"><span class="material-symbols-outlined">security</span>Protocolo blindado Vakeva</div>
+      <h1>Seguridad real,<br />no solo <span>apariencia.</span></h1>
+      <p>Cuidamos la confianza de tu cuenta compartida de principio a fin. No es solo un trato entre personas: es un sistema diseñado para proteger tus credenciales, tu dinero y tu acceso.</p>
+      <div class="sec-benefits">
+        <article appReveal appRevealVariant="pop" [appRevealDelay]="80"><i class="material-symbols-outlined">lock</i><div><b>Credenciales cifradas</b><small>AES-256, en reposo y en tránsito.</small></div></article>
+        <article appReveal appRevealVariant="pop" [appRevealDelay]="150"><i class="material-symbols-outlined">groups</i><div><b>Grupos revisados</b><small>Antes de publicarse.</small></div></article>
+        <article appReveal appRevealVariant="pop" [appRevealDelay]="220"><i class="material-symbols-outlined">verified_user</i><div><b>Acceso verificado</b><small>En cada solicitud y usuario.</small></div></article>
+        <article appReveal appRevealVariant="pop" [appRevealDelay]="290"><i class="material-symbols-outlined">credit_card</i><div><b>Pagos transparentes</b><small>Sin cargos ocultos.</small></div></article>
+      </div>
+    </div>
+    <div appReveal appRevealVariant="blur" [appRevealDelay]="100" class="sec-hero-visual" id="credenciales">
+      <div class="sec-glow"></div>
+      <div class="sec-hand-note note-safe"><span class="material-symbols-outlined">lock</span>Tu información<br />siempre segura<i></i></div>
+      <article class="sec-credential-card">
+        <header><div class="sec-platform"><span class="sec-netflix-logo">N</span><div><h3>Netflix Premium 4K</h3><p>Cuenta compartida · 4 perfiles</p></div></div><span class="sec-active-pill"><i></i>Activo</span></header>
+        <div class="sec-field"><span class="material-symbols-outlined">mail</span><div><small>Correo de la cuenta</small><strong>usuario••••&#64;gmail.com</strong></div><button type="button"><span class="material-symbols-outlined">content_copy</span>Copiar</button></div>
+        <div class="sec-field"><span class="material-symbols-outlined">lock</span><div><small>Contraseña</small><strong class="sec-dots">••••••••••••</strong></div><button type="button"><span class="material-symbols-outlined">content_copy</span>Copiar</button></div>
+        <div class="sec-encryption-banner"><span class="material-symbols-outlined">verified_user</span><div><strong>Cifrado de extremo a extremo (AES-256)</strong><small>Tus credenciales están protegidas con cifrado de nivel bancario.</small></div></div>
+        <footer><span><i class="material-symbols-outlined">group</i>4 perfiles</span><span><i class="material-symbols-outlined">calendar_month</i>Renovación mensual</span><span><i class="material-symbols-outlined">shield</i>Protegido desde 2025</span></footer>
+      </article>
+      <div class="sec-hand-note note-calm">Más entretenimiento.<br />Más tranquilidad.<i></i></div>
+    </div>
+  </section>
+
+  <section class="sec-trust-strip" aria-label="Garantías de seguridad">
+    <article appReveal appRevealVariant="pop"><i class="material-symbols-outlined">verified_user</i><div><b>AES-256</b><small>Cifrado de nivel bancario</small></div></article>
+    <article appReveal appRevealVariant="pop" [appRevealDelay]="70"><i class="material-symbols-outlined">groups</i><div><b>100%</b><small>Grupos revisados manualmente</small></div></article>
+    <article appReveal appRevealVariant="pop" [appRevealDelay]="140"><i class="material-symbols-outlined">lock</i><div><b>Acceso controlado</b><small>Solo usuarios verificados</small></div></article>
+    <article appReveal appRevealVariant="pop" [appRevealDelay]="210"><i class="material-symbols-outlined">credit_card</i><div><b>Pagos transparentes</b><small>Sin cargos ocultos</small></div></article>
+  </section>
+
+  <section class="sec-pillars" id="proteccion">
+    <article appReveal appRevealVariant="left"><header><i class="material-symbols-outlined">fact_check</i><h2>Revisamos cada grupo<br />antes de que exista</h2></header><p>Un grupo no aparece en el catálogo solo porque alguien lo publicó. Nuestro equipo lo revisa y lo aprueba primero. Si la información o las credenciales no coinciden, no se publica.</p><span><i class="material-symbols-outlined">check_circle</i>Solo grupos reales y funcionales</span></article>
+    <article appReveal appRevealVariant="blur" [appRevealDelay]="80"><header><i class="material-symbols-outlined">groups</i><h2>El acceso se verifica<br />en cada solicitud</h2></header><p>Cada vez que alguien solicita acceso comprobamos que siga siendo miembro activo. Al salir del grupo o dejar de pagar, el acceso se revoca automáticamente.</p><span><i class="material-symbols-outlined">check_circle</i>Accesos seguros y verificados</span></article>
+    <article appReveal appRevealVariant="right" [appRevealDelay]="160"><header><i class="material-symbols-outlined">credit_card</i><h2>Tu dinero, claro<br />y sin sorpresas</h2></header><p>Pagas exactamente el precio publicado. Cada transacción queda registrada y puedes consultar su estado desde tu panel cuando quieras.</p><span><i class="material-symbols-outlined">check_circle</i>Sin cargos ocultos, nunca</span></article>
+  </section>
+
+  <section appReveal appRevealVariant="flip" class="sec-faq" id="preguntas">
+    <div class="sec-faq-kicker">¿Aún tienes dudas?</div><h2>Preguntas frecuentes</h2><p>Resolvemos las dudas más comunes sobre la seguridad en Vakeva.</p>
+    <div class="sec-faq-list">
+      <details appReveal appRevealVariant="right"><summary><span>¿Quién puede ver la contraseña de la cuenta compartida?</span><span class="material-symbols-outlined">expand_more</span></summary><p>Solo el titular del plan y los miembros activos. La información se almacena cifrada y ni siquiera el equipo de Vakeva puede leerla directamente.</p></details>
+      <details appReveal appRevealVariant="right" [appRevealDelay]="70"><summary><span>¿Qué pasa si el titular cambia la contraseña?</span><span class="material-symbols-outlined">expand_more</span></summary><p>El cambio queda registrado y los miembros activos reciben una notificación, sin exponer los valores anteriores.</p></details>
+      <details appReveal appRevealVariant="right" [appRevealDelay]="140"><summary><span>¿Puedo seguir unido a un grupo sin credenciales reales?</span><span class="material-symbols-outlined">expand_more</span></summary><p>No. Un grupo sin credenciales verificadas no puede mantenerse disponible para nuevos miembros.</p></details>
+      <details appReveal appRevealVariant="right" [appRevealDelay]="210"><summary><span>¿Cómo protege Vakeva mi dinero como comprador?</span><span class="material-symbols-outlined">expand_more</span></summary><p>Antes de pagar ves el importe exacto y la fecha. Después puedes consultar el estado y el historial de cada movimiento desde tu panel.</p></details>
+    </div>
+  </section>
+
+  <section appReveal appRevealVariant="scale" class="sec-cta">
+    <div class="sec-cta-copy"><span class="sec-cta-pill">Seguridad sin letras chiquitas</span><h2>Comparte con confianza,<br />no con fe ciega.</h2><p>Crea tu cuenta y comprueba cómo protegemos tus credenciales y tu dinero.</p><div class="sec-cta-actions"><a routerLink="/crear-cuenta">Crear cuenta gratis<span class="material-symbols-outlined">arrow_forward</span></a><small><i class="material-symbols-outlined">verified_user</i>Gratis, rápido y seguro.</small></div></div>
+    <div class="sec-shield-scene" aria-hidden="true"><span class="shield-orbit"></span><span class="shield-core material-symbols-outlined">verified_user</span><i class="scene-chip chip-users"><span class="material-symbols-outlined">group</span>Mismas suscripciones.</i><i class="scene-chip chip-heart"><span class="material-symbols-outlined">favorite</span>Mejores personas.</i><i class="scene-chip chip-spark"><span class="material-symbols-outlined">bolt</span>Una internet más simple.</i></div>
+  </section>
+</main>
+
+<app-footer surfaceColor="#FAF9F5" />

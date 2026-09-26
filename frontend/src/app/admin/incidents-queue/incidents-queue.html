@@ -1,0 +1,58 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-extrabold text-ink tracking-tight">Incidencias</h1>
+      <p class="text-sm text-on-surface-variant font-medium mt-1">Reportes de compradores y vendedores.</p>
+    </div>
+    <div class="flex items-center gap-1 bg-crema-inset shadow-neu-inset-sm p-1 rounded-full overflow-x-auto">
+      @for (opt of filterOptions; track opt.value) {
+        <button
+          type="button"
+          (click)="setFilter(opt.value)"
+          [class]="statusFilter() === opt.value ? 'bg-pink text-white' : 'text-on-surface-variant'"
+          class="active:scale-[0.98] hover:bg-[#047857] whitespace-nowrap px-3.5 py-2 text-xs font-semibold rounded-lg transition-all"
+        >
+          {{ opt.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-2xl bg-crema-inset shadow-neu-inset text-xs text-red-600 font-semibold">{{ errorMessage() }}</div>
+  }
+
+  @if (incidents() === null) {
+    <div class="p-8 rounded-2xl bg-crema-inset shadow-neu-inset text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+  } @else if (incidents()!.length === 0) {
+    <div class="p-8 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 text-center">
+      <span class="material-symbols-outlined text-2xl text-on-surface-variant/40 mb-2 block">inbox</span>
+      <p class="text-sm font-semibold text-on-surface-variant">No hay incidencias en este estado.</p>
+    </div>
+  } @else {
+    <div class="space-y-3">
+      @for (incident of incidents(); track incident.id) {
+        <a
+          [routerLink]="['/admin/incidencias', incident.id]"
+          class="p-5 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 flex flex-col sm:flex-row sm:items-center gap-4 hover:shadow-neu-raised-lg transition-all"
+        >
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5 flex-wrap">
+              <span class="text-sm font-bold text-ink truncate">{{ incident.subject }}</span>
+              <span
+                class="px-2 py-0.5 rounded-full text-xs font-bold shrink-0"
+                [class]="incident.status === 'OPEN' ? 'bg-amber-100 text-amber-800' : incident.status === 'IN_REVIEW' ? 'bg-blue-100 text-blue-800' : incident.status === 'ESCALATED' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'"
+              >
+                {{ incident.status }}
+              </span>
+            </div>
+            <p class="text-xs text-on-surface-variant font-medium truncate">
+              {{ incident.context === 'GROUP_MEMBERSHIP' ? 'Membresía de grupo' : 'Compra a proveedor' }} · reportó {{ incident.reportedBy.name }} · asignado a {{ incident.assignedTo.name }}
+            </p>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant/40 shrink-0">chevron_right</span>
+        </a>
+      }
+    </div>
+  }
+</div>

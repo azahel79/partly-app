@@ -1,0 +1,115 @@
+<div class="max-w-4xl mx-auto space-y-5">
+  <!-- Encabezado -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="flex items-center gap-4 min-w-0">
+      <span class="w-13 h-13 shrink-0 rounded-2xl bg-white shadow-neu-raised flex items-center justify-center text-pink">
+        <span class="material-symbols-outlined" style="font-size: 28px">notifications</span>
+      </span>
+      <div class="min-w-0">
+        <h1 class="text-2xl font-extrabold text-ink tracking-tight leading-tight">Notificaciones</h1>
+        <p class="text-sm text-on-surface-variant font-medium mt-0.5">
+          {{ area === 'admin' ? 'Todo lo que necesita tu atención en la plataforma, con el detalle completo.' : 'Todo lo que pasa con tus grupos, pagos y cuenta, con el detalle completo.' }}
+        </p>
+      </div>
+    </div>
+    <button
+      type="button"
+      [disabled]="markingAll() || unread() === 0"
+      (click)="markAllRead()"
+      class="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-slate-100 text-ink text-xs font-bold hover:bg-slate-200 transition-colors disabled:opacity-45 disabled:cursor-not-allowed"
+    >
+      <span class="material-symbols-outlined text-base">done_all</span>
+      {{ markingAll() ? 'Marcando…' : 'Marcar todas como leídas' }}
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex items-center gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Filtrar notificaciones">
+    @for (f of filters(); track f.value) {
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="filter() === f.value"
+        (click)="setFilter(f.value)"
+        [class]="filter() === f.value ? 'bg-pink text-white' : 'bg-white text-on-surface-variant hover:text-ink border border-slate-200'"
+        class="whitespace-nowrap inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-colors"
+      >
+        {{ f.label }}
+        <span [class]="filter() === f.value ? 'bg-white/25 text-white' : 'bg-slate-100 text-on-surface-variant'" class="min-w-5 h-5 px-1.5 rounded-full text-[10px] font-extrabold inline-flex items-center justify-center">{{ f.count }}</span>
+      </button>
+    }
+  </div>
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-2xl bg-red-50 text-xs text-red-600 font-semibold">{{ errorMessage() }}</div>
+  }
+
+  @if (items() === null) {
+    <div class="p-10 rounded-2xl bg-white shadow-neu-raised text-center text-sm text-on-surface-variant font-medium">Cargando notificaciones…</div>
+  } @else if (groups().length === 0) {
+    <div class="p-12 rounded-2xl bg-white shadow-neu-raised text-center">
+      <span class="material-symbols-outlined text-4xl text-on-surface-variant/40 mb-2 block">notifications_off</span>
+      <p class="text-sm font-semibold text-on-surface-variant">
+        {{ filter() === 'unread' ? 'No tienes notificaciones sin leer.' : 'No hay notificaciones en esta categoría.' }}
+      </p>
+    </div>
+  } @else {
+    @for (group of groups(); track group.label) {
+      <section class="space-y-2.5">
+        <h2 class="text-[11px] font-extrabold uppercase tracking-wider text-on-surface-variant px-1">{{ group.label }}</h2>
+        @for (n of group.items; track n.id) {
+          <article
+            (click)="markRead(n)"
+            class="relative p-4 sm:p-5 rounded-2xl bg-white shadow-neu-raised flex gap-4 transition-colors"
+            [class.ring-1]="!n.readAt"
+            [class.ring-emerald-200]="!n.readAt"
+          >
+            @if (!n.readAt) {
+              <span class="absolute top-4 right-4 w-2.5 h-2.5 rounded-full bg-pink" title="Sin leer"></span>
+            }
+            <span
+              class="w-11 h-11 shrink-0 rounded-full flex items-center justify-center"
+              [class]="tone(n) === 'amber' ? 'bg-amber-100 text-amber-700' : tone(n) === 'blue' ? 'bg-blue-100 text-blue-700' : tone(n) === 'red' ? 'bg-red-100 text-red-700' : tone(n) === 'slate' ? 'bg-slate-100 text-slate-600' : 'bg-emerald-100 text-emerald-700'"
+            >
+              <span class="material-symbols-outlined" style="font-size: 22px">{{ icon(n) }}</span>
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-extrabold text-ink pr-5">{{ title(n) }}</p>
+              <p class="text-[13px] leading-relaxed text-on-surface-variant font-medium mt-1 whitespace-pre-line">{{ n.payload }}</p>
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3">
+                @if (n.groupLabel) {
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-[11px] font-semibold text-ink">
+                    <span class="material-symbols-outlined text-sm">groups</span>{{ n.groupLabel }}
+                  </span>
+                }
+                <span class="text-[11px] font-medium text-on-surface-variant">{{ timeLabel(n.createdAt) }} · {{ relative(n.createdAt) }}</span>
+                @if (target(n); as t) {
+                  <button
+                    type="button"
+                    (click)="go(n, $event)"
+                    class="ml-auto inline-flex items-center gap-1 px-3.5 py-1.5 rounded-lg bg-pink text-white text-xs font-bold hover:bg-[#047857] transition-colors"
+                  >
+                    {{ t.label }}<span class="material-symbols-outlined text-sm">arrow_forward</span>
+                  </button>
+                }
+              </div>
+            </div>
+          </article>
+        }
+      </section>
+    }
+
+    @if (hasMore()) {
+      <div class="text-center pt-1">
+        <button
+          type="button"
+          [disabled]="loadingMore()"
+          (click)="loadMore()"
+          class="px-5 py-2.5 rounded-lg bg-slate-100 text-ink text-xs font-bold hover:bg-slate-200 transition-colors disabled:opacity-50"
+        >
+          {{ loadingMore() ? 'Cargando…' : 'Cargar notificaciones anteriores' }}
+        </button>
+      </div>
+    }
+  }
+</div>

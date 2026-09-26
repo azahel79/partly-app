@@ -1,0 +1,62 @@
+<app-navbar [links]="navLinks" />
+
+<main class="legal-page">
+  <section appReveal class="legal-hero" id="datos">
+    <div class="legal-badge"><span class="material-symbols-outlined">privacy_tip</span>Política de privacidad</div>
+    <h1>Qué datos tuyos guardamos, y para qué.</h1>
+    <p>Última actualización: {{ lastUpdated }}</p>
+    <div class="legal-notice">
+      <span class="material-symbols-outlined">info</span>
+      <p>Este documento describe honestamente qué datos maneja la plataforma hoy. Antes de un lanzamiento real, debe ser revisado por un abogado especializado en protección de datos.</p>
+    </div>
+  </section>
+
+  <article class="legal-body">
+    <section appReveal appRevealVariant="left">
+      <h2>1. Qué datos recopilamos</h2>
+      <p>Cuando creas una cuenta: tu nombre, correo y contraseña (o tu identidad de Google si entras con OAuth). Tu contraseña se guarda con hash argon2 — nunca en texto plano, ni siquiera nuestro equipo puede leerla.</p>
+      <p>Cuando usas grupos: qué grupos creas o a cuáles te unes, tus pagos y su historial, el saldo de tu wallet si administras un grupo, y las credenciales de la cuenta compartida (cifradas con AES-256-GCM, ver nuestra <a routerLink="/seguridad">página de seguridad</a>).</p>
+      <p>Cuando reportas un problema: los mensajes que escribes en una incidencia quedan guardados para que el vendedor y, si escalas, nuestro equipo puedan darle seguimiento.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left">
+      <h2>2. Para qué los usamos</h2>
+      <p>Para operar la plataforma: crear tu cuenta, procesar tus pagos, calcular y liquidar comisiones, avisarte antes de cada corte, y resolver disputas. No usamos tus datos para venderlos a terceros ni para publicidad fuera de Vakeva.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left">
+      <h2>3. Con quién los compartimos</h2>
+      <p>Dentro de un grupo, el vendedor ve tu nombre y estado de membresía; tú ves las credenciales de la cuenta mientras tu membresía esté activa. No compartimos tus datos con terceros ajenos a la operación del servicio, salvo que la ley nos obligue.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left">
+      <h2>4. Cuánto tiempo los guardamos</h2>
+      <p>Mientras tu cuenta esté activa. Si la cierras, eliminamos tus datos personales — el historial de pagos y transacciones se conserva el tiempo que la ley exija para fines contables y fiscales.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left" id="arco">
+      <h2>5. Tus derechos ARCO</h2>
+      <p>Como usuario en México, tienes derecho a:</p>
+      <ul>
+        <li><strong>Acceso</strong> — saber qué datos personales tenemos sobre ti.</li>
+        <li><strong>Rectificación</strong> — corregir datos incompletos o desactualizados.</li>
+        <li><strong>Cancelación</strong> — pedir que eliminemos tus datos cuando ya no sean necesarios.</li>
+        <li><strong>Oposición</strong> — oponerte al uso de tus datos para un fin específico.</li>
+      </ul>
+      <p>Para ejercer cualquiera de estos derechos, escríbenos desde <a routerLink="/panel/soporte">tu panel de soporte</a> una vez que tengas una cuenta creada.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left">
+      <h2>6. Seguridad de tus datos</h2>
+      <p>Contraseñas con hash argon2, credenciales de cuentas compartidas cifradas con AES-256-GCM, acceso verificado en cada solicitud — no solo al unirte a un grupo. Más detalle en nuestra <a routerLink="/seguridad">página de seguridad</a>.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left">
+      <h2>7. Cambios a este aviso</h2>
+      <p>Si actualizamos este documento de forma significativa, te avisaremos por notificación o correo antes de que entre en vigor.</p>
+    </section>
+  </article>
+</main>
+
+<app-wave-divider backColor="#FAF9F5" waveColor="#14142B" />
+<app-footer />

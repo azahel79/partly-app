@@ -1,0 +1,188 @@
+<div class="max-w-3xl mx-auto space-y-5">
+  <a routerLink="/panel/mayoreo" class="inline-flex items-center gap-1.5 text-sm font-bold text-on-surface-variant hover:text-ink transition-colors">
+    <span class="material-symbols-outlined text-lg">arrow_back</span>
+    Volver a mayoreo
+  </a>
+
+  @if (order() === undefined) {
+    <div class="p-8 rounded-2xl bg-white border border-slate-200/70 text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+  } @else if (order() === null) {
+    <div class="p-8 rounded-2xl bg-white border border-slate-200/70 text-center space-y-3">
+      <span class="material-symbols-outlined text-3xl text-red-500 block">error</span>
+      <p class="text-sm font-semibold text-ink">{{ errorMessage() || 'No se pudo cargar esta compra.' }}</p>
+      <button type="button" (click)="goToMayoreo()" class="text-xs font-bold text-pink">Volver a mayoreo</button>
+    </div>
+  } @else if (order(); as o) {
+    <!-- Encabezado -->
+    <section class="p-6 rounded-2xl bg-white border border-slate-200/70 flex items-center gap-4 flex-wrap">
+      <app-platform-logo class="w-14 h-14 rounded-2xl font-black text-xl shrink-0" [name]="o.listing.platform.name" />
+      <div class="min-w-0 flex-1">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">{{ kindLabel() }}</p>
+        <h1 class="text-xl font-extrabold text-ink tracking-tight truncate">{{ o.listing.platform.name }}</h1>
+        <p class="text-sm text-on-surface-variant truncate">{{ o.listing.tierName }} · {{ o.renewable ? 'Renovable' : 'No renovable' }} · vigencia de {{ o.validityDays }} días</p>
+      </div>
+      <div class="text-right">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Total</p>
+        <p class="text-2xl font-black text-ink tabular-nums">{{ money(o.unitPrice) }}</p>
+      </div>
+    </section>
+
+    <!-- Pasos -->
+    @if (stage() > 0) {
+      <ol class="grid grid-cols-4 gap-2 text-center">
+        @for (step of [{ n: 1, label: 'Reserva' }, { n: 2, label: 'Pago' }, { n: 3, label: 'Validación' }, { n: 4, label: o.kind === 'RENEWAL' ? 'Renovada' : 'Entrega' }]; track step.n) {
+          <li class="space-y-1.5">
+            <div class="h-1.5 rounded-full" [class]="stage() > step.n || (stage() === 5) ? 'bg-emerald-500' : stage() === step.n ? 'bg-pink' : 'bg-slate-200'"></div>
+            <p class="text-[11px] font-bold" [class]="stage() >= step.n ? 'text-ink' : 'text-on-surface-variant'">{{ step.label }}</p>
+          </li>
+        }
+      </ol>
+    }
+
+    @if (errorMessage()) {
+      <div class="p-4 rounded-xl bg-red-50 border border-red-100 text-xs text-red-700 font-semibold">{{ errorMessage() }}</div>
+    }
+
+    @switch (o.status) {
+      @case ('AWAITING_PAYMENT') {
+        <section class="rounded-2xl bg-white border border-slate-200/70 overflow-hidden">
+          <header class="p-5 flex flex-wrap items-center justify-between gap-3" [class]="timeLeft()?.expired ? 'bg-red-50' : 'bg-amber-50/60'">
+            <div>
+              <p class="text-sm font-extrabold text-ink">{{ o.kind === 'RENEWAL' ? 'Paga tu renovación' : 'Paga para asegurar tu cuenta' }}</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">Transfiere {{ money(o.unitPrice) }} y sube tu comprobante. Si no llega a tiempo, la reserva se cancela sola.</p>
+            </div>
+            @if (timeLeft(); as t) {
+              <span class="px-3 py-1.5 rounded-full text-xs font-bold" [class]="t.expired ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800'">
+                {{ t.expired ? 'Plazo vencido' : 'Te quedan ' + t.label }}
+              </span>
+            }
+          </header>
+
+          @if (o.receiptRejectionReason) {
+            <div class="mx-5 mt-5 flex items-start gap-2.5 p-3.5 rounded-xl bg-red-50 border border-red-100 text-red-800">
+              <span class="material-symbols-outlined text-lg">error</span>
+              <p class="text-xs"><strong>Rechazamos tu comprobante anterior:</strong> {{ o.receiptRejectionReason }}. Sube uno nuevo{{ o.paymentDueAt ? ' antes del ' + formatDateTime(o.paymentDueAt) : '' }}.</p>
+            </div>
+          }
+
+          <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p class="flex items-center gap-2 text-sm font-extrabold text-ink mb-3"><span class="w-6 h-6 rounded-full bg-slate-100 text-xs font-black flex items-center justify-center">1</span>Transfiere {{ money(o.unitPrice) }}</p>
+              @if (bank(); as acc) {
+                <div class="rounded-xl bg-slate-50 border border-slate-200/70 divide-y divide-slate-200/70">
+                  <div class="p-3"><p class="text-[11px] text-on-surface-variant">Banco</p><p class="text-sm font-bold text-ink">{{ acc.bankName }}</p></div>
+                  <div class="p-3 flex items-center justify-between gap-2"><div class="min-w-0"><p class="text-[11px] text-on-surface-variant">Titular</p><p class="text-sm font-bold text-ink truncate">{{ acc.holder }}</p></div><button type="button" (click)="copy('holder', acc.holder)" class="text-xs font-bold text-pink hover:underline shrink-0">{{ copiedField() === 'holder' ? 'Copiado' : 'Copiar' }}</button></div>
+                  <div class="p-3 flex items-center justify-between gap-2"><div class="min-w-0"><p class="text-[11px] text-on-surface-variant">CLABE</p><p class="text-sm font-bold text-ink tabular-nums">{{ acc.clabe }}</p></div><button type="button" (click)="copy('clabe', acc.clabe)" class="text-xs font-bold text-pink hover:underline shrink-0">{{ copiedField() === 'clabe' ? 'Copiado' : 'Copiar' }}</button></div>
+                  <div class="p-3 flex items-center justify-between gap-2"><div class="min-w-0"><p class="text-[11px] text-on-surface-variant">Monto exacto</p><p class="text-sm font-bold text-ink tabular-nums">{{ money(o.unitPrice) }}</p></div><button type="button" (click)="copy('amount', plain(o.unitPrice))" class="text-xs font-bold text-pink hover:underline shrink-0">{{ copiedField() === 'amount' ? 'Copiado' : 'Copiar' }}</button></div>
+                </div>
+                @if (acc.reference) { <p class="text-xs text-on-surface-variant mt-2.5 flex items-start gap-1.5"><span class="material-symbols-outlined text-sm">info</span>{{ acc.reference }}</p> }
+              } @else {
+                <div class="flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-50 border border-amber-100 text-amber-900">
+                  <span class="material-symbols-outlined text-lg">hourglass_top</span>
+                  <p class="text-xs"><strong>Vakeva todavía no publica su cuenta.</strong> Vuelve en un momento.</p>
+                </div>
+              }
+            </div>
+
+            <div>
+              <p class="flex items-center gap-2 text-sm font-extrabold text-ink mb-3"><span class="w-6 h-6 rounded-full bg-slate-100 text-xs font-black flex items-center justify-center">2</span>Sube tu comprobante</p>
+              <label class="block cursor-pointer rounded-xl border-2 border-dashed border-slate-300 hover:border-pink hover:bg-pink/5 transition-colors p-5 text-center" (dragover)="$event.preventDefault()" (drop)="onFileDropped($event)">
+                <input type="file" class="sr-only" accept="image/jpeg,image/png,image/webp,application/pdf" (change)="onFileChosen($event)" />
+                <span class="material-symbols-outlined text-3xl text-pink">upload_file</span>
+                <p class="text-sm font-bold text-ink mt-1 break-all">{{ selectedFile()?.name || 'Arrastra tu archivo o haz clic' }}</p>
+                <p class="text-[11px] text-on-surface-variant mt-0.5">JPG, PNG, WEBP o PDF · máx. 8 MB</p>
+              </label>
+              @if (fileError()) { <p class="text-xs text-red-600 font-semibold mt-2">{{ fileError() }}</p> }
+              <button type="button" (click)="upload()" [disabled]="!selectedFile() || uploading() || timeLeft()?.expired" class="mt-3 w-full py-2.5 px-6 rounded-lg bg-pink hover:bg-[#047857] active:scale-[0.98] text-white text-sm font-bold transition-all disabled:opacity-50 disabled:hover:bg-pink">
+                {{ uploading() ? 'Enviando…' : 'Enviar comprobante' }}
+              </button>
+            </div>
+          </div>
+
+          <footer class="px-5 py-3.5 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between gap-3 flex-wrap">
+            <p class="text-xs text-on-surface-variant">¿Ya no la quieres? Retírala sin costo.</p>
+            <button type="button" (click)="cancel()" [disabled]="cancelling()" class="py-2 px-4 rounded-lg bg-white border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold disabled:opacity-60">{{ cancelling() ? 'Retirando…' : 'Retirar reserva' }}</button>
+          </footer>
+        </section>
+      }
+
+      @case ('PENDING_APPROVAL') {
+        <section class="p-6 rounded-2xl bg-blue-50/60 border border-blue-100 space-y-4">
+          <div class="flex items-start gap-3">
+            <span class="w-11 h-11 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-2xl">hourglass_top</span></span>
+            <div>
+              <p class="text-sm font-extrabold text-ink">Estamos validando tu pago de {{ money(o.unitPrice) }}</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">Subiste tu comprobante {{ o.receiptUploadedAt ? 'el ' + formatDateTime(o.receiptUploadedAt) : '' }}. En cuanto confirmemos que llegó {{ o.kind === 'RENEWAL' ? 'tu renovación queda aplicada' : 'entregamos tu cuenta' }} y te avisamos.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" (click)="viewReceipt()" [disabled]="viewingReceipt()" class="py-2 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-ink text-xs font-bold flex items-center gap-1 disabled:opacity-60"><span class="material-symbols-outlined text-sm">visibility</span>Ver mi comprobante</button>
+            <button type="button" (click)="cancel()" [disabled]="cancelling()" class="py-2 px-3.5 rounded-lg bg-white border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold disabled:opacity-60">Retirar</button>
+          </div>
+          <details class="text-xs text-on-surface-variant">
+            <summary class="cursor-pointer font-bold text-ink">¿Subiste el archivo equivocado?</summary>
+            <div class="mt-3 max-w-sm space-y-2">
+              <label class="block cursor-pointer rounded-xl border-2 border-dashed border-slate-300 hover:border-pink p-4 text-center bg-white">
+                <input type="file" class="sr-only" accept="image/jpeg,image/png,image/webp,application/pdf" (change)="onFileChosen($event)" />
+                <p class="text-sm font-bold text-ink break-all">{{ selectedFile()?.name || 'Elegir otro archivo' }}</p>
+              </label>
+              @if (fileError()) { <p class="text-xs text-red-600 font-semibold">{{ fileError() }}</p> }
+              <button type="button" (click)="upload()" [disabled]="!selectedFile() || uploading()" class="w-full py-2 rounded-lg bg-pink hover:bg-[#047857] text-white text-xs font-bold disabled:opacity-50">{{ uploading() ? 'Enviando…' : 'Reemplazar comprobante' }}</button>
+            </div>
+          </details>
+        </section>
+      }
+
+      @case ('PENDING_DELIVERY') {
+        <section class="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-start gap-3">
+          <span class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-2xl">payments</span></span>
+          <div>
+            <p class="text-sm font-extrabold text-ink">Pago validado{{ o.paidAt ? ' el ' + formatDate(o.paidAt) : '' }}</p>
+            <p class="text-xs text-on-surface-variant mt-0.5">Ya solo falta que Vakeva te entregue la cuenta. Te avisaremos en cuanto esté lista.</p>
+          </div>
+        </section>
+      }
+
+      @case ('FULFILLED') {
+        <section class="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-2xl">check_circle</span></span>
+            <div>
+              @if (o.kind === 'RENEWAL') {
+                <p class="text-sm font-extrabold text-ink">Renovación aplicada</p>
+                <p class="text-xs text-on-surface-variant mt-0.5">Tu cuenta queda vigente hasta el {{ o.expiresAt ? formatDate(o.expiresAt) : '—' }}.</p>
+              } @else {
+                <p class="text-sm font-extrabold text-ink">Cuenta entregada</p>
+                <p class="text-xs text-on-surface-variant mt-0.5">Vigente hasta el {{ o.expiresAt ? formatDate(o.expiresAt) : '—' }}. Ve tus credenciales en Mayoreo → Mis compras.</p>
+              }
+            </div>
+          </div>
+          <button type="button" (click)="goToMayoreo()" class="py-2.5 px-5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold">Ir a mis compras</button>
+        </section>
+      }
+
+      @case ('REJECTED') {
+        <section class="p-6 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-3">
+          <span class="material-symbols-outlined text-red-600 text-2xl">cancel</span>
+          <div><p class="text-sm font-extrabold text-ink">Solicitud rechazada</p><p class="text-xs text-on-surface-variant mt-0.5">Vakeva no aceptó esta compra. La cuenta volvió al inventario; puedes intentarlo de nuevo o escribir a soporte.</p></div>
+        </section>
+      }
+
+      @default {
+        <section class="p-6 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-start gap-3">
+          <span class="material-symbols-outlined text-on-surface-variant text-2xl">event_busy</span>
+          <div>
+            <p class="text-sm font-extrabold text-ink">Compra cancelada</p>
+            @if (o.paidAt && !o.refundedAt) {
+              <p class="text-xs text-on-surface-variant mt-0.5">Como ya habías pagado, Vakeva te devolverá {{ money(o.unitPrice) }} por transferencia a tu cuenta.</p>
+            } @else if (o.refundedAt) {
+              <p class="text-xs text-on-surface-variant mt-0.5">Te devolvimos {{ money(o.unitPrice) }} el {{ formatDate(o.refundedAt) }}.</p>
+            } @else {
+              <p class="text-xs text-on-surface-variant mt-0.5">La reserva se canceló y no se te cobró nada. Puedes volver a reservar la cuenta cuando quieras.</p>
+            }
+          </div>
+        </section>
+      }
+    }
+  }
+</div>

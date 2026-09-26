@@ -1,0 +1,224 @@
+<section class="py-32 bg-crema relative border-t border-crema-border/40 overflow-hidden">
+  <div class="absolute w-72 h-72 rounded-full border border-pink/20 -top-24 -left-24 pointer-events-none spin-slow"></div>
+  <div class="absolute w-96 h-96 rounded-full border border-pink/15 -top-40 -right-40 pointer-events-none spin-slow-reverse"></div>
+  <div class="blob-drift blob-slow w-96 h-96 bg-emerald-300/15 -top-10 -left-32"></div>
+  <div class="blob-drift w-80 h-80 bg-violet-300/15 bottom-0 -right-20"></div>
+
+  <div class="max-w-7xl mx-auto px-6 relative">
+    <div appReveal appRevealVariant="flip" class="text-center max-w-2xl mx-auto mb-16">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-crema shadow-neu-raised-sm border border-white/70 mb-4">
+        <span class="w-2 h-2 rounded-full bg-pink"></span>
+        <span class="text-[11px] font-extrabold uppercase tracking-wider text-pink">Ventajas clave</span>
+      </div>
+      <h2 class="text-3xl lg:text-4xl font-extrabold text-ink tracking-tight mb-4">
+        La forma inteligente de tener todo tu
+        <span class="relative inline-block text-pink">
+          streaming
+          <svg class="absolute left-0 -bottom-1.5 w-full h-2.5 text-pink/60" viewbox="0 0 120 10" preserveaspectratio="none">
+            <path d="M2,7 Q30,2 60,6 T118,4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path>
+          </svg>
+        </span>
+      </h2>
+      <p class="text-on-surface-variant text-base">
+        Protección de datos, automatización financiera y tranquilidad absoluta tanto para miembros como para dueños de cuenta.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <!-- Ahorro real — featured card -->
+      <div appReveal appRevealVariant="blur" [appRevealDelay]="0" appTilt [appTiltStrength]="3" class="lg:col-span-2 p-8 rounded-[28px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg transition-all">
+        <div>
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 shadow-neu-inset flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-emerald-600 text-xl">trending_down</span>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 text-[11px] font-bold">Ahorro garantizado</span>
+          </div>
+          <h3 class="text-3xl font-extrabold text-ink tracking-tight mb-3">Ahorro real de hasta 75%</h3>
+          <p class="text-sm text-on-surface-variant leading-relaxed mb-6">
+            En vez de asumir el coste individual completo de un plan familiar, paga exactamente el espacio que utilizas mes a mes.
+          </p>
+          <div class="p-4 rounded-2xl bg-crema-inset shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.9),inset_2px_2px_5px_rgba(20,20,43,0.08)] flex items-center justify-around mb-4 border border-black/5 relative overflow-hidden">
+            <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-pink text-white text-[10px] font-bold">-75%</span>
+            <div class="text-center">
+              <span class="text-[11px] font-semibold text-on-surface-variant block">Solo pagas tú</span>
+              <span class="text-lg font-bold text-ink line-through opacity-60 tabular-nums">$349 MXN</span>
+            </div>
+            <span class="material-symbols-outlined text-pink text-xl">arrow_forward</span>
+            <div class="text-center">
+              <span class="text-[11px] font-bold text-pink block">Con Vakeva</span>
+              <span class="text-xl font-black text-pink tabular-nums">$89 MXN</span>
+            </div>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-crema-inset shadow-neu-inset border border-black/5">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span class="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[10px]">check</span></span>
+                  <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Ahorro acumulado</span>
+                </div>
+                <span class="text-2xl font-black text-emerald-600 tabular-nums">$1,560 MXN</span>
+              </div>
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 text-[11px] font-bold">
+                <span class="material-symbols-outlined text-xs">arrow_upward</span>
+                18% vs. mes pasado
+              </span>
+            </div>
+            <div class="w-full h-28">
+              <svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 300 100">
+                <defs>
+                  <lineargradient id="savingsSparkline" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#059669" stop-opacity="0.35"></stop>
+                    <stop offset="100%" stop-color="#059669" stop-opacity="0"></stop>
+                  </lineargradient>
+                </defs>
+                <path d="M 0,85 Q 50,88 90,68 T 180,44 T 300,10 L 300,100 L 0,100 Z" fill="url(#savingsSparkline)"></path>
+                <path d="M 0,85 Q 50,88 90,68 T 180,44 T 300,10" fill="none" stroke="#059669" stroke-linecap="round" stroke-width="3"></path>
+                <circle cx="300" cy="10" fill="#059669" r="5" stroke="#FFFFFF" stroke-width="2.5"></circle>
+              </svg>
+            </div>
+            <div class="flex justify-between text-[10px] text-on-surface-variant/60 mt-2">
+              <span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span>
+            </div>
+          </div>
+
+          <ul class="space-y-2 text-xs text-on-surface-variant font-medium pt-6">
+            <li class="flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[10px]">check</span></span> Ahorra más de $3,100 MXN al año por servicio</li>
+            <li class="flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[10px]">check</span></span> Sin compromisos de permanencia obligatoria</li>
+          </ul>
+        </div>
+        <div>
+          <div class="flex items-center justify-between pt-4 mt-4 border-t border-crema-border/50">
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-crema-border"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-crema-border"></span>
+              <span class="w-5 h-1.5 rounded-full bg-pink"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-crema-border"></span>
+            </div>
+            <a class="inline-flex items-center gap-1.5 text-xs font-bold text-ink hover:text-pink transition-colors" href="#comparativa">
+              Más ahorro, más para ti
+              <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <!-- Credenciales cifradas -->
+        <div appReveal appRevealVariant="scale" [appRevealDelay]="90" appTilt [appTiltStrength]="4" class="sm:col-span-2 p-8 rounded-[28px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg hover:-translate-y-1 transition-all">
+          <div>
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-11 h-11 rounded-2xl bg-violet-500/10 shadow-neu-inset flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-violet-600 text-xl">enhanced_encryption</span>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-violet-500/10 text-violet-700 text-[11px] font-bold">Seguro y confiable</span>
+            </div>
+            <h3 class="text-xl font-bold text-ink mb-3">Credenciales cifradas AES-256</h3>
+            <p class="text-sm text-on-surface-variant leading-relaxed mb-6">
+              El usuario y contraseña de la cuenta compartida se cifran en reposo (AES-256-GCM) y solo se descifran para el titular del plan o un miembro activo del grupo.
+            </p>
+            <div class="p-4 rounded-2xl bg-crema-inset shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.9),inset_2px_2px_5px_rgba(20,20,43,0.08)] flex items-center justify-between border border-black/5 mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-600 shrink-0">
+                  <span class="material-symbols-outlined text-base">verified_user</span>
+                </div>
+                <div>
+                  <span class="text-xs font-bold text-ink block">Ni el equipo de Vakeva puede verlas</span>
+                  <span class="text-[10px] text-on-surface-variant">Solo el titular y los miembros activos</span>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase">Activo</span>
+            </div>
+          </div>
+          <ul class="space-y-2 text-xs text-on-surface-variant font-medium pt-2">
+            <li class="flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[10px]">check</span></span> Acceso se revoca al instante si sales del grupo o dejas de pagar</li>
+            <li class="flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[10px]">check</span></span> Historial de cada cambio de credencial, sin exponer valores anteriores</li>
+          </ul>
+        </div>
+
+        <!-- Pagas justo lo que usas -->
+        <div appReveal appRevealVariant="pop" [appRevealDelay]="180" appTilt [appTiltStrength]="4" class="p-6 rounded-[28px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg hover:-translate-y-1 transition-all">
+          <div>
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-11 h-11 rounded-2xl bg-amber-500/10 shadow-neu-inset flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-amber-600 text-xl">autorenew</span>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 text-[11px] font-bold">Automático</span>
+            </div>
+            <h3 class="text-lg font-bold text-ink mb-3">Pagas justo lo que usas, sin cobrar por WhatsApp</h3>
+            <p class="text-sm text-on-surface-variant leading-relaxed mb-6">
+              Vakeva calcula tu parte de cada ciclo y te avisa antes del corte. Tú confirmas el pago desde la app dentro de tu periodo de gracia de 48h.
+            </p>
+            <div class="p-4 rounded-2xl bg-crema-inset shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.9),inset_2px_2px_5px_rgba(20,20,43,0.08)] flex items-center justify-between border border-black/5 mb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-pink/20 flex items-center justify-center text-pink shrink-0">
+                  <span class="material-symbols-outlined text-sm">calendar_month</span>
+                </div>
+                <div>
+                  <span class="text-xs font-bold text-ink block">Recordatorio automático</span>
+                  <span class="text-[10px] text-on-surface-variant">3 días antes de tu corte</span>
+                </div>
+              </div>
+              <span class="text-xs font-bold text-pink tabular-nums shrink-0 whitespace-nowrap">48h de gracia</span>
+            </div>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="material-symbols-outlined text-pink text-sm">location_on</span>
+              <div class="flex-1 h-1.5 rounded-full bg-crema-inset shadow-neu-inset-sm overflow-hidden">
+                <div class="h-full w-3/5 rounded-full bg-pink"></div>
+              </div>
+              <span class="inline-flex items-center gap-0.5 text-[10px] font-bold text-on-surface-variant">
+                Ciclo activo
+                <span class="material-symbols-outlined text-xs">expand_more</span>
+              </span>
+            </div>
+          </div>
+          <ul class="space-y-2 text-xs text-on-surface-variant font-medium pt-2">
+            <li class="flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[10px]">check</span></span> Notificaciones antes de cada corte</li>
+            <li class="flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[10px]">check</span></span> Si no confirmas a tiempo, liberamos el cupo automáticamente</li>
+          </ul>
+        </div>
+
+        <!-- Wallet y retiros transparentes -->
+        <div appReveal [appRevealDelay]="270" appTilt [appTiltStrength]="4" class="p-6 rounded-[28px] bg-crema shadow-neu-raised border border-white/60 flex flex-col justify-between hover:shadow-neu-raised-lg hover:-translate-y-1 transition-all">
+          <div>
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-11 h-11 rounded-2xl bg-pink/10 shadow-neu-inset flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-pink text-xl">account_balance</span>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-pink/10 text-pink text-[11px] font-bold">Tu dinero seguro</span>
+            </div>
+            <h3 class="text-lg font-bold text-ink mb-3">Wallet y retiros transparentes</h3>
+            <p class="text-sm text-on-surface-variant leading-relaxed mb-6">
+              Si compartes tu plan, cada pago confirmado (menos la comisión de la plataforma) se abona a tu saldo de Vakeva. Solicita tu retiro cuando quieras.
+            </p>
+            <div class="p-4 rounded-2xl bg-crema-inset shadow-[inset_-2px_-2px_5px_rgba(255,255,255,0.9),inset_2px_2px_5px_rgba(20,20,43,0.08)] flex items-center justify-between border border-black/5 mb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-ink/10 flex items-center justify-center text-ink shrink-0">
+                  <span class="material-symbols-outlined text-base">payments</span>
+                </div>
+                <div>
+                  <span class="text-xs font-bold text-ink block">Comisión visible por plan</span>
+                  <span class="text-[10px] text-on-surface-variant">Antes de que te unas o publiques</span>
+                </div>
+              </div>
+              <span class="text-xs font-bold text-emerald-700 shrink-0 whitespace-nowrap">Sin sorpresas</span>
+            </div>
+            <button type="button" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-crema-inset shadow-neu-inset-sm mb-4 hover:shadow-neu-inset transition-shadow">
+              <span class="flex items-center gap-2 text-[11px] font-bold text-ink">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Retiro en proceso
+              </span>
+              <span class="material-symbols-outlined text-sm text-on-surface-variant">chevron_right</span>
+            </button>
+          </div>
+          <ul class="space-y-2 text-xs text-on-surface-variant font-medium pt-2">
+            <li class="flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[10px]">check</span></span> Historial completo de movimientos de tu wallet</li>
+            <li class="flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[10px]">check</span></span> Sigue el estatus de tu retiro hasta que se marca como pagado</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

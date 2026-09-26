@@ -1,0 +1,772 @@
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { MembershipStatus, NotificationType, Prisma, ProviderOrderStatus, ProviderProfileStatus, Role } from '@prisma/client';
+import { AuthenticatedUser } from '../auth/types/jwt-payload.interface';
+import { ProviderOrderBuyerInfo } from './dto/provider-order-response.dto';
+import { PrismaService } from '../../prisma/prisma.service';
+import { decrypt, encrypt } from '../../common/utils/crypto.util';
+import { buildReceiptFilename, deleteReceiptFile, resolveReceiptPath, saveReceiptFile } from '../../common/utils/receipt-storage.util';
+import { NotificationsService } from '../notifications/notifications.service';
+import { GroupsService } from '../groups/groups.service';
+import { CommissionsService } from '../commissions/commissions.service';
+import { WholesaleAccessService } from './wholesale-access.service';
+import { CreateProviderOrderDto } from './dto/create-provider-order.dto';
+import { DeliverProviderOrderCredentialDto } from './dto/deliver-provider-order-credential.dto';
+import { ListProviderOrdersQueryDto } from './dto/list-provider-orders-query.dto';
+import { ProviderOrderCredentialResponseDto } from './dto/provider-order-credential-response.dto';
+import { CreateGroupFromProviderOrderDto } from './dto/create-group-from-provider-order.dto';
+import {
+  DAY_MS,
+  EXPIRY_NOTICE_DAYS,
+  HOUR_MS,
+  PAYMENT_WINDOW_HOURS,
+  RECEIPT_RETRY_WINDOW_HOURS,
+  RENEWAL_WINDOW_DAYS,
+} from './wholesale.constants';
+
+const WITH_RELATIONS = {
+  listing: {
+    select: {
+      id: true,
+      plan: {
+        select: {
+          id: true,
+          tierName: true,
+          maxSlots: true,
+          officialPrice: true,
+          platform: { select: { id: true, name: true } },
+        },
+      },
+      providerProfile: { select: { id: true, businessName: true } },
+    },
+  },
+  renewals: { select: { id: true, status: true }, orderBy: { createdAt: 'desc' } },
+  replacements: { select: { id: true, status: true }, orderBy: { createdAt: 'desc' } },
+} satisfies Prisma.ProviderOrderInclude;
+
+const EXTENSION_BY_MIMETYPE: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'application/pdf': '.pdf',
+};
+
+/** Órdenes que todavía están en marcha (no terminaron ni se cancelaron). */
+const OPEN_STATUSES: ProviderOrderStatus[] = [
+  ProviderOrderStatus.AWAITING_PAYMENT,
+  ProviderOrderStatus.PENDING_APPROVAL,
+  ProviderOrderStatus.PENDING_DELIVERY,
+];
+
+/** Mientras el pago no se valida, la orden todavía se puede retirar y el stock se libera. */
+const UNPAID_STATUSES: ProviderOrderStatus[] = [ProviderOrderStatus.AWAITING_PAYMENT, ProviderOrderStatus.PENDING_APPROVAL];
+
+const ORDER_WITH_PARTIES = {
+  listing: { include: { providerProfile: true, plan: { select: { tierName: true, platform: { select: { name: true } } } } } },
+  buyer: { select: { id: true, name: true } },
+} satisfies Prisma.ProviderOrderInclude;
+
+@Injectable()
+export class ProviderOrdersService {
+  private readonly logger = new Logger(ProviderOrdersService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+    private readonly notificationsService: NotificationsService,
+    private readonly groupsService: GroupsService,
+    private readonly commissionsService: CommissionsService,
+    private readonly wholesaleAccessService: WholesaleAccessService,
+  ) {}
+
+  private get receiptsDir(): string {
+    return this.configService.get<string>('receipts.dir')!;
+  }
+
+  private dateLabel(date: Date): string {
+    return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
+  }
+
+  /** Sin la cuenta de Vakeva publicada no hay a dónde pagar: no se abre ninguna compra. */
+  private async assertPaymentAccount(): Promise<void> {
+    if (!(await this.commissionsService.getBankAccount())) {
+      throw new BadRequestException('El mayoreo todavía no está disponible: Vakeva no ha publicado su cuenta para recibir el pago.');
+    }
+  }
+
+  // ------------------------------------------------------------------ crear
+
+  /**
+   * El vendedor RESERVA una cuenta: el stock se aparta de inmediato y tiene un plazo para
+   * transferir y subir su comprobante (si no lo hace, la reserva se cancela sola). Solo compra
+   * quien tiene acceso al mayoreo autorizado.
+   */
+  async create(buyerUserId: string, dto: CreateProviderOrderDto) {
+    await this.commissionsService.assertNotRestricted(buyerUserId, 'comprar cuentas al mayoreo');
+    await this.assertPaymentAccount();
+    await this.wholesaleAccessService.assertCanPurchase(buyerUserId, { countsForCap: true });
+
+    return this.prisma.$transaction(async (tx) => {
+      const listing = await tx.providerListing.findUnique({
+        where: { id: dto.listingId },
+        include: { providerProfile: true, plan: { select: { tierName: true } } },
+      });
+      if (!listing) {
+        throw new NotFoundException('Servicio de proveedor no encontrado.');
+      }
+      if (!listing.active || listing.providerProfile.status !== ProviderProfileStatus.APPROVED) {
+        throw new BadRequestException('Este servicio ya no está disponible.');
+      }
+      if (listing.providerProfile.userId === buyerUserId) {
+        throw new BadRequestException('No puedes comprar tu propio servicio.');
+      }
+      const buyerRole = (await tx.user.findUnique({ where: { id: buyerUserId }, select: { role: true } }))?.role;
+      if (buyerRole === Role.ADMIN) {
+        throw new BadRequestException('Los administradores gestionan la tienda desde Admin > Mi tienda; para probar una compra usa una cuenta de usuario.');
+      }
+      if (listing.stockQuantity < 1) {
+        throw new BadRequestException('Este servicio no tiene stock disponible ahora mismo.');
+      }
+      const inProgress = await tx.providerOrder.findFirst({
+        where: { buyerUserId, listingId: listing.id, renewsOrderId: null, replacesOrderId: null, status: { in: UNPAID_STATUSES } },
+        select: { id: true },
+      });
+      if (inProgress) {
+        throw new ConflictException('Ya tienes una compra de esta cuenta esperando pago. Termínala o retírala primero.');
+      }
+
+      await tx.providerListing.update({ where: { id: listing.id }, data: { stockQuantity: { decrement: 1 } } });
+      const order = await this.createPendingOrder(tx, { listing, buyerUserId, validityDays: listing.validityDays, renewable: listing.renewable });
+
+      await this.notificationsService.create(tx, {
+        userId: listing.providerProfile.userId,
+        type: NotificationType.PROVIDER_ORDER_PLACED,
+        payload: `Un vendedor reservó "${listing.plan.tierName}" por $${Number(listing.wholesalePrice).toFixed(2)}. Tiene ${PAYMENT_WINDOW_HOURS} horas para transferir y subir su comprobante.`,
+      });
+      return order;
+    });
+  }
+
+  private createPendingOrder(
+    tx: Prisma.TransactionClient,
+    params: {
+      listing: { id: string; wholesalePrice: Prisma.Decimal };
+      buyerUserId: string;
+      validityDays: number;
+      renewable: boolean;
+      renewsOrderId?: string;
+      replacesOrderId?: string;
+    },
+  ) {
+    return tx.providerOrder.create({
+      data: {
+        listingId: params.listing.id,
+        buyerUserId: params.buyerUserId,
+        unitPrice: params.listing.wholesalePrice,
+        status: ProviderOrderStatus.AWAITING_PAYMENT,
+        renewable: params.renewable,
+        validityDays: params.validityDays,
+        paymentDueAt: new Date(Date.now() + PAYMENT_WINDOW_HOURS * HOUR_MS),
+        renewsOrderId: params.renewsOrderId,
+        replacesOrderId: params.replacesOrderId,
+      },
+      include: WITH_RELATIONS,
+    });
+  }
+
+  // ------------------------------------------------------------------ renovación y reposición
+
+  private async loadOwnFulfilledOrder(orderId: string, buyerUserId: string) {
+    const order = await this.prisma.providerOrder.findUnique({
+      where: { id: orderId },
+      include: { listing: { include: { providerProfile: true, plan: { select: { tierName: true } } } }, renewals: { select: { status: true } }, replacements: { select: { status: true } } },
+    });
+    if (!order || order.buyerUserId !== buyerUserId) {
+      throw new NotFoundException('Compra no encontrada.');
+    }
+    if (order.status !== ProviderOrderStatus.FULFILLED || order.renewsOrderId) {
+      throw new BadRequestException('Solo se puede renovar o reponer una cuenta que ya te entregaron.');
+    }
+    if (order.replacements.some((r) => r.status === ProviderOrderStatus.FULFILLED)) {
+      throw new BadRequestException('Esta cuenta ya fue repuesta: usa la más reciente.');
+    }
+    return order;
+  }
+
+  private assertWithinRenewalWindow(expiresAt: Date | null): void {
+    if (expiresAt && expiresAt.getTime() - Date.now() > RENEWAL_WINDOW_DAYS * DAY_MS) {
+      throw new BadRequestException(`Todavía es pronto: podrás hacerlo ${RENEWAL_WINDOW_DAYS} días antes de que venza (el ${this.dateLabel(expiresAt)}).`);
+    }
+  }
+
+  /** Renovar una cuenta renovable: mismo flujo de pago; al validarse se alarga su vigencia. No consume stock. */
+  async renew(orderId: string, buyerUserId: string) {
+    const order = await this.loadOwnFulfilledOrder(orderId, buyerUserId);
+    if (!order.renewable) {
+      throw new BadRequestException('Esta cuenta no es renovable: cuando venza compra su reposición.');
+    }
+    if (order.renewals.some((r) => OPEN_STATUSES.includes(r.status))) {
+      throw new ConflictException('Ya tienes una renovación en curso de esta cuenta.');
+    }
+    this.assertWithinRenewalWindow(order.expiresAt);
+    await this.commissionsService.assertNotRestricted(buyerUserId, 'renovar cuentas al mayoreo');
+    await this.assertPaymentAccount();
+    await this.wholesaleAccessService.assertCanPurchase(buyerUserId, { countsForCap: false });
+
+    return this.prisma.$transaction(async (tx) => {
+      const renewal = await this.createPendingOrder(tx, {
+        listing: order.listing,
+        buyerUserId,
+        validityDays: order.validityDays,
+        renewable: true,
+        renewsOrderId: order.id,
+      });
+      await this.notificationsService.create(tx, {
+        userId: order.listing.providerProfile.userId,
+        type: NotificationType.PROVIDER_ORDER_PLACED,
+        payload: `Un vendedor va a renovar "${order.listing.plan.tierName}" por $${Number(order.listing.wholesalePrice).toFixed(2)}. Tiene ${PAYMENT_WINDOW_HOURS} horas para pagar.`,
+      });
+      return renewal;
+    });
+  }
+
+  /** Reponer una cuenta no renovable que venció (o está por vencer): una compra nueva que, al entregarse, sustituye la credencial de su grupo. */
+  async replace(orderId: string, buyerUserId: string) {
+    const order = await this.loadOwnFulfilledOrder(orderId, buyerUserId);
+    if (order.renewable) {
+      throw new BadRequestException('Esta cuenta es renovable: renuévala en lugar de comprar otra.');
+    }
+    if (order.replacements.some((r) => OPEN_STATUSES.includes(r.status))) {
+      throw new ConflictException('Ya tienes una reposición en curso de esta cuenta.');
+    }
+    this.assertWithinRenewalWindow(order.expiresAt);
+    await this.commissionsService.assertNotRestricted(buyerUserId, 'comprar cuentas al mayoreo');
+    await this.assertPaymentAccount();
+    await this.wholesaleAccessService.assertCanPurchase(buyerUserId, { countsForCap: false });
+
+    return this.prisma.$transaction(async (tx) => {
+      const listing = await tx.providerListing.findUniqueOrThrow({ where: { id: order.listingId }, include: { providerProfile: true, plan: { select: { tierName: true } } } });
+      if (!listing.active || listing.stockQuantity < 1) {
+        throw new BadRequestException('Por ahora no hay cuentas de reposición disponibles. Inténtalo más tarde.');
+      }
+      await tx.providerListing.update({ where: { id: listing.id }, data: { stockQuantity: { decrement: 1 } } });
+      const replacement = await this.createPendingOrder(tx, {
+        listing,
+        buyerUserId,
+        validityDays: listing.validityDays,
+        renewable: false,
+        replacesOrderId: order.id,
+      });
+      await this.notificationsService.create(tx, {
+        userId: listing.providerProfile.userId,
+        type: NotificationType.PROVIDER_ORDER_PLACED,
+        payload: `Un vendedor pidió la reposición de "${listing.plan.tierName}" por $${Number(listing.wholesalePrice).toFixed(2)}. Tiene ${PAYMENT_WINDOW_HOURS} horas para pagar.`,
+      });
+      return replacement;
+    });
+  }
+
+  // ------------------------------------------------------------------ consultas
+
+  async findMine(buyerUserId: string, query: ListProviderOrdersQueryDto) {
+    const where: Prisma.ProviderOrderWhereInput = { buyerUserId, status: query.status };
+    const [data, total] = await Promise.all([
+      this.prisma.providerOrder.findMany({
+        where,
+        include: WITH_RELATIONS,
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.providerOrder.count({ where }),
+    ]);
+    return { data, total };
+  }
+
+  async findAsProvider(providerUserId: string, query: ListProviderOrdersQueryDto) {
+    const profile = await this.prisma.providerProfile.findUnique({ where: { userId: providerUserId } });
+    if (!profile) {
+      throw new NotFoundException('Todavía no tienes un perfil de proveedor.');
+    }
+
+    const where: Prisma.ProviderOrderWhereInput = {
+      status: query.status,
+      listing: { providerProfileId: profile.id },
+    };
+    const [data, total] = await Promise.all([
+      this.prisma.providerOrder.findMany({
+        where,
+        include: WITH_RELATIONS,
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.providerOrder.count({ where }),
+    ]);
+    return { data, total };
+  }
+
+  async findById(id: string) {
+    const order = await this.prisma.providerOrder.findUnique({ where: { id }, include: WITH_RELATIONS });
+    if (!order) {
+      throw new NotFoundException('Orden no encontrada.');
+    }
+    return order;
+  }
+
+  /**
+   * Detalle de una orden para quien tiene derecho a verla: el comprador, el proveedor que la
+   * vende o un ADMIN. El proveedor/ADMIN además recibe la ficha del comprador para decidir
+   * si aprueba; el comprador nunca recibe datos de otros usuarios.
+   */
+  async findByIdForUser(id: string, user: AuthenticatedUser): Promise<{ order: Awaited<ReturnType<ProviderOrdersService['findById']>>; buyer?: ProviderOrderBuyerInfo }> {
+    const order = await this.findById(id);
+    const full = await this.prisma.providerOrder.findUniqueOrThrow({
+      where: { id },
+      include: { listing: { select: { providerProfile: { select: { userId: true } } } } },
+    });
+    const isBuyer = full.buyerUserId === user.id;
+    const isProvider = full.listing.providerProfile.userId === user.id;
+    if (!isBuyer && !isProvider && user.role !== Role.ADMIN) {
+      throw new ForbiddenException('No tienes acceso a esta orden.');
+    }
+    if (isBuyer && !isProvider) {
+      return { order };
+    }
+
+    const [buyer, ownedGroups, completedPurchases, access] = await Promise.all([
+      this.prisma.user.findUniqueOrThrow({
+        where: { id: full.buyerUserId },
+        select: { id: true, name: true, email: true, createdAt: true, emailVerified: true },
+      }),
+      this.prisma.group.count({ where: { ownerId: full.buyerUserId } }),
+      this.prisma.providerOrder.count({ where: { buyerUserId: full.buyerUserId, status: ProviderOrderStatus.FULFILLED } }),
+      this.wholesaleAccessService.getMine(full.buyerUserId),
+    ]);
+    return {
+      order,
+      buyer: {
+        id: buyer.id,
+        name: buyer.name,
+        email: buyer.email,
+        memberSince: buyer.createdAt,
+        emailVerified: buyer.emailVerified,
+        ownedGroups,
+        completedPurchases,
+        wholesale: { status: access.status, monthlyCap: access.monthlyCap, usedThisMonth: access.usedThisMonth, metCount: access.metCount, total: access.total },
+      },
+    };
+  }
+
+  private async assertIsProviderOfOrder(orderId: string, userId: string) {
+    const order = await this.prisma.providerOrder.findUnique({ where: { id: orderId }, include: ORDER_WITH_PARTIES });
+    if (!order) {
+      throw new NotFoundException('Orden no encontrada.');
+    }
+    if (order.listing.providerProfile.userId !== userId) {
+      throw new ForbiddenException('Solo el proveedor que vendió esta orden puede hacer esto.');
+    }
+    return order;
+  }
+
+  // ------------------------------------------------------------------ pago por transferencia
+
+  /** El comprador sube su comprobante (captura o PDF); queda esperando que el proveedor valide que el dinero llegó. */
+  async uploadReceipt(orderId: string, buyerUserId: string, file: Express.Multer.File) {
+    const extension = EXTENSION_BY_MIMETYPE[file.mimetype];
+    if (!extension) {
+      throw new BadRequestException('Solo se aceptan comprobantes en JPG, PNG, WEBP o PDF.');
+    }
+    const order = await this.prisma.providerOrder.findUnique({ where: { id: orderId }, include: ORDER_WITH_PARTIES });
+    if (!order || order.buyerUserId !== buyerUserId) {
+      throw new NotFoundException('Compra no encontrada.');
+    }
+    if (!UNPAID_STATUSES.includes(order.status)) {
+      throw new BadRequestException('Esta compra ya no acepta comprobantes.');
+    }
+    if (order.status === ProviderOrderStatus.AWAITING_PAYMENT && order.paymentDueAt && order.paymentDueAt.getTime() < Date.now()) {
+      throw new BadRequestException('El plazo para pagar esta reserva ya venció. Vuelve a reservar la cuenta.');
+    }
+
+    const filename = buildReceiptFilename(order.buyer.name, `${order.listing.plan.platform.name}-mayoreo`, new Date(), extension);
+    await saveReceiptFile(this.receiptsDir, filename, file.buffer);
+
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        // El where con status protege de una segunda petición que ya cambió la orden.
+        const result = await tx.providerOrder.updateMany({
+          where: { id: orderId, status: { in: UNPAID_STATUSES } },
+          data: { status: ProviderOrderStatus.PENDING_APPROVAL, receiptPath: filename, receiptUploadedAt: new Date(), receiptRejectionReason: null },
+        });
+        if (result.count === 0) {
+          throw new BadRequestException('Esta compra ya no acepta comprobantes.');
+        }
+        await this.notificationsService.create(tx, {
+          userId: order.listing.providerProfile.userId,
+          type: NotificationType.PROVIDER_ORDER_RECEIPT_UPLOADED,
+          payload: `${order.buyer.name} subió el comprobante de "${order.listing.plan.tierName}" por $${Number(order.unitPrice).toFixed(2)}. Confirma en tu banco que llegó y aprueba el pago.`,
+        });
+      });
+    } catch (error) {
+      await deleteReceiptFile(this.receiptsDir, filename);
+      throw error;
+    }
+    if (order.receiptPath) {
+      await deleteReceiptFile(this.receiptsDir, order.receiptPath);
+    }
+    return this.findById(orderId);
+  }
+
+  async getReceiptFilePath(orderId: string, requester: AuthenticatedUser): Promise<{ absolutePath: string; filename: string }> {
+    const order = await this.prisma.providerOrder.findUnique({ where: { id: orderId }, include: ORDER_WITH_PARTIES });
+    if (!order) {
+      throw new NotFoundException('Orden no encontrada.');
+    }
+    const isBuyer = order.buyerUserId === requester.id;
+    const isProvider = order.listing.providerProfile.userId === requester.id;
+    if (!isBuyer && !isProvider && requester.role !== Role.ADMIN) {
+      throw new ForbiddenException('No tienes acceso a este comprobante.');
+    }
+    if (!order.receiptPath) {
+      throw new NotFoundException('Esta compra todavía no tiene comprobante.');
+    }
+    return { absolutePath: resolveReceiptPath(this.receiptsDir, order.receiptPath), filename: order.receiptPath };
+  }
+
+  /**
+   * El proveedor confirma que el dinero llegó a su banco. Una compra pasa a esperar la entrega
+   * de la cuenta; una renovación se resuelve aquí mismo alargando la vigencia de la cuenta original.
+   */
+  async approve(orderId: string, providerUserId: string) {
+    const order = await this.assertIsProviderOfOrder(orderId, providerUserId);
+    if (order.status !== ProviderOrderStatus.PENDING_APPROVAL || !order.receiptPath) {
+      throw new BadRequestException(
+        order.status === ProviderOrderStatus.AWAITING_PAYMENT
+          ? 'El comprador todavía no sube su comprobante.'
+          : `Esta orden ya está en estado ${order.status}, no hay ningún pago por validar.`,
+      );
+    }
+
+    const now = new Date();
+    await this.prisma.$transaction(async (tx) => {
+      if (order.renewsOrderId) {
+        const parent = await tx.providerOrder.findUniqueOrThrow({ where: { id: order.renewsOrderId } });
+        const base = parent.expiresAt && parent.expiresAt.getTime() > now.getTime() ? parent.expiresAt : now;
+        const newExpiry = new Date(base.getTime() + order.validityDays * DAY_MS);
+        await tx.providerOrder.update({ where: { id: parent.id }, data: { expiresAt: newExpiry, expiryNoticeStage: 0 } });
+        const result = await tx.providerOrder.updateMany({
+          where: { id: orderId, status: ProviderOrderStatus.PENDING_APPROVAL },
+          data: { status: ProviderOrderStatus.FULFILLED, paidAt: now, expiresAt: newExpiry },
+        });
+        if (result.count === 0) throw new BadRequestException('Esta orden ya fue revisada por otra solicitud.');
+        await this.notificationsService.create(tx, {
+          userId: order.buyerUserId,
+          type: NotificationType.PROVIDER_ORDER_APPROVED,
+          payload: `Validamos tu pago: "${order.listing.plan.tierName}" queda vigente hasta el ${this.dateLabel(newExpiry)}.`,
+        });
+        return;
+      }
+
+      const result = await tx.providerOrder.updateMany({
+        where: { id: orderId, status: ProviderOrderStatus.PENDING_APPROVAL },
+        data: { status: ProviderOrderStatus.PENDING_DELIVERY, paidAt: now },
+      });
+      if (result.count === 0) throw new BadRequestException('Esta orden ya fue revisada por otra solicitud.');
+      await this.notificationsService.create(tx, {
+        userId: order.buyerUserId,
+        type: NotificationType.PROVIDER_ORDER_APPROVED,
+        payload: `Validamos tu pago de $${Number(order.unitPrice).toFixed(2)} por "${order.listing.plan.tierName}". El proveedor entregará las credenciales pronto.`,
+      });
+    });
+
+    return this.findById(orderId);
+  }
+
+  /** El comprobante no sirve (monto distinto, ilegible…): vuelve a esperar pago para que suba otro. */
+  async rejectReceipt(orderId: string, providerUserId: string, reason?: string) {
+    const order = await this.assertIsProviderOfOrder(orderId, providerUserId);
+    if (order.status !== ProviderOrderStatus.PENDING_APPROVAL || !order.receiptPath) {
+      throw new BadRequestException('Esta orden no tiene un comprobante esperando revisión.');
+    }
+
+    const retryUntil = new Date(Date.now() + RECEIPT_RETRY_WINDOW_HOURS * HOUR_MS);
+    await this.prisma.$transaction(async (tx) => {
+      const result = await tx.providerOrder.updateMany({
+        where: { id: orderId, status: ProviderOrderStatus.PENDING_APPROVAL },
+        data: {
+          status: ProviderOrderStatus.AWAITING_PAYMENT,
+          receiptPath: null,
+          receiptUploadedAt: null,
+          receiptRejectionReason: reason?.trim() || 'El comprobante no pudo validarse.',
+          paymentDueAt: order.paymentDueAt && order.paymentDueAt > retryUntil ? order.paymentDueAt : retryUntil,
+        },
+      });
+      if (result.count === 0) throw new BadRequestException('Esta orden ya fue revisada por otra solicitud.');
+      await this.notificationsService.create(tx, {
+        userId: order.buyerUserId,
+        type: NotificationType.PROVIDER_ORDER_RECEIPT_REJECTED,
+        payload: `Rechazamos tu comprobante de "${order.listing.plan.tierName}"${reason ? `: ${reason}` : '.'} Sube uno nuevo antes del ${this.dateLabel(retryUntil)}.`,
+      });
+    });
+    await deleteReceiptFile(this.receiptsDir, order.receiptPath);
+
+    return this.findById(orderId);
+  }
+
+  /** El proveedor rechaza la solicitud completa — el stock se libera y se descarta el comprobante si lo había. */
+  async reject(orderId: string, providerUserId: string, reason?: string) {
+    const order = await this.assertIsProviderOfOrder(orderId, providerUserId);
+    if (!UNPAID_STATUSES.includes(order.status)) {
+      throw new BadRequestException(`Esta orden ya está en estado ${order.status}, no hay nada pendiente por rechazar.`);
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.providerOrder.update({
+        where: { id: orderId },
+        data: { status: ProviderOrderStatus.REJECTED, cancelledAt: new Date(), receiptPath: null },
+      });
+      await this.releaseStock(tx, order);
+      await this.notificationsService.create(tx, {
+        userId: order.buyerUserId,
+        type: NotificationType.PROVIDER_ORDER_REJECTED,
+        payload: reason
+          ? `Tu solicitud de compra de "${order.listing.plan.tierName}" fue rechazada: ${reason}`
+          : `Tu solicitud de compra de "${order.listing.plan.tierName}" fue rechazada por el proveedor.`,
+      });
+    });
+    if (order.receiptPath) await deleteReceiptFile(this.receiptsDir, order.receiptPath);
+
+    return this.findById(orderId);
+  }
+
+  /** Solo las compras (y reposiciones) apartan una cuenta del inventario; una renovación no. */
+  private async releaseStock(tx: Prisma.TransactionClient, order: { listingId: string; renewsOrderId: string | null }) {
+    if (order.renewsOrderId) return;
+    await tx.providerListing.update({ where: { id: order.listingId }, data: { stockQuantity: { increment: 1 } } });
+  }
+
+  // ------------------------------------------------------------------ entrega
+
+  /** Solo el proveedor que vendió la orden puede entregar las credenciales — un paso aparte, igual que Group/Credential. */
+  async deliverCredential(orderId: string, dto: DeliverProviderOrderCredentialDto, providerUserId: string) {
+    const order = await this.assertIsProviderOfOrder(orderId, providerUserId);
+    if (order.status !== ProviderOrderStatus.PENDING_DELIVERY) {
+      throw new BadRequestException(`Esta orden ya está en estado ${order.status}, no se puede entregar de nuevo.`);
+    }
+
+    const key = this.configService.get<string>('credentialsEncryptionKey')!;
+    const data = {
+      usernameEncrypted: encrypt(dto.username, key),
+      passwordEncrypted: encrypt(dto.password, key),
+      notesEncrypted: dto.notes ? encrypt(dto.notes, key) : null,
+    };
+    const now = new Date();
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.providerOrderCredential.create({ data: { orderId, ...data } });
+      await tx.providerOrder.update({
+        where: { id: orderId },
+        data: { status: ProviderOrderStatus.FULFILLED, expiresAt: new Date(now.getTime() + order.validityDays * DAY_MS), expiryNoticeStage: 0 },
+      });
+
+      // Una reposición sustituye la credencial del grupo que ya funcionaba con la cuenta vencida.
+      let swappedInto: string | null = null;
+      if (order.replacesOrderId) {
+        const previous = await tx.providerOrder.findUnique({ where: { id: order.replacesOrderId } });
+        if (previous?.resultingGroupId) {
+          const groupId = previous.resultingGroupId;
+          await tx.credential.upsert({ where: { groupId }, create: { groupId, ...data }, update: data });
+          await tx.credentialHistory.create({
+            data: { groupId, changedByUserId: order.buyerUserId, changeReason: 'Reposición de la cuenta de mayoreo' },
+          });
+          await tx.providerOrder.update({ where: { id: previous.id }, data: { resultingGroupId: null } });
+          await tx.providerOrder.update({ where: { id: orderId }, data: { resultingGroupId: groupId } });
+          swappedInto = groupId;
+        }
+      }
+
+      await this.notificationsService.create(tx, {
+        userId: order.buyerUserId,
+        type: NotificationType.PROVIDER_ORDER_DELIVERED,
+        payload: swappedInto
+          ? `Entregamos la reposición de "${order.listing.plan.tierName}" y ya actualizamos las credenciales de tu grupo.`
+          : `Ya tienes las credenciales de "${order.listing.plan.tierName}" — revísalas en tu compra.`,
+      });
+      if (swappedInto) {
+        const members = await tx.groupMembership.findMany({ where: { groupId: swappedInto, status: MembershipStatus.ACTIVE }, select: { userId: true } });
+        for (const member of members) {
+          await this.notificationsService.create(tx, {
+            userId: member.userId,
+            type: NotificationType.CREDENTIAL_UPDATED,
+            payload: 'El vendedor renovó las credenciales de la cuenta. Ya puedes ver las nuevas en el detalle del grupo.',
+            groupId: swappedInto,
+          });
+        }
+      }
+    });
+
+    return this.findById(orderId);
+  }
+
+  /** Solo el comprador (vendedor) puede ver la credencial descifrada — es su compra, no del proveedor ni de un ADMIN. */
+  async getCredential(orderId: string, requesterUserId: string): Promise<ProviderOrderCredentialResponseDto> {
+    const order = await this.prisma.providerOrder.findUnique({ where: { id: orderId } });
+    if (!order) {
+      throw new NotFoundException('Orden no encontrada.');
+    }
+    if (order.buyerUserId !== requesterUserId) {
+      throw new ForbiddenException('Solo el comprador de esta orden puede ver la credencial.');
+    }
+
+    const credential = await this.prisma.providerOrderCredential.findUnique({ where: { orderId } });
+    if (!credential) {
+      throw new NotFoundException('El proveedor todavía no ha entregado las credenciales de esta orden.');
+    }
+
+    const key = this.configService.get<string>('credentialsEncryptionKey')!;
+    return new ProviderOrderCredentialResponseDto({
+      username: decrypt(credential.usernameEncrypted, key),
+      password: decrypt(credential.passwordEncrypted, key),
+      notes: credential.notesEncrypted ? decrypt(credential.notesEncrypted, key) : null,
+      deliveredAt: credential.deliveredAt,
+    });
+  }
+
+  // ------------------------------------------------------------------ cancelar y reembolsar
+
+  /**
+   * El comprador retira su compra mientras el pago no se ha validado (no pierde nada: el stock
+   * se libera). Una vez pagada solo el proveedor puede cancelarla, y el dinero se devuelve a mano
+   * por transferencia (queda marcado como reembolso pendiente).
+   */
+  async cancel(orderId: string, requesterUserId: string) {
+    const order = await this.prisma.providerOrder.findUnique({ where: { id: orderId }, include: ORDER_WITH_PARTIES });
+    if (!order) {
+      throw new NotFoundException('Orden no encontrada.');
+    }
+    const isBuyer = order.buyerUserId === requesterUserId;
+    const isProvider = order.listing.providerProfile.userId === requesterUserId;
+    if (!isBuyer && !isProvider) {
+      throw new ForbiddenException('Solo el comprador o el proveedor de esta orden pueden cancelarla.');
+    }
+    if (!OPEN_STATUSES.includes(order.status)) {
+      throw new BadRequestException('Solo se puede cancelar una orden que todavía está en curso.');
+    }
+    const paid = order.status === ProviderOrderStatus.PENDING_DELIVERY;
+    if (paid && !isProvider) {
+      throw new ForbiddenException('Tu pago ya fue validado. Si necesitas cancelar, escribe a soporte y te ayudamos con el reembolso.');
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.providerOrder.update({
+        where: { id: orderId },
+        data: { status: ProviderOrderStatus.CANCELLED, cancelledAt: new Date(), ...(paid ? {} : { receiptPath: null }) },
+      });
+      await this.releaseStock(tx, order);
+      if (isProvider && !isBuyer) {
+        await this.notificationsService.create(tx, {
+          userId: order.buyerUserId,
+          type: NotificationType.PROVIDER_ORDER_CANCELLED,
+          payload: paid
+            ? `Cancelamos tu compra de "${order.listing.plan.tierName}". Te devolveremos $${Number(order.unitPrice).toFixed(2)} por transferencia a tu cuenta.`
+            : `Cancelamos tu solicitud de "${order.listing.plan.tierName}".`,
+        });
+      }
+    });
+    if (!paid && order.receiptPath) await deleteReceiptFile(this.receiptsDir, order.receiptPath);
+
+    return this.findById(orderId);
+  }
+
+  /** El proveedor confirma que ya devolvió el dinero de una orden pagada y luego cancelada. */
+  async markRefunded(orderId: string, providerUserId: string) {
+    const order = await this.assertIsProviderOfOrder(orderId, providerUserId);
+    if (order.status !== ProviderOrderStatus.CANCELLED || !order.paidAt) {
+      throw new BadRequestException('Solo las órdenes pagadas y luego canceladas llevan reembolso.');
+    }
+    if (order.refundedAt) {
+      throw new BadRequestException('Esta orden ya está marcada como reembolsada.');
+    }
+    await this.prisma.$transaction(async (tx) => {
+      await tx.providerOrder.update({ where: { id: orderId }, data: { refundedAt: new Date() } });
+      await this.notificationsService.create(tx, {
+        userId: order.buyerUserId,
+        type: NotificationType.PROVIDER_ORDER_CANCELLED,
+        payload: `Te devolvimos $${Number(order.unitPrice).toFixed(2)} por tu compra cancelada de "${order.listing.plan.tierName}".`,
+      });
+    });
+    return this.findById(orderId);
+  }
+
+  /** Crea el Group del comprador a partir de esta orden ya entregada — ver GroupsService.createFromProviderOrder. */
+  async createGroup(orderId: string, buyerUserId: string, dto: CreateGroupFromProviderOrderDto) {
+    return this.groupsService.createFromProviderOrder(buyerUserId, orderId, dto);
+  }
+
+  // ------------------------------------------------------------------ tareas programadas
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async processHourly(): Promise<void> {
+    await this.cancelUnpaidOrders();
+    await this.sendExpiryNotices();
+  }
+
+  /** Reservas cuyo plazo para pagar venció sin comprobante: se cancelan solas y el stock vuelve al inventario. */
+  private async cancelUnpaidOrders(): Promise<void> {
+    const overdue = await this.prisma.providerOrder.findMany({
+      where: { status: ProviderOrderStatus.AWAITING_PAYMENT, paymentDueAt: { lt: new Date() } },
+      include: ORDER_WITH_PARTIES,
+    });
+    for (const order of overdue) {
+      await this.prisma.$transaction(async (tx) => {
+        const result = await tx.providerOrder.updateMany({
+          where: { id: order.id, status: ProviderOrderStatus.AWAITING_PAYMENT },
+          data: { status: ProviderOrderStatus.CANCELLED, cancelledAt: new Date() },
+        });
+        if (result.count === 0) return;
+        await this.releaseStock(tx, order);
+        await this.notificationsService.create(tx, {
+          userId: order.buyerUserId,
+          type: NotificationType.PROVIDER_ORDER_CANCELLED,
+          payload: `Cancelamos tu reserva de "${order.listing.plan.tierName}" porque no recibimos tu comprobante a tiempo. Puedes volver a reservarla cuando quieras.`,
+        });
+      });
+      this.logger.log(`Orden ${order.id} cancelada por falta de pago (plazo vencido).`);
+    }
+  }
+
+  /** Avisa al vendedor cuando una cuenta entregada está por vencer (7, 3 y 1 día antes) y cuando ya venció. */
+  private async sendExpiryNotices(): Promise<void> {
+    const now = Date.now();
+    const candidates = await this.prisma.providerOrder.findMany({
+      where: {
+        status: ProviderOrderStatus.FULFILLED,
+        renewsOrderId: null,
+        expiresAt: { not: null, lte: new Date(now + EXPIRY_NOTICE_DAYS[0] * DAY_MS) },
+        replacements: { none: { status: ProviderOrderStatus.FULFILLED } },
+      },
+      include: ORDER_WITH_PARTIES,
+    });
+
+    for (const order of candidates) {
+      const daysLeft = (order.expiresAt!.getTime() - now) / DAY_MS;
+      const stage = daysLeft <= 0 ? EXPIRY_NOTICE_DAYS.length + 1 : EXPIRY_NOTICE_DAYS.filter((limit) => daysLeft <= limit).length;
+      if (stage <= order.expiryNoticeStage) continue;
+
+      const name = order.listing.plan.tierName;
+      const action = order.renewable ? 'Renuévala' : 'Compra su reposición';
+      const expired = daysLeft <= 0;
+      await this.prisma.$transaction(async (tx) => {
+        await tx.providerOrder.update({ where: { id: order.id }, data: { expiryNoticeStage: stage } });
+        await this.notificationsService.create(tx, {
+          userId: order.buyerUserId,
+          type: expired ? NotificationType.PROVIDER_ORDER_EXPIRED : NotificationType.PROVIDER_ORDER_EXPIRING,
+          payload: expired
+            ? `Tu cuenta "${name}" venció. ${action} en Mayoreo para que tu grupo pueda volver a recibir miembros.`
+            : `Tu cuenta "${name}" vence el ${this.dateLabel(order.expiresAt!)}. ${action} desde Mayoreo para que tu grupo no se quede sin servicio.`,
+        });
+      });
+    }
+  }
+}

@@ -1,0 +1,63 @@
+<div class="admin-shell">
+  @if (sidebarOpen()) { <button class="sidebar-overlay" aria-label="Cerrar menú" (click)="closeSidebar()"></button> }
+  <aside id="admin-sidebar" class="admin-sidebar" [class.is-open]="sidebarOpen()">
+    <div class="brand-row"><img [src]="theme.isDark() ? 'vakeva-logo-dark.png' : 'vakeva-logo.png'" alt="Vakeva" /><span>Staff</span></div>
+    <nav class="side-nav" aria-label="Administración">
+      @for (item of sections; track item.route) {
+        <a [routerLink]="item.route" [routerLinkActiveOptions]="{ exact: item.route === '/admin' }" routerLinkActive="is-active" (click)="closeSidebar()">
+          <span class="material-symbols-outlined">{{ item.icon }}</span>{{ item.label }}
+        </a>
+      }
+    </nav>
+    <div class="side-footer">
+      <a routerLink="/panel"><span class="material-symbols-outlined">arrow_back</span>Volver al panel</a>
+      <button type="button" (click)="logout()"><span class="material-symbols-outlined">logout</span>Cerrar sesión</button>
+    </div>
+  </aside>
+  <section class="admin-workspace">
+    <header class="admin-topbar">
+      <button class="menu-button" type="button" (click)="toggleSidebar()" [attr.aria-expanded]="sidebarOpen()" aria-controls="admin-sidebar" aria-label="Abrir menú"><span class="material-symbols-outlined">menu</span></button>
+      <div class="admin-search">
+        <span class="material-symbols-outlined">search</span>
+        <input type="search" placeholder="Buscar secciones del panel..." [value]="search()" (input)="updateSearch($event)" (focus)="searchFocused.set(true)" aria-label="Buscar en administración" />
+        @if (searchFocused() && search()) {
+          <div class="search-results">
+            @for (result of searchResults(); track result.route) {
+              <button type="button" (mousedown)="goTo(result.route)"><span class="material-symbols-outlined">{{ result.icon }}</span>{{ result.label }}</button>
+            } @empty { <p>No hay una sección con ese nombre.</p> }
+          </div>
+        }
+      </div>
+      <app-theme-toggle class="topbar-theme" />
+      <div class="notif-wrap">
+        <button type="button" class="alert-button" (click)="toggleNotifPanel()" [attr.aria-label]="'Notificaciones, ' + unreadCount() + ' sin leer'">
+          <span class="material-symbols-outlined">notifications</span>
+          @if (unreadCount() > 0) { <b class="notif-badge">{{ unreadCount() > 99 ? '99+' : unreadCount() }}</b> }
+        </button>
+        @if (notifPanelOpen()) {
+          <section class="notif-panel">
+            <header><strong>Notificaciones</strong><button type="button" [disabled]="markingAllRead() || unreadCount() === 0" (click)="markAllRead()">Marcar todas como leídas</button></header>
+            <div class="notif-list">
+              @if (notifications() === null) { <p class="notif-empty">Cargando…</p> }
+              @else if (notifications()!.length === 0) { <p class="notif-empty">No tienes notificaciones.</p> }
+              @else {
+                @for (n of notifications(); track n.id) {
+                  <button type="button" class="notif-item" [class.unread]="!n.readAt" (click)="openNotification(n)">
+                    <span class="material-symbols-outlined notif-icon">{{ notificationIcon(n) }}</span>
+                    <span class="notif-copy"><strong>{{ notificationTitle(n) }}</strong><span>{{ n.payload }}</span><small>{{ relativeTime(n.createdAt) }}</small></span>
+                  </button>
+                }
+              }
+            </div>
+            <a routerLink="/admin/notificaciones" class="notif-footer-link" (click)="closeNotifPanel()">Ver todas las notificaciones<span class="material-symbols-outlined">arrow_forward</span></a>
+          </section>
+        }
+      </div>
+      <div class="admin-profile">
+        <span class="avatar">{{ initials(authService.currentUser()?.name) }}</span>
+        <span class="profile-copy"><strong>{{ authService.currentUser()?.name }}</strong><small>Administrador</small></span>
+      </div>
+    </header>
+    <main class="admin-content"><router-outlet /></main>
+  </section>
+</div>

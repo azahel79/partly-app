@@ -1,0 +1,600 @@
+@import "tailwindcss";
+@import "lenis/dist/lenis.css";
+@import "./app/landing/landing-page/landing-effects.css";
+@import "./dark-theme.css";
+
+/* Lenis is mounted only on the landing and removes this class on teardown. */
+html.lenis, html.lenis body { scroll-behavior: auto; }
+
+@theme {
+  --color-ink: #14142b;
+  --color-ink-surface: #1b1b36;
+  --color-ink-card: #181830;
+  --color-pink: #059669;
+  --color-pink-deep: #047857;
+  --color-pink-dark: #064e3b;
+  --color-crema: #f6f4ef;
+  --color-crema-dim: #f2f1ee;
+  --color-crema-inset: #ffffff;
+  --color-crema-border: #e4e1d7;
+  --color-surface-dim: #dbdad5;
+  --color-primary: #14142b;
+  --color-secondary: #059669;
+  --color-background: #f6f4ef;
+  --color-on-background: #14142b;
+  --color-on-surface-variant: #62616d;
+
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-heading: "Bricolage Grotesque", "Plus Jakarta Sans", sans-serif;
+
+  --shadow-neu-raised: -8px -8px 20px rgba(255, 255, 255, 0.65), 8px 8px 20px rgba(20, 20, 43, 0.08);
+  --shadow-neu-raised-sm: -4px -4px 10px rgba(255, 255, 255, 0.65), 4px 4px 10px rgba(20, 20, 43, 0.08);
+  --shadow-neu-raised-lg: -12px -12px 30px rgba(255, 255, 255, 0.68), 12px 12px 30px rgba(20, 20, 43, 0.12);
+  --shadow-neu-inset: inset -3px -3px 7px rgba(255, 255, 255, 0.6), inset 3px 3px 7px rgba(20, 20, 43, 0.08);
+  --shadow-neu-inset-sm: inset -2px -2px 5px rgba(255, 255, 255, 0.55), inset 2px 2px 5px rgba(20, 20, 43, 0.07);
+  --shadow-neu-dark-raised: -6px -6px 16px rgba(255, 255, 255, 0.04), 6px 6px 16px rgba(0, 0, 0, 0.5);
+  --shadow-neu-dark-inset: inset -3px -3px 7px rgba(255, 255, 255, 0.05), inset 3px 3px 7px rgba(0, 0, 0, 0.6);
+  --shadow-pop: 0 16px 32px rgba(90, 18, 60, 0.28), 0 4px 10px rgba(90, 18, 60, 0.18);
+  --shadow-pop-sm: 0 8px 18px rgba(90, 18, 60, 0.25), 0 2px 6px rgba(90, 18, 60, 0.16);
+  --shadow-pop-lg: 0 22px 44px rgba(90, 18, 60, 0.32), 0 6px 14px rgba(90, 18, 60, 0.2);
+}
+
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f6f4ef;
+  color: #14142b;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  scroll-behavior: smooth;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+}
+
+/* In @layer base so Tailwind utilities (hidden, block, flex, etc.) can
+   still override `display` when combined on the same element — an
+   unlayered rule here would always win over layered utility classes
+   regardless of specificity, silently breaking `hidden lg:block` icons. */
+@layer base {
+  .material-symbols-outlined {
+    font-family: "Material Symbols Outlined";
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: "liga";
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Keyboard-only focus ring — every interactive element in this app relies on
+   hover/active states for feedback, which a keyboard user never triggers.
+   :focus-visible (not :focus) so mouse clicks don't show it, only tab/arrow
+   navigation does. `input` is deliberately excluded: browsers treat text
+   inputs as always focus-visible (even on mouse click), and every input in
+   this app already has its own `focus:ring` from Tailwind, so this rule
+   would double up into a visible outline-on-click otherwise. */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-pink);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.neu-btn-interactive {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.neu-btn-interactive:active,
+.neu-tile-interactive:hover {
+  box-shadow: inset -2px -2px 6px rgba(255, 255, 255, 0.9), inset 2px 2px 6px rgba(20, 20, 43, 0.12) !important;
+  transform: translateY(1px);
+}
+.neu-tile-interactive {
+  transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-link {
+  position: relative;
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    box-shadow 200ms ease;
+}
+.nav-link:hover {
+  background-color: rgba(5, 150, 105, 0.12);
+  box-shadow:
+    -3px -3px 8px rgba(255, 255, 255, 0.95),
+    3px 3px 8px rgba(20, 20, 43, 0.08);
+}
+.nav-link:active {
+  box-shadow:
+    inset -2px -2px 5px rgba(255, 255, 255, 0.9),
+    inset 2px 2px 5px rgba(20, 20, 43, 0.1);
+}
+
+/* Keep scrollbars discoverable in tables and horizontal navigation. */
+
+/* ============================================================
+   Motion system
+   Wrapped in @layer base so Tailwind utilities (hover:, group-hover:,
+   active:, which live in the utilities layer) always win the cascade
+   over these entrance/reveal transforms when both match an element.
+   ============================================================ */
+@layer base {
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(5, 150, 105, 0);
+  }
+}
+
+@keyframes value-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-8deg);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.08) rotate(2deg);
+  }
+  85% {
+    opacity: 1;
+    transform: scale(0.96) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* Load-in stagger utilities (hero) — animate immediately, no JS needed */
+.anim-in {
+  opacity: 0;
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.anim-in-down {
+  opacity: 0;
+  animation: fade-down 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.anim-in-scale {
+  opacity: 0;
+  animation: pop-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.anim-in-bounce {
+  opacity: 0;
+  animation: bounce-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Scroll-triggered reveal — paired with RevealDirective ([appReveal]).
+   Sets only the static hidden state (no `transition`): the actual tween is
+   driven by GSAP from this starting point, so a CSS transition here would
+   race the JS-driven animation on the same opacity/transform properties. */
+.reveal {
+  opacity: 0;
+}
+.reveal-up {
+  transform: translateY(28px);
+}
+.reveal-left {
+  transform: translateX(-32px);
+}
+.reveal-right {
+  transform: translateX(32px);
+}
+.reveal-scale {
+  transform: scale(0.94);
+}
+.reveal-blur {
+  transform: scale(1.04);
+  filter: blur(10px);
+}
+.reveal-pop {
+  transform: scale(0.8);
+}
+.reveal-flip {
+  transform: translateY(18px) perspective(600px) rotateX(-40deg);
+}
+.reveal-none {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+  filter: blur(0);
+}
+
+.float-slow {
+  animation: float-y 6s ease-in-out infinite;
+}
+.float-slower {
+  animation: float-y 7.5s ease-in-out infinite;
+}
+
+@keyframes hero-tu-parte-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.hero-tu-parte-float {
+  animation: hero-tu-parte-y 2.4s ease-in-out infinite;
+  animation-delay: 1.1s;
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(24px, -18px) scale(1.06);
+  }
+  66% {
+    transform: translate(-18px, 14px) scale(0.96);
+  }
+}
+
+/* Decorative color blobs — plain `absolute`, no negative z-index. Place them
+   BEFORE the section's content in markup; normal DOM/paint order keeps them
+   behind without needing `isolate` (see hero mesh-gradient incident).
+   `.blob-drift` and `[appParallax]` both animate `transform` — never combine
+   them on the same element (the drift keyframes would mask the parallax
+   translate). Use `.blob` (static) + appParallax, or `.blob-drift` alone. */
+.blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  pointer-events: none;
+}
+.blob-drift {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  pointer-events: none;
+  animation: drift 16s ease-in-out infinite;
+}
+.blob-drift.blob-slow {
+  animation-duration: 22s;
+}
+.blob-drift.blob-fast {
+  animation-duration: 12s;
+}
+
+.value-pop {
+  animation: value-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes wave-drift-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+/* The SVG is 2x the container width with the same wave pattern repeated
+   twice, so sliding exactly half its width loops seamlessly back to the
+   start — the classic "infinite scrolling texture" trick. */
+.wave-drift {
+  animation: wave-drift-x 18s linear infinite;
+  width: 200%;
+}
+
+.line-grow {
+  transform-origin: left center;
+  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+  transform: scaleX(0);
+}
+.is-visible .line-grow,
+.line-grow.is-visible {
+  transform: scaleX(1);
+}
+
+/* Radial progress ring — pairs with [appReveal] on an ancestor.
+   Circle starts at stroke-dashoffset 113.1 (empty, r=18 circumference)
+   set via the HTML attribute; once the ancestor gets `.is-visible` this
+   rule wins the cascade and animates to --ring-target. */
+.ring-progress {
+  transition: stroke-dashoffset 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+}
+.reveal.is-visible .ring-progress {
+  stroke-dashoffset: var(--ring-target, 0);
+}
+
+.cta-glow {
+  animation: glow-pulse 2.4s ease-out infinite;
+}
+
+/* ------------------------------------------------------------------
+   Ambient (always-on) motion — for decorative elements that already
+   carry a static `transform` (e.g. a hand-tilted sticky note, a badge
+   at a fixed rotation). These animate the independent `rotate` /
+   `translate` / `scale` CSS properties instead of `transform`, so they
+   layer on top of the element's existing look instead of overwriting
+   it — see https://developer.mozilla.org/en-US/docs/Web/CSS/rotate.
+   Reserve `transform`-based keyframes (`.float-slow`, `.blob-drift`)
+   for elements that have no static transform of their own.
+   ============================================================ */
+@keyframes spin-slow-turn {
+  to {
+    rotate: 360deg;
+  }
+}
+.spin-slow {
+  animation: spin-slow-turn 30s linear infinite;
+}
+.spin-slower {
+  animation: spin-slow-turn 42s linear infinite;
+}
+.spin-slow-reverse {
+  animation: spin-slow-turn 36s linear infinite reverse;
+}
+
+@keyframes sway-rotate {
+  0%,
+  100% {
+    rotate: -3deg;
+  }
+  50% {
+    rotate: 3deg;
+  }
+}
+.sway {
+  animation: sway-rotate 4.6s ease-in-out infinite;
+}
+
+@keyframes float-indep-y {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -12px;
+  }
+}
+.float-indep {
+  animation: float-indep-y 6s ease-in-out infinite;
+}
+.float-indep-slower {
+  animation: float-indep-y 7.5s ease-in-out infinite;
+}
+
+@keyframes nudge-x {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 6px 0;
+  }
+}
+.nudge-x {
+  animation: nudge-x 1.5s ease-in-out infinite;
+}
+
+@keyframes twinkle-fade {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.twinkle {
+  animation: twinkle-fade 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-in,
+  .anim-in-down,
+  .anim-in-scale,
+  .anim-in-bounce,
+  .reveal {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .float-slow,
+  .float-slower,
+  .cta-glow,
+  .value-pop,
+  .blob-drift,
+  .wave-drift,
+  .hero-tu-parte-float,
+  .spin-slow,
+  .spin-slower,
+  .spin-slow-reverse,
+  .sway,
+  .float-indep,
+  .float-indep-slower,
+  .nudge-x,
+  .twinkle {
+    animation: none !important;
+  }
+  .line-grow {
+    transition: none !important;
+    transform: scaleX(1) !important;
+  }
+  .ring-progress {
+    transition: none !important;
+    stroke-dashoffset: var(--ring-target, 0) !important;
+  }
+}
+
+} /* end @layer base (motion system) */
+
+/* Shared responsive foundations for routed pages and data surfaces. */
+@layer base {
+  app-root { display: block; min-width: 0; }
+  input, select, textarea { min-width: 0; max-width: 100%; }
+  .grid > *, .flex > * { min-width: 0; }
+}
+.panel-content, .admin-content { overflow-wrap: anywhere; }
+.panel-content > :not(router-outlet), .admin-content > :not(router-outlet) { display: block; min-width: 0; }
+.panel-content .overflow-x-auto, .admin-content .overflow-x-auto,
+.admin-content .table-wrap { max-width: 100%; overscroll-behavior-x: contain; scrollbar-width: thin; }
+.admin-content .fixed.inset-0:has(> div) { overflow-y: auto; }
+.admin-content .fixed.inset-0 > div { max-height: calc(100dvh - 32px); overflow-y: auto; }
+@media (max-width: 767px) {
+  .panel-content h1, .admin-content h1 { line-height: 1.2; }
+  .panel-content .overflow-x-auto, .admin-content .overflow-x-auto { flex-shrink: 1; }
+  .panel-content input:not([type=checkbox]):not([type=radio]):not([type=range]),
+  .panel-content select, .panel-content textarea,
+  .admin-content input:not([type=checkbox]):not([type=radio]),
+  .admin-content select, .admin-content textarea,
+  .app-login-page input, .register-page input { font-size: 16px; }
+}
+
+
+/* ui-standard: botones */
+/* Botones del panel y admin: sin sombra gris, esquina leve y hover visible. La landing usa sus propios estilos. */
+app-panel-layout .primary-button:not(:disabled):hover,
+app-create-group .primary-button:not(:disabled):hover { background: #047857 !important; }
+app-panel-layout .primary-button:not(:disabled):active { transform: scale(.98); }
+app-profile .primary-button:not(:disabled):hover { filter: brightness(.94); }
+app-profile .secondary-button:not(:disabled):hover,
+app-profile .data-export button:hover { background: #f1f5f9; }
+app-profile .delete-button:hover { background: #b92c41; }
+app-payments-monitor .filter-tabs button:hover,
+app-payments-monitor .refresh-button:hover { background: #e8ecf3; }
+app-payments-monitor .receipt-button:hover { background: #dff5ee; }
+app-admin-group-detail .approve-button:hover { background: #008565; }
+app-admin-group-detail .reject-button:hover { background: #ffeef0; }
+app-admin-group-detail .ghost-button:hover,
+app-admin-group-detail .outline-button:hover { background: #f4f6fa; }
+
+/* Modales de confirmación (SweetAlert2) con el estilo de la app */
+.vk-swal { width: 26em; max-width: calc(100vw - 32px); padding: 1.6em 1.4em 1.3em; border-radius: 16px; font-family: inherit; box-shadow: 0 24px 60px rgba(20, 29, 55, .22); }
+.vk-swal .swal2-icon { margin: .2em auto 1em; transform: scale(.85); }
+.vk-swal-title { padding: 0; font-size: 18px; font-weight: 800; color: #111735; }
+.vk-swal-text { margin: .6em 0 0; font-size: 14px; line-height: 1.5; color: #59627c; }
+.vk-swal-actions { margin-top: 1.4em; gap: 10px; }
+.vk-swal-btn { min-width: 110px; padding: 10px 18px; border: 0; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: background-color .15s, transform .1s; }
+.vk-swal-btn:active { transform: scale(.98); }
+.vk-swal-confirm { background: #059669; color: #fff; }
+.vk-swal-confirm:hover { background: #047857; }
+.vk-swal-danger { background: #dc2626; color: #fff; }
+.vk-swal-danger:hover { background: #b91c1c; }
+.vk-swal-cancel { background: #f1f5f9; color: #334155; }
+.vk-swal-cancel:hover { background: #e2e8f0; }
+.vk-swal-btn:focus-visible { outline: 3px solid rgba(5, 150, 105, .35); outline-offset: 2px; }
+.vk-swal-input { margin: 1em 0 0; width: 100%; box-sizing: border-box; min-height: 88px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 10px; font: inherit; font-size: 14px; color: #111735; box-shadow: none; }
+.vk-swal-input:focus { border-color: #059669; box-shadow: 0 0 0 4px rgba(5, 150, 105, .12); }
+
+/* ui-standard: cards (panel y admin) — planas, borde fino, sombra mínima y acento verde al pasar el mouse */
+:is(app-panel-layout, app-admin-layout) :is(.shadow-neu-raised, .shadow-neu-raised-lg) {
+  box-shadow: 0 0 0 1px #e6eaf0, 0 1px 2px rgba(16, 24, 40, .05);
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+:is(app-panel-layout, app-admin-layout) .shadow-neu-raised-sm {
+  box-shadow: 0 0 0 1px #e6eaf0, 0 1px 2px rgba(16, 24, 40, .04);
+}
+:is(app-panel-layout, app-admin-layout) :is(.shadow-neu-inset, .shadow-neu-inset-sm) {
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, .06);
+}
+:is(app-panel-layout, app-admin-layout) .bg-crema-inset {
+  background-color: #f6f8fb;
+}
+:is(app-panel-layout, app-admin-layout) :is(.hover\:shadow-neu-raised-lg:hover, .hover\:shadow-neu-raised:hover) {
+  box-shadow: 0 0 0 1px rgba(5, 150, 105, .4), 0 12px 28px -12px rgba(5, 150, 105, .28);
+}
+:is(app-panel-layout, app-admin-layout) :is(.rounded-3xl, .rounded-\[28px\]) {
+  border-radius: 16px;
+}

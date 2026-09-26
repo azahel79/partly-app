@@ -1,0 +1,251 @@
+<div class="gr-page space-y-5 rounded-3xl p-1 sm:p-2">
+  <!-- Encabezado -->
+  <div class="flex items-center gap-4">
+    <div class="title-tile shrink-0">
+      <span class="material-symbols-outlined" style="font-size: 28px">groups</span>
+    </div>
+    <div class="min-w-0">
+      <h1 class="text-2xl font-extrabold text-ink tracking-tight leading-tight">Grupos</h1>
+      <p class="text-sm text-on-surface-variant font-medium mt-0.5">Revisa los grupos nuevos y consulta los que ya fueron aprobados o rechazados.</p>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-2xl bg-red-50 text-xs text-red-600 font-semibold">{{ errorMessage() }}</div>
+  }
+
+  @if (groups() === null) {
+    <div class="p-8 rounded-2xl bg-white/80 text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+  } @else {
+    <!-- Tarjetas de resumen -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <button type="button" class="stat-card stat-amber" (click)="setFilter('PENDING')">
+        <span class="stat-icon"><span class="material-symbols-outlined" style="font-size: 24px">groups</span></span>
+        <span class="min-w-0 pr-6">
+          <span class="block text-3xl font-black text-ink tabular-nums leading-none">{{ counts().pending }}</span>
+          <span class="block text-sm font-extrabold text-ink mt-1.5">Pendientes</span>
+          <span class="block text-xs text-on-surface-variant font-medium">Requieren tu revisión</span>
+        </span>
+        <span class="stat-arrow"><span class="material-symbols-outlined" style="font-size: 18px">chevron_right</span></span>
+      </button>
+      <button type="button" class="stat-card stat-green" (click)="setFilter('APPROVED')">
+        <span class="stat-icon"><span class="material-symbols-outlined" style="font-size: 24px">check_circle</span></span>
+        <span class="min-w-0 pr-6">
+          <span class="block text-3xl font-black text-ink tabular-nums leading-none">{{ counts().approved }}</span>
+          <span class="block text-sm font-extrabold text-ink mt-1.5">Aprobados</span>
+          <span class="block text-xs text-on-surface-variant font-medium">Grupos activos</span>
+        </span>
+        <span class="stat-arrow"><span class="material-symbols-outlined" style="font-size: 18px">chevron_right</span></span>
+      </button>
+      <button type="button" class="stat-card stat-red" (click)="setFilter('REJECTED')">
+        <span class="stat-icon"><span class="material-symbols-outlined" style="font-size: 24px">cancel</span></span>
+        <span class="min-w-0 pr-6">
+          <span class="block text-3xl font-black text-ink tabular-nums leading-none">{{ counts().rejectedLast30d }}</span>
+          <span class="block text-sm font-extrabold text-ink mt-1.5">Rechazados</span>
+          <span class="block text-xs text-on-surface-variant font-medium">En los últimos 30 días</span>
+        </span>
+        <span class="stat-arrow"><span class="material-symbols-outlined" style="font-size: 18px">chevron_right</span></span>
+      </button>
+      <button type="button" class="stat-card stat-indigo" (click)="setFilter('')">
+        <span class="stat-icon"><span class="material-symbols-outlined" style="font-size: 24px">groups_2</span></span>
+        <span class="min-w-0 pr-6">
+          <span class="block text-3xl font-black text-ink tabular-nums leading-none">{{ counts().total }}</span>
+          <span class="block text-sm font-extrabold text-ink mt-1.5">Total de grupos</span>
+          <span class="block text-xs text-on-surface-variant font-medium">En la plataforma</span>
+        </span>
+        <span class="stat-arrow"><span class="material-symbols-outlined" style="font-size: 18px">chevron_right</span></span>
+      </button>
+    </div>
+
+    <!-- Búsqueda y filtros -->
+    <div class="filter-bar">
+      <label class="pill-field flex-1 basis-full lg:basis-64" style="border-radius: 999px">
+        <span class="material-symbols-outlined">search</span>
+        <input
+          #searchInput
+          type="text"
+          placeholder="Buscar por plataforma o vendedor…"
+          [value]="search()"
+          (input)="onSearchChange(searchInput.value)"
+        />
+      </label>
+      <label class="pill-field flex-1 basis-40 lg:flex-none">
+        <span class="material-symbols-outlined">layers</span>
+        <select class="flex-1" [value]="platformFilter()" (change)="setPlatformFilter($any($event.target).value)">
+          <option value="">Todas las plataformas</option>
+          @for (p of platformOptions(); track p) {
+            <option [value]="p">{{ p }}</option>
+          }
+        </select>
+      </label>
+      <label class="pill-field flex-1 basis-36 lg:flex-none">
+        <span class="material-symbols-outlined">filter_alt</span>
+        <select class="flex-1" [value]="statusFilter()" (change)="setFilter($any($event.target).value)">
+          @for (opt of filterOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+      <label class="pill-field flex-1 basis-36 lg:flex-none">
+        <span class="material-symbols-outlined">swap_vert</span>
+        <select class="flex-1" [value]="sortBy()" (change)="setSort($any($event.target).value)">
+          @for (opt of sortOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+      <button type="button" class="clear-btn" (click)="clearFilters()">
+        <span class="material-symbols-outlined" style="font-size: 19px">filter_alt_off</span>
+        Limpiar filtros
+      </button>
+    </div>
+
+    <!-- Pestañas -->
+    <div class="tabs">
+      @for (opt of filterOptions; track opt.value) {
+        <button type="button" class="tab" [class.active]="statusFilter() === opt.value" (click)="setFilter(opt.value)">
+          {{ opt.label }} ({{ opt.value === 'PENDING' ? counts().pending : opt.value === 'APPROVED' ? counts().approved : opt.value === 'REJECTED' ? counts().rejected : counts().total }})
+        </button>
+      }
+    </div>
+
+    @if (pageRows().length === 0) {
+      <div class="table-card p-10 text-center">
+        <span class="material-symbols-outlined text-3xl text-on-surface-variant/40 mb-2 block">inbox</span>
+        <p class="text-sm font-semibold text-on-surface-variant">No hay grupos que coincidan con estos filtros.</p>
+      </div>
+    } @else {
+      <!-- Tabla -->
+      <div class="table-card">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse min-w-[760px]">
+            <thead>
+              <tr>
+                <th>Grupo</th>
+                <th>Plataforma</th>
+                <th>Información</th>
+                <th>Vendido por</th>
+                <th>Fecha de solicitud</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (group of pageRows(); track group.id) {
+                <tr class="row" (click)="goToDetail(group.id)">
+                  <td>
+                    <div class="flex items-center gap-3">
+                      <app-platform-logo class="logo-tile" [name]="group.plan.platform.name" [logoUrl]="group.plan.platform.logoUrl" />
+                      <div class="min-w-0">
+                        <p class="text-sm font-extrabold text-ink truncate">{{ group.plan.platform.name }}</p>
+                        <p class="text-xs text-on-surface-variant font-medium whitespace-nowrap">#{{ group.id.slice(0, 8) }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <p class="text-sm font-bold text-ink">{{ group.plan.platform.name }}</p>
+                    <p class="text-xs text-on-surface-variant font-medium">{{ group.plan.tierName }}</p>
+                  </td>
+                  <td>
+                    <p class="text-sm font-bold text-ink">${{ group.pricePerSlot }}/mes</p>
+                    <p class="text-xs text-on-surface-variant font-medium">{{ group.availableSlots }} cupos</p>
+                  </td>
+                  <td>
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-9 h-9 rounded-full bg-ink text-crema text-xs font-bold flex items-center justify-center shrink-0">
+                        {{ group.owner.name.charAt(0) }}
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-sm font-bold text-ink truncate">{{ group.owner.name }}</p>
+                        <span class="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-slate-100 text-[11px] font-semibold text-on-surface-variant">Vendedor</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <p class="text-sm font-bold text-ink whitespace-nowrap">{{ group.createdAt | date: 'd MMM y' }}</p>
+                    <p class="text-xs text-on-surface-variant font-medium">{{ relativeTime(group.createdAt) }}</p>
+                  </td>
+                  <td>
+                    @if (group.approvalStatus === 'PENDING') {
+                      @if (group.credentialReviewStatus === 'SUBMITTED') {
+                        <span class="status-pill bg-blue-100 text-blue-700"><span class="material-symbols-outlined">send</span>Credenciales enviadas</span>
+                      } @else if (group.credentialReviewStatus === 'REQUESTED') {
+                        <span class="status-pill bg-violet-100 text-violet-700"><span class="material-symbols-outlined">key</span>Credenciales solicitadas</span>
+                      } @else {
+                        <span class="status-pill bg-amber-100 text-amber-800"><span class="material-symbols-outlined">schedule</span>Pendiente</span>
+                      }
+                    } @else if (group.approvalStatus === 'APPROVED') {
+                      <span class="status-pill bg-emerald-100 text-emerald-700"><span class="material-symbols-outlined">check_circle</span>Aprobado</span>
+                    } @else {
+                      <span class="status-pill bg-red-100 text-red-600"><span class="material-symbols-outlined">cancel</span>Rechazado</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="flex flex-wrap items-center gap-1.5" (click)="$event.stopPropagation()">
+                      <button type="button" class="btn-ghost" (click)="goToDetail(group.id)">
+                        <span class="material-symbols-outlined">visibility</span>Ver detalles
+                      </button>
+                      @if (group.approvalStatus === 'PENDING') {
+                        <button type="button" class="btn-danger" [disabled]="reviewingId() === group.id" (click)="startReject(group.id)">
+                          <span class="material-symbols-outlined">close</span>Rechazar
+                        </button>
+                        <button type="button" class="btn-primary" [disabled]="reviewingId() === group.id" (click)="approve(group.id)">
+                          <span class="material-symbols-outlined">check</span>Aprobar
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+                @if (rejectingId() === group.id) {
+                  <tr>
+                    <td colspan="7" class="bg-slate-50/70" (click)="$event.stopPropagation()">
+                      <div class="max-w-xl space-y-2.5">
+                        <textarea
+                          rows="2"
+                          placeholder="Explícale al vendedor por qué se rechaza este grupo…"
+                          [value]="rejectReason()"
+                          (input)="rejectReason.set($any($event.target).value)"
+                          class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-colors text-sm text-ink placeholder:text-on-surface-variant/50 outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink resize-none"
+                        ></textarea>
+                        <div class="flex items-center gap-2 justify-end">
+                          <button type="button" class="btn-ghost" (click)="cancelReject()">Cancelar</button>
+                          <button
+                            type="button"
+                            class="btn-primary"
+                            style="background: #dc2626; box-shadow: 0 6px 16px rgba(220,38,38,.25)"
+                            [disabled]="!rejectReason().trim() || reviewingId() === group.id"
+                            (click)="confirmReject(group.id)"
+                          >
+                            Confirmar rechazo
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+        <p class="text-sm text-on-surface-variant font-medium">
+          Mostrando {{ rangeStart() }}–{{ rangeEnd() }} de {{ totalFiltered() }} grupos
+        </p>
+        <div class="flex items-center gap-2">
+          <button type="button" class="page-btn" [disabled]="page() === 1" (click)="goToPage(page() - 1)">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          @for (n of pageNumbers(); track n) {
+            <button type="button" class="page-btn" [class.active]="page() === n" (click)="goToPage(n)">{{ n }}</button>
+          }
+          <button type="button" class="page-btn" [disabled]="page() === totalPages()" (click)="goToPage(page() + 1)">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>

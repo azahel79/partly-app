@@ -1,0 +1,85 @@
+<div class="space-y-6">
+  <a routerLink="/admin/incidencias" class="inline-flex items-center gap-1 text-xs font-bold text-crema/60 hover:text-crema transition-colors">
+    <span class="material-symbols-outlined text-sm">arrow_back</span>
+    Volver a incidencias
+  </a>
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-2xl bg-white/5 text-xs text-red-400 font-semibold">{{ errorMessage() }}</div>
+  }
+
+  @if (incident(); as incident) {
+    <div class="p-6 rounded-[28px] bg-ink-card border border-white/10">
+      <div class="flex items-start justify-between gap-4 flex-wrap mb-4">
+        <div>
+          <h1 class="text-lg font-extrabold text-crema">{{ incident.subject }}</h1>
+          <p class="text-xs text-crema/50 font-medium mt-1">
+            {{ incident.context === 'GROUP_MEMBERSHIP' ? 'Membresía de grupo' : 'Compra a proveedor' }} · reportó {{ incident.reportedBy.name }} · asignado a {{ incident.assignedTo.name }}
+          </p>
+        </div>
+        <span
+          class="px-2.5 py-1 rounded-full text-xs font-bold shrink-0"
+          [class]="incident.status === 'OPEN' ? 'bg-amber-400/20 text-amber-300' : incident.status === 'IN_REVIEW' ? 'bg-blue-400/20 text-blue-300' : incident.status === 'ESCALATED' ? 'bg-red-400/20 text-red-300' : 'bg-emerald-400/20 text-emerald-300'"
+        >
+          {{ incident.status }}
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap pt-4 border-t border-white/10">
+        <span class="text-xs text-crema/50 font-bold uppercase tracking-wide mr-1">Cambiar estado</span>
+        @for (status of statusOptions; track status) {
+          <button
+            type="button"
+            [disabled]="updatingStatus() || status === incident.status"
+            (click)="changeStatus(status)"
+            [class]="status === incident.status ? 'bg-white/15 text-crema' : 'bg-white/5 text-crema/60 hover:bg-white/10'"
+            class="active:scale-[0.98] px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+          >
+            {{ status }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="p-6 rounded-[28px] bg-ink-card border border-white/10">
+      <h2 class="text-sm font-extrabold text-crema uppercase tracking-wide mb-4">Hilo de mensajes</h2>
+
+      @if (messages() === null) {
+        <p class="text-xs text-crema/50 font-medium">Cargando…</p>
+      } @else if (messages()!.length === 0) {
+        <p class="text-xs text-crema/50 font-medium">Todavía no hay mensajes.</p>
+      } @else {
+        <div class="space-y-3 mb-4">
+          @for (message of messages(); track message.id) {
+            <div class="p-3.5 rounded-xl bg-white/5">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <span class="text-xs font-bold text-crema">{{ message.author.name }}</span>
+                <span class="text-xs text-crema/40 font-medium">{{ message.createdAt | date: 'short' }}</span>
+              </div>
+              <p class="text-sm text-crema/80 font-medium whitespace-pre-wrap">{{ message.body }}</p>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="flex items-end gap-2 pt-2 border-t border-white/10">
+        <textarea
+          #messageInput
+          rows="2"
+          placeholder="Escribe una respuesta…"
+          class="flex-1 px-3.5 py-2.5 rounded-xl bg-white/5 text-sm text-crema placeholder:text-crema/30 outline-none focus:ring-2 focus:ring-pink/50 resize-none"
+        ></textarea>
+        <button
+          type="button"
+          [disabled]="sending()"
+          (click)="sendMessage(messageInput)"
+          class="active:scale-[0.98] hover:bg-[#047857] shrink-0 h-10 px-4 rounded-lg bg-pink text-white text-xs font-bold hover:opacity-90 transition-all disabled:opacity-50"
+        >
+          Enviar
+        </button>
+      </div>
+    </div>
+  } @else if (!errorMessage()) {
+    <div class="p-8 rounded-2xl bg-white/5 text-center text-sm text-crema/60 font-medium">Cargando…</div>
+  }
+</div>

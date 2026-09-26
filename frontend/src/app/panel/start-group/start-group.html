@@ -1,0 +1,109 @@
+<div class="max-w-4xl mx-auto space-y-5">
+  <a [routerLink]="['/panel/grupos']" class="inline-flex items-center gap-1.5 text-sm font-bold text-on-surface-variant hover:text-ink transition-colors">
+    <span class="material-symbols-outlined text-lg">arrow_back</span>
+    Volver a mis grupos
+  </a>
+
+  @if (preview() === undefined) {
+    <div class="p-8 rounded-2xl bg-white shadow-neu-raised text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+  } @else if (preview() === null) {
+    <div class="p-8 rounded-2xl bg-white shadow-neu-raised text-center space-y-2">
+      <span class="material-symbols-outlined text-3xl text-red-500 block">error</span>
+      <p class="text-sm font-semibold text-ink">{{ errorMessage() || 'No se pudo cargar este grupo.' }}</p>
+    </div>
+  } @else if (preview(); as p) {
+    <div>
+      <h1 class="text-2xl font-extrabold text-ink tracking-tight">¿Iniciar tu grupo?</h1>
+      <p class="text-sm text-on-surface-variant font-medium mt-1">Si inicias ahora, empiezas a cobrar con los cupos que ya tienes. Si esperas, puedes llenarlo y ganar más.</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="p-4 rounded-xl bg-red-50 border border-red-100 text-xs text-red-700 font-semibold">{{ errorMessage() }}</div>
+    }
+
+    <!-- Estado de los cupos -->
+    <section class="p-6 rounded-2xl bg-white shadow-neu-raised space-y-4">
+      <div class="flex items-center gap-4">
+        <app-platform-logo class="w-12 h-12 rounded-xl font-black text-lg shrink-0" [name]="p.platformName" />
+        <div class="min-w-0 flex-1">
+          <p class="text-base font-bold text-ink truncate">{{ p.platformName }}</p>
+          <p class="text-sm text-on-surface-variant truncate">{{ p.tierName }}</p>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-2xl font-black text-ink tabular-nums">{{ p.reservedSlots }}<span class="text-base text-on-surface-variant">/{{ p.availableSlots }}</span></p>
+          <p class="text-xs text-on-surface-variant font-bold uppercase tracking-wider">Cupos reservados</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="relative h-2.5 rounded-full bg-slate-100 overflow-hidden">
+          <div class="absolute inset-y-0 left-0 rounded-full bg-pink transition-all" [style.width.%]="progressPct()"></div>
+          <div class="absolute inset-y-0 w-0.5 bg-slate-400" [style.left.%]="thresholdPct()"></div>
+        </div>
+        <p class="text-xs text-on-surface-variant mt-2">Mínimo para iniciar: {{ p.requiredSlots }} de {{ p.availableSlots }} cupos ({{ thresholdPct() }}%).</p>
+      </div>
+    </section>
+
+    <!-- Comparación -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="p-5 rounded-2xl bg-white shadow-neu-raised border-2 border-pink/30 space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Si inicias hoy</h2>
+          <span class="px-2.5 py-1 rounded-full bg-pink/10 text-pink text-xs font-bold">{{ p.now.slots }} cupos</span>
+        </div>
+        <dl class="space-y-2 text-sm">
+          <div class="flex justify-between"><dt class="text-on-surface-variant">Cobras a tus miembros</dt><dd class="font-bold text-ink tabular-nums">{{ money(p.now.gross) }}</dd></div>
+          <div class="flex justify-between"><dt class="text-on-surface-variant">Comisión de Vakeva{{ p.commissionPercentage !== null ? ' (' + p.commissionPercentage + '%)' : '' }}</dt><dd class="font-bold text-ink tabular-nums">− {{ money(p.now.commission) }}</dd></div>
+          <div class="flex justify-between"><dt class="text-on-surface-variant">Costo de tu cuenta</dt><dd class="font-bold text-ink tabular-nums">− {{ money(p.accountCost) }}</dd></div>
+        </dl>
+        <div class="pt-3 border-t border-slate-100 flex justify-between items-baseline">
+          <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Tu ganancia</span>
+          <span class="text-2xl font-black tabular-nums" [class]="(p.now.profit ?? 0) < 0 ? 'text-red-600' : 'text-emerald-700'">{{ money(p.now.profit) }}</span>
+        </div>
+      </div>
+
+      <div class="p-5 rounded-2xl bg-white shadow-neu-raised space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Si esperas a llenarlo</h2>
+          <span class="px-2.5 py-1 rounded-full bg-slate-100 text-on-surface-variant text-xs font-bold">{{ p.full.slots }} cupos</span>
+        </div>
+        <dl class="space-y-2 text-sm">
+          <div class="flex justify-between"><dt class="text-on-surface-variant">Cobras a tus miembros</dt><dd class="font-bold text-ink tabular-nums">{{ money(p.full.gross) }}</dd></div>
+          <div class="flex justify-between"><dt class="text-on-surface-variant">Comisión de Vakeva{{ p.commissionPercentage !== null ? ' (' + p.commissionPercentage + '%)' : '' }}</dt><dd class="font-bold text-ink tabular-nums">− {{ money(p.full.commission) }}</dd></div>
+          <div class="flex justify-between"><dt class="text-on-surface-variant">Costo de tu cuenta</dt><dd class="font-bold text-ink tabular-nums">− {{ money(p.accountCost) }}</dd></div>
+        </dl>
+        <div class="pt-3 border-t border-slate-100 flex justify-between items-baseline">
+          <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Tu ganancia</span>
+          <span class="text-2xl font-black text-ink tabular-nums">{{ money(p.full.profit) }}</span>
+        </div>
+      </div>
+    </section>
+
+    @if (p.commissionPercentage === null) {
+      <div class="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-900">
+        <span class="material-symbols-outlined shrink-0">info</span>
+        <p class="text-sm">Vakeva todavía no te asigna el porcentaje de comisión, por eso no podemos calcular tu ganancia exacta.</p>
+      </div>
+    }
+
+    <div class="flex items-start gap-3 p-4 rounded-xl bg-blue-50 text-blue-900">
+      <span class="material-symbols-outlined shrink-0">event</span>
+      <p class="text-sm">
+        Al iniciar, tus {{ p.reservedSlots }} miembros reservados tendrán <strong>48 horas</strong> para transferirte y subir su comprobante. Quien no pague, libera su cupo.
+        La renovación quedaría el <strong>{{ formatDate(p.renewalDateIfStartedNow) }}</strong>, y quien entre después pagará solo los días que falten.
+      </p>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 flex-wrap">
+      <a [routerLink]="['/panel/grupos', p.groupId, 'gestion']" class="py-2.5 px-5 rounded-lg text-on-surface-variant text-sm font-bold hover:bg-slate-100 transition-colors">Esperar a llenarlo</a>
+      <button
+        type="button"
+        [disabled]="!p.canStart || starting()"
+        (click)="start()"
+        class="py-2.5 px-6 rounded-lg bg-pink hover:bg-[#047857] active:scale-[0.98] text-white text-sm font-bold transition-all disabled:opacity-50 disabled:hover:bg-pink"
+      >
+        {{ starting() ? 'Iniciando…' : p.startedAt ? 'Este grupo ya inició' : p.canStart ? 'Iniciar grupo ahora' : 'Aún no alcanzas el mínimo' }}
+      </button>
+    </div>
+  }
+</div>

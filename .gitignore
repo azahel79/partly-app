@@ -1,0 +1,37 @@
+# Dependencias y salidas de compilación
+**/node_modules/
+**/dist/
+**/.angular/
+**/coverage/
+*.tsbuildinfo
+
+# Configuración local y secretos
+**/.env
+**/.env.*
+!**/.env.example
+!.env.production.example
+
+# Datos generados y respaldos sensibles
+backend/uploads/
+db-backups/
+asset-backups/
+brand-backups/
+*.dump
+
+# Logs y capturas temporales de QA
+*.log
+frontend/shot.png
+frontend/upload-error.png
+frontend/qa/*.png
+frontend/qa/*.json
+frontend/img-logos/
+
+# Herramientas locales
+.claude/
+.kombai/
+.vscode/
+.idea/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

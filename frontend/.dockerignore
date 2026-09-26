@@ -1,0 +1,8 @@
+node_modules
+dist
+.angular
+.env*
+*.log
+qa
+shot.png
+upload-error.png

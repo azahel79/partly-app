@@ -1,0 +1,83 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-ink tracking-tight">Solicitudes de proveedor</h1>
+    <p class="text-sm text-on-surface-variant font-medium mt-1">Aprueba, suspende o rechaza quién puede vender al por mayor en la plataforma.</p>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-2xl bg-crema-inset shadow-neu-inset text-xs text-red-600 font-semibold">{{ errorMessage() }}</div>
+  }
+
+  @if (profiles() === null) {
+    <div class="p-8 rounded-2xl bg-crema-inset shadow-neu-inset text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+  } @else if (profiles()!.length === 0) {
+    <div class="p-8 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 text-center">
+      <span class="material-symbols-outlined text-2xl text-on-surface-variant/40 mb-2 block">inbox</span>
+      <p class="text-sm font-semibold text-on-surface-variant">No hay solicitudes todavía.</p>
+    </div>
+  } @else {
+    <div class="space-y-3">
+      @for (profile of profiles(); track profile.id) {
+        <div class="p-5 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-bold text-ink">{{ profile.businessName }}</span>
+              <span
+                class="px-2 py-0.5 rounded-full text-xs font-bold shrink-0"
+                [class]="{
+                  'bg-amber-100 text-amber-800': profile.status === 'PENDING',
+                  'bg-emerald-100 text-emerald-800': profile.status === 'APPROVED',
+                  'bg-red-100 text-red-700': profile.status === 'SUSPENDED' || profile.status === 'REJECTED',
+                }"
+              >
+                {{ profile.status }}
+              </span>
+            </div>
+            <p class="text-xs text-on-surface-variant font-medium">
+              {{ profile.user?.name ?? 'Usuario ' + profile.userId }} · {{ profile.user?.email ?? 'sin correo cargado' }}
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            @if (profile.status === 'PENDING') {
+              <button
+                type="button"
+                [disabled]="reviewingId() === profile.id"
+                (click)="review(profile.id, 'REJECTED')"
+                class="active:scale-[0.98] hover:bg-slate-200 px-4 py-2 rounded-lg bg-slate-100 text-red-600 text-xs font-bold transition-all disabled:opacity-50"
+              >
+                Rechazar
+              </button>
+              <button
+                type="button"
+                [disabled]="reviewingId() === profile.id"
+                (click)="review(profile.id, 'APPROVED')"
+                class="active:scale-[0.98] hover:bg-[#047857] px-4 py-2 rounded-lg bg-pink text-white text-xs font-bold hover:opacity-90 transition-all disabled:opacity-50"
+              >
+                Aprobar
+              </button>
+            } @else if (profile.status === 'APPROVED') {
+              <button
+                type="button"
+                [disabled]="reviewingId() === profile.id"
+                (click)="review(profile.id, 'SUSPENDED')"
+                class="active:scale-[0.98] hover:bg-slate-200 px-4 py-2 rounded-lg bg-slate-100 text-ink/70 text-xs font-bold transition-all disabled:opacity-50"
+              >
+                Suspender
+              </button>
+            } @else if (profile.status === 'SUSPENDED') {
+              <button
+                type="button"
+                [disabled]="reviewingId() === profile.id"
+                (click)="review(profile.id, 'APPROVED')"
+                class="active:scale-[0.98] hover:bg-[#047857] px-4 py-2 rounded-lg bg-pink text-white text-xs font-bold hover:opacity-90 transition-all disabled:opacity-50"
+              >
+                Reactivar
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

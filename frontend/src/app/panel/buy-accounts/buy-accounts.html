@@ -1,0 +1,379 @@
+<div class="space-y-8">
+  <div class="anim-in flex items-center justify-between gap-3 flex-wrap">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight flex items-center gap-2">
+        <span class="material-symbols-outlined text-pink text-3xl">storefront</span>
+        {{ isAdmin() ? 'Tienda de mayoreo' : 'Comprar cuenta a Vakeva' }}
+      </h1>
+      @if (!isAdmin()) {
+        <p class="text-sm text-on-surface-variant font-medium mt-1 max-w-xl">Compra una cuenta completa al por mayor y revende sus cupos como tu propio grupo, con todo lo que ya conoces: perfiles, miembros y credenciales.</p>
+      }
+    </div>
+    @if (access(); as a) {
+      @if (a.authorized && a.monthlyCap !== null) {
+        <div class="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border border-slate-200" [class.border-amber-300]="capReached()">
+          <span class="material-symbols-outlined text-pink text-lg">inventory</span>
+          <span class="text-sm font-black text-ink tabular-nums">{{ a.usedThisMonth }} de {{ a.monthlyCap }}</span>
+          <span class="text-xs font-semibold text-on-surface-variant">cuentas este mes</span>
+        </div>
+      }
+    }
+  </div>
+
+  @if (isAdmin()) {
+    <!-- El administrador maneja la tienda: no compra en ella ni necesita reputación -->
+    <section class="rounded-3xl bg-white border border-slate-200/70 p-6 sm:p-8 max-w-3xl">
+      <div class="flex items-start gap-4">
+        <span class="w-12 h-12 shrink-0 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+          <span class="material-symbols-outlined text-2xl">admin_panel_settings</span>
+        </span>
+        <div class="min-w-0">
+          <h2 class="text-lg font-extrabold text-ink">Tú administras esta tienda</h2>
+          <p class="text-sm text-on-surface-variant font-medium mt-1 leading-relaxed">
+            Esta pantalla es para vendedores que compran cuentas al por mayor, y por eso les pedimos reputación. Como administrador no compras aquí: publicas las cuentas, validas los pagos y las entregas desde tu panel de administración.
+          </p>
+          <div class="flex flex-wrap items-center gap-3 mt-5">
+            <a routerLink="/admin/mi-tienda" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-pink hover:bg-[#047857] text-white text-xs font-bold transition-colors">
+              <span class="material-symbols-outlined text-base">storefront</span>Ir a Mi tienda
+            </a>
+            <a routerLink="/admin/mayoreo-acceso" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-ink text-xs font-bold transition-colors">
+              <span class="material-symbols-outlined text-base">verified_user</span>Solicitudes de acceso
+            </a>
+          </div>
+          <p class="text-xs text-on-surface-variant font-medium mt-4">Para probar cómo lo ve un vendedor, entra con una cuenta de usuario.</p>
+        </div>
+      </div>
+    </section>
+  } @else {
+  @if (errorMessage()) {
+    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 text-xs text-red-600 font-semibold">{{ errorMessage() }}</div>
+  }
+
+  @if (access() === null) {
+    <div class="p-8 rounded-2xl bg-slate-50 border border-slate-200/70 text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+  } @else if (access(); as a) {
+    @if (!a.authorized) {
+      <!-- Acceso restringido: reputación -->
+      <section class="rounded-3xl bg-white border border-slate-200/70 overflow-hidden">
+        <header class="p-6 sm:p-8 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100">
+          <div class="flex items-start gap-4">
+            <span class="w-12 h-12 rounded-2xl bg-pink/10 text-pink flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-2xl">verified_user</span></span>
+            <div class="min-w-0 flex-1">
+              <h2 class="text-lg font-extrabold text-ink">El mayoreo es para vendedores con trayectoria</h2>
+              <p class="text-sm text-on-surface-variant mt-1">Cuidamos el inventario para quienes ya demostraron que llevan bien su grupo. Cumple los requisitos y pide tu acceso.</p>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <div class="flex items-center justify-between text-xs font-bold mb-2">
+              <span class="text-ink">Tu avance</span>
+              <span class="tabular-nums" [class]="a.metCount === a.total ? 'text-emerald-700' : 'text-on-surface-variant'">{{ a.metCount }} de {{ a.total }} requisitos</span>
+            </div>
+            <div class="h-2.5 rounded-full bg-slate-200/70 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-500" [class]="a.metCount === a.total ? 'bg-emerald-500' : 'bg-pink'" [style.width.%]="progressPct()"></div>
+            </div>
+          </div>
+        </header>
+
+        <ul class="divide-y divide-slate-100">
+          @for (req of a.requirements; track req.key) {
+            <li class="px-6 sm:px-8 py-4 flex items-start gap-3.5">
+              <span class="mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0" [class]="req.met ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'">
+                <span class="material-symbols-outlined text-base">{{ req.met ? 'check' : 'more_horiz' }}</span>
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-bold" [class]="req.met ? 'text-ink' : 'text-on-surface-variant'">{{ req.label }}</p>
+                @if (!req.met) { <p class="text-xs text-on-surface-variant mt-0.5">{{ req.hint }}</p> }
+              </div>
+              @if (req.target > 1 && req.key !== 'rating') {
+                <span class="shrink-0 text-xs font-black tabular-nums" [class]="req.met ? 'text-emerald-700' : 'text-on-surface-variant'">{{ req.current }} / {{ req.target }}</span>
+              } @else if (req.key === 'rating') {
+                <span class="shrink-0 text-xs font-black tabular-nums" [class]="req.met ? 'text-emerald-700' : 'text-on-surface-variant'">{{ req.current || '—' }} / {{ req.target }}</span>
+              }
+            </li>
+          }
+        </ul>
+
+        <footer class="p-6 sm:p-8 bg-slate-50/60 border-t border-slate-100 space-y-4">
+          @if (a.status === 'REQUESTED') {
+            <div class="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100 text-blue-900">
+              <span class="material-symbols-outlined">hourglass_top</span>
+              <div class="text-sm"><p class="font-bold">Tu solicitud está en revisión</p><p class="text-xs mt-0.5">Vakeva revisa tu trayectoria y te avisa en cuanto responda.</p></div>
+            </div>
+          } @else if (a.status === 'REVOKED') {
+            <div class="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-100 text-red-900">
+              <span class="material-symbols-outlined">block</span>
+              <div class="text-sm"><p class="font-bold">Tu acceso al mayoreo fue retirado</p><p class="text-xs mt-0.5">{{ a.note || 'Escríbenos desde Soporte para revisarlo.' }}</p></div>
+            </div>
+          } @else {
+            @if (a.status === 'REJECTED') {
+              <div class="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
+                <span class="material-symbols-outlined">info</span>
+                <div class="text-sm"><p class="font-bold">Tu última solicitud no fue aprobada</p><p class="text-xs mt-0.5">{{ a.note || 'Sigue mejorando tu reputación y vuelve a intentarlo.' }}</p></div>
+              </div>
+            }
+            <div class="flex flex-wrap items-center gap-3">
+              <button type="button" (click)="requestAccess()" [disabled]="!a.canRequest || requestingAccess()" class="py-3 px-6 rounded-lg bg-pink hover:bg-[#047857] active:scale-[0.98] text-white text-sm font-bold transition-all disabled:opacity-50 disabled:hover:bg-pink flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg">send</span>
+                {{ requestingAccess() ? 'Enviando…' : 'Pedir acceso al mayoreo' }}
+              </button>
+              @if (!a.canRequest) {
+                <p class="text-xs text-on-surface-variant">Se activa cuando cumples todos los requisitos.</p>
+              }
+            </div>
+          }
+
+          <div class="flex items-start gap-3 p-4 rounded-xl bg-white border border-slate-200/70">
+            <span class="material-symbols-outlined text-pink">lightbulb</span>
+            <div class="text-xs text-on-surface-variant">
+              <p class="font-bold text-ink text-sm">¿Empezando? Construye tu reputación con tu propia cuenta</p>
+              <p class="mt-0.5">Crea un grupo compartiendo una suscripción que ya tengas. Cuando lleve 2 ciclos cobrados y tus compradores te reseñen bien, cumples los requisitos.</p>
+              <a routerLink="/panel/grupos/nuevo" class="inline-flex items-center gap-1 mt-2 font-bold text-pink hover:underline">Crear un grupo<span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+            </div>
+          </div>
+        </footer>
+      </section>
+    } @else {
+      <!-- Cuentas disponibles -->
+      <div>
+        <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide mb-4">
+          Cuentas disponibles @if (listings(); as l) {({{ l.length }})}
+        </h2>
+
+        @if (capReached()) {
+          <div class="flex items-start gap-3 p-4 mb-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
+            <span class="material-symbols-outlined">event_repeat</span>
+            <p class="text-xs"><strong>Ya usaste tus {{ a.monthlyCap }} {{ a.monthlyCap === 1 ? 'cuenta' : 'cuentas' }} de este mes.</strong> Tu tope se reinicia el día 1 y sube conforme demuestras tu trayectoria. Las renovaciones y reposiciones no cuentan.</p>
+          </div>
+        }
+
+        @if (listings() === null) {
+          <div class="p-8 rounded-2xl bg-slate-50 border border-slate-200/70 text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+        } @else if (listings()!.length === 0) {
+          <div class="p-10 rounded-3xl bg-white shadow-neu-raised border border-white/70 text-center">
+            <span class="material-symbols-outlined text-3xl text-on-surface-variant/50 mb-2 block">inventory_2</span>
+            <p class="text-sm font-semibold text-ink">Vakeva no tiene cuentas disponibles por ahora.</p>
+            <p class="text-xs text-on-surface-variant mt-1">Vuelve pronto, o crea tu propio grupo con una cuenta que ya tengas.</p>
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            @for (listing of listings(); track listing.id) {
+              <div class="group/card p-5 rounded-3xl bg-white shadow-neu-raised border border-white/70 flex flex-col hover:shadow-neu-raised-lg hover:-translate-y-1 transition-all duration-300">
+                <div class="flex items-center gap-3 mb-3">
+                  <app-platform-logo class="w-11 h-11 rounded-xl font-black text-sm shrink-0 group-hover/card:scale-110 transition-transform duration-300" [name]="listing.plan.platform.name" />
+                  <div class="min-w-0">
+                    <p class="text-sm font-bold text-ink truncate">{{ listing.plan.platform.name }}</p>
+                    <p class="text-[11px] text-on-surface-variant truncate">{{ listing.plan.tierName }}</p>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-1.5 mb-3 pb-3 border-b border-crema-border/60">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-on-surface-variant text-[11px] font-semibold">
+                    <span class="material-symbols-outlined text-xs">group</span>
+                    {{ listing.plan.maxSlots }} perfiles
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-on-surface-variant text-[11px] font-semibold">
+                    Oficial ${{ listing.plan.officialPrice }}
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold" [class]="listing.renewable ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-800'" [attr.title]="listing.renewable ? 'La misma cuenta sigue vigente si renuevas cada periodo.' : 'La cuenta se cambia cada periodo: compras una reposición.'">
+                    <span class="material-symbols-outlined text-xs">{{ listing.renewable ? 'autorenew' : 'swap_horiz' }}</span>
+                    {{ listing.renewable ? 'Renovable' : 'No renovable' }} · {{ listing.validityDays }} días
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+                    {{ listing.stockQuantity }} disponible{{ listing.stockQuantity === 1 ? '' : 's' }}
+                  </span>
+                </div>
+
+                <div class="flex-1"></div>
+
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Precio de mayoreo</p>
+                    <p class="text-2xl font-black text-ink tabular-nums">${{ listing.wholesalePrice }}</p>
+                  </div>
+                  <span class="text-[11px] text-on-surface-variant font-semibold">{{ listing.providerProfile.businessName }}</span>
+                </div>
+
+                @if (pendingListingIds().has(listing.id)) {
+                  <div class="flex items-center gap-2">
+                    <button type="button" disabled class="flex-1 py-3 rounded-lg bg-slate-100 text-on-surface-variant text-sm font-bold opacity-60 cursor-not-allowed flex items-center justify-center gap-1.5">
+                      <span class="material-symbols-outlined text-lg">shopping_cart</span>
+                      Comprar cuenta
+                    </button>
+                    <span class="shrink-0 inline-flex items-center gap-1.5 py-3 px-3 rounded-full bg-blue-50 text-blue-700 text-[11px] font-bold">
+                      <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                      Compra en curso
+                    </span>
+                  </div>
+                } @else {
+                  <a
+                    [routerLink]="['/panel/mayoreo', listing.id]"
+                    class="hover:bg-[#047857] w-full py-3 rounded-lg bg-pink text-white text-sm font-bold active:scale-[0.98] transition-all flex items-center justify-center gap-1.5"
+                    [class.pointer-events-none]="listing.stockQuantity < 1 || capReached()"
+                    [class.opacity-50]="listing.stockQuantity < 1 || capReached()"
+                  >
+                    <span class="material-symbols-outlined text-lg">shopping_cart</span>
+                    {{ listing.stockQuantity < 1 ? 'Sin stock' : 'Comprar cuenta' }}
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- Mis compras -->
+  @if (myOrders() !== null && myOrders()!.length > 0) {
+    <div>
+      <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide mb-4">
+        Mis compras ({{ myOrders()!.length }})
+      </h2>
+
+      <div class="space-y-3">
+        @for (order of myOrders(); track order.id) {
+          <div class="rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 overflow-hidden">
+            <div class="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <div class="flex items-center gap-3 sm:w-56 shrink-0 min-w-0">
+                <app-platform-logo class="w-10 h-10 rounded-xl font-black text-sm shrink-0" [name]="order.listing.platform.name" />
+                <div class="min-w-0">
+                  <p class="text-sm font-bold text-ink truncate">{{ order.listing.platform.name }}</p>
+                  <p class="text-[11px] text-on-surface-variant truncate">
+                    {{ order.listing.tierName }}
+                    @if (kindLabel(order); as kind) { <span class="ml-1 px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-ink">{{ kind }}</span> }
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 flex-1 min-w-0">
+                <span class="text-sm font-black text-ink tabular-nums">${{ order.unitPrice }}</span>
+                <span class="text-[11px] text-on-surface-variant">{{ formatDate(order.createdAt) }}</span>
+                @switch (order.status) {
+                  @case ('AWAITING_PAYMENT') {
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Falta tu pago</span>
+                  }
+                  @case ('PENDING_APPROVAL') {
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Validando tu pago</span>
+                  }
+                  @case ('PENDING_DELIVERY') {
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Pago validado · esperando entrega</span>
+                  }
+                  @case ('FULFILLED') {
+                    @if (order.kind === 'RENEWAL') {
+                      <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Renovación aplicada</span>
+                    } @else if (order.replaced) {
+                      <span class="inline-flex items-center gap-1.5 text-xs font-bold text-on-surface-variant"><span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant/50"></span>Repuesta por una cuenta nueva</span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Entregada</span>
+                    }
+                  }
+                  @case ('REJECTED') {
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-red-700"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Rechazada</span>
+                  }
+                  @default {
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-on-surface-variant"><span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant/50"></span>{{ order.paidAt && !order.refundedAt ? 'Cancelada · reembolso pendiente' : 'Cancelada' }}</span>
+                  }
+                }
+                @if (expiry(order); as ex) {
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold" [class]="ex.state === 'expired' ? 'bg-red-100 text-red-700' : ex.state === 'soon' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-on-surface-variant'">
+                    <span class="material-symbols-outlined text-xs">{{ ex.state === 'expired' ? 'event_busy' : 'event' }}</span>
+                    {{ ex.state === 'expired' ? 'Venció el ' + formatDate(order.expiresAt!) : 'Vence el ' + formatDate(order.expiresAt!) + (ex.state === 'soon' ? ' · faltan ' + ex.daysLeft + ' d' : '') }}
+                  </span>
+                }
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2 shrink-0">
+                @if (order.status === 'AWAITING_PAYMENT') {
+                  <a [routerLink]="['/panel/mayoreo/compras', order.id]" class="active:scale-[0.98] hover:bg-[#047857] py-2 px-4 rounded-lg bg-pink text-white text-xs font-bold transition-all">Pagar</a>
+                  <button type="button" [disabled]="cancellingId() === order.id" (click)="cancelOrder(order)" class="active:scale-[0.98] transition-colors hover:bg-slate-50 py-2 px-4 rounded-lg bg-white border border-red-200 text-red-600 text-xs font-bold disabled:opacity-60">
+                    {{ cancellingId() === order.id ? 'Retirando…' : 'Retirar' }}
+                  </button>
+                } @else if (order.status === 'PENDING_APPROVAL' || order.status === 'PENDING_DELIVERY') {
+                  <a [routerLink]="['/panel/mayoreo/compras', order.id]" class="active:scale-[0.98] hover:bg-slate-200 py-2 px-4 rounded-lg bg-slate-100 text-ink text-xs font-bold transition-all">Ver estado</a>
+                } @else if (order.status === 'FULFILLED' && order.kind !== 'RENEWAL' && !order.replaced) {
+                  @if (order.openFollowUp; as f) {
+                    <a [routerLink]="['/panel/mayoreo/compras', f.id]" class="active:scale-[0.98] hover:bg-slate-200 py-2 px-4 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold transition-all">{{ f.kind === 'RENEWAL' ? 'Ver renovación' : 'Ver reposición' }}</a>
+                  } @else if (expiry(order); as ex) {
+                    @if (ex.state !== 'ok') {
+                      <button type="button" [disabled]="followingUpId() === order.id" (click)="followUp(order)" class="active:scale-[0.98] hover:bg-[#047857] py-2 px-4 rounded-lg bg-pink text-white text-xs font-bold transition-all disabled:opacity-60 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">{{ order.renewable ? 'autorenew' : 'swap_horiz' }}</span>
+                        {{ followingUpId() === order.id ? 'Creando…' : (order.renewable ? 'Renovar' : 'Comprar reposición') }}
+                      </button>
+                    }
+                  }
+                  <button
+                    type="button"
+                    (click)="toggleCredential(order)"
+                    class="active:scale-[0.98] hover:bg-slate-200 py-2 px-4 rounded-lg bg-slate-100 text-ink text-xs font-bold transition-all flex items-center gap-1.5"
+                  >
+                    <span class="material-symbols-outlined text-sm">{{ openCredentialOrderId() === order.id ? 'expand_less' : 'key' }}</span>
+                    {{ openCredentialOrderId() === order.id ? 'Ocultar' : 'Ver credenciales' }}
+                  </button>
+                } @else if (order.status === 'FULFILLED' && order.kind === 'RENEWAL') {
+                  <a [routerLink]="['/panel/mayoreo/compras', order.id]" class="active:scale-[0.98] hover:bg-slate-200 py-2 px-4 rounded-lg bg-slate-100 text-ink text-xs font-bold transition-all">Ver</a>
+                }
+              </div>
+            </div>
+
+            @if (order.receiptRejectionReason && order.status === 'AWAITING_PAYMENT') {
+              <p class="px-4 pb-3 text-xs text-red-600 font-semibold">Rechazamos tu comprobante: {{ order.receiptRejectionReason }}. Sube uno nuevo.</p>
+            }
+
+            @if (openCredentialOrderId() === order.id) {
+              <div class="px-4 pb-4">
+                @if (loadingCredentialId() === order.id) {
+                  <p class="text-xs text-on-surface-variant font-medium p-3">Cargando…</p>
+                } @else if (credentialByOrderId()[order.id]; as cred) {
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="flex items-center justify-between gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-200/70">
+                      <div class="min-w-0">
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Usuario</p>
+                        <p class="text-sm font-bold text-ink truncate">{{ cred.username }}</p>
+                      </div>
+                      <button type="button" (click)="copyToClipboard(cred.username, 'username')" class="active:scale-[0.98] shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
+                        <span class="material-symbols-outlined text-base">{{ copiedField() === 'username' ? 'check' : 'content_copy' }}</span>
+                      </button>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-200/70">
+                      <div class="min-w-0">
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Contraseña</p>
+                        <p class="text-sm font-bold text-ink truncate font-mono">{{ showPasswordOrderId() === order.id ? cred.password : '••••••••••' }}</p>
+                      </div>
+                      <div class="flex items-center gap-1 shrink-0">
+                        <button type="button" (click)="togglePasswordVisibility(order.id)" class="active:scale-[0.98] w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
+                          <span class="material-symbols-outlined text-base">{{ showPasswordOrderId() === order.id ? 'visibility_off' : 'visibility' }}</span>
+                        </button>
+                        <button type="button" (click)="copyToClipboard(cred.password, 'password')" class="active:scale-[0.98] w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
+                          <span class="material-symbols-outlined text-base">{{ copiedField() === 'password' ? 'check' : 'content_copy' }}</span>
+                        </button>
+                      </div>
+                    </div>
+                    @if (cred.notes) {
+                      <div class="sm:col-span-2 flex items-start gap-2 p-3 rounded-2xl bg-pink/5">
+                        <span class="material-symbols-outlined text-pink text-base shrink-0">info</span>
+                        <p class="text-xs text-on-surface-variant leading-relaxed">{{ cred.notes }}</p>
+                      </div>
+                    }
+                  </div>
+                  @if (order.resultingGroupId) {
+                    <a [routerLink]="['/panel/grupos', order.resultingGroupId, 'gestion']" class="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-pink">
+                      Ver mi grupo
+                      <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </a>
+                  } @else {
+                    <a routerLink="/panel/grupos/nuevo" [queryParams]="{ providerOrderId: order.id }" class="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-pink">
+                      Crear mi grupo con esta cuenta
+                      <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </a>
+                  }
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+  }
+</div>

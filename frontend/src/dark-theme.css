@@ -1,0 +1,253 @@
+/* ============================================================
+   Modo oscuro — panel y admin
+   Se activa con <html class="dark"> (ThemeService lo pone solo mientras el
+   usuario está dentro del panel o del admin; la landing nunca lo recibe).
+
+   Cómo está armado:
+   1) Variables: paleta oscura verde-negra (--dm-*) y remapeo de los tokens de
+      Tailwind (crema, slate, tintes pastel…) para que las utilidades existentes
+      (bg-slate-100, bg-emerald-50, border-slate-200…) se vean bien sin tocar HTML.
+   2) @layer utilities con :where(): sobreescribe utilidades cuyo sentido cambia
+      (bg-white, text-ink, text-emerald-700…) sin ganarle a los variantes
+      hover:/focus: del mismo elemento.
+   3) Estilos propios de cada pantalla viven en su CSS con :host-context.
+   ============================================================ */
+
+html.dark {
+  color-scheme: dark;
+
+  /* Superficies */
+  --dm-bg: #04100e;
+  --dm-bg-2: #071915;
+  --dm-surface: #0a1d19;
+  --dm-surface-2: #0f2721;
+  --dm-surface-3: #153229;
+  --dm-line: rgba(255, 255, 255, 0.075);
+  --dm-line-strong: rgba(255, 255, 255, 0.14);
+  --dm-card-border: rgba(52, 211, 153, 0.2);
+  --dm-card-border-hover: rgba(52, 211, 153, 0.5);
+
+  /* Texto */
+  --dm-text: #eaf5f1;
+  --dm-text-2: #c3d7d0;
+  --dm-muted: #8fa9a1;
+  --dm-faint: #62817a;
+
+  /* Acento */
+  --dm-accent: #34d399;
+  --dm-accent-2: #6ee7b7;
+  --dm-accent-bg: rgba(16, 185, 129, 0.14);
+  --dm-accent-line: rgba(52, 211, 153, 0.55);
+  --dm-glow: 0 0 22px -6px rgba(52, 211, 153, 0.55);
+
+  /* Tokens de Tailwind que cambian de significado */
+  --color-ink: #061d17;
+  --color-ink-surface: #0b2b22;
+  --color-ink-card: #08241c;
+  --color-crema: #04100e;
+  --color-crema-dim: #071915;
+  --color-crema-inset: #0a1d19;
+  --color-crema-border: rgba(148, 210, 189, 0.16);
+  --color-surface-dim: #153229;
+  --color-background: #04100e;
+  --color-on-background: #eaf5f1;
+  --color-on-surface-variant: #8fa9a1;
+
+  /* Escala slate: fondos y bordes neutros en translúcido, textos invertidos */
+  --color-slate-50: rgba(255, 255, 255, 0.035);
+  --color-slate-100: rgba(255, 255, 255, 0.065);
+  --color-slate-200: rgba(52, 211, 153, 0.17);
+  --color-slate-300: rgba(255, 255, 255, 0.15);
+  --color-slate-400: #6f8b83;
+  --color-slate-500: #88a29a;
+  --color-slate-600: #a8beb7;
+  --color-slate-700: #c4d6d0;
+  --color-slate-800: #dbe8e4;
+  --color-slate-900: #eef6f3;
+
+  /* Tintes pastel de fondo/borde → color de la familia en translúcido */
+  --color-emerald-50: rgba(16, 185, 129, 0.09);
+  --color-emerald-100: rgba(16, 185, 129, 0.16);
+  --color-emerald-200: rgba(16, 185, 129, 0.27);
+  --color-red-50: rgba(248, 113, 113, 0.09);
+  --color-red-100: rgba(248, 113, 113, 0.16);
+  --color-red-200: rgba(248, 113, 113, 0.27);
+  --color-amber-50: rgba(251, 191, 36, 0.09);
+  --color-amber-100: rgba(251, 191, 36, 0.16);
+  --color-amber-200: rgba(251, 191, 36, 0.27);
+  --color-blue-50: rgba(96, 165, 250, 0.1);
+  --color-blue-100: rgba(96, 165, 250, 0.17);
+  --color-blue-200: rgba(96, 165, 250, 0.28);
+  --color-violet-50: rgba(167, 139, 250, 0.1);
+  --color-violet-100: rgba(167, 139, 250, 0.17);
+  --color-violet-200: rgba(167, 139, 250, 0.28);
+  --color-violet-50: rgba(167, 139, 250, 0.1);
+  --color-violet-100: rgba(167, 139, 250, 0.17);
+  --color-indigo-50: rgba(129, 140, 248, 0.1);
+  --color-indigo-100: rgba(129, 140, 248, 0.17);
+  --color-teal-100: rgba(45, 212, 191, 0.16);
+  --color-rose-100: rgba(251, 113, 133, 0.16);
+  --color-sky-100: rgba(56, 189, 248, 0.16);
+}
+
+html.dark,
+html.dark body {
+  background-color: var(--dm-bg);
+  color: var(--dm-text);
+}
+
+html.dark ::selection {
+  background: rgba(52, 211, 153, 0.3);
+  color: #fff;
+}
+
+/* ------------------------------------------------------------------
+   Utilidades cuyo sentido cambia en oscuro
+   ------------------------------------------------------------------ */
+@layer utilities {
+  /* Superficies claras → superficies oscuras */
+  :where(html.dark) .bg-white { background-color: var(--dm-surface); }
+  :where(html.dark) .bg-white\/90 { background-color: color-mix(in srgb, var(--dm-surface) 92%, transparent); }
+  :where(html.dark) .bg-white\/80 { background-color: color-mix(in srgb, var(--dm-surface) 82%, transparent); }
+  :where(html.dark) .bg-white\/70 { background-color: color-mix(in srgb, var(--dm-surface) 72%, transparent); }
+  :where(html.dark) .bg-white\/40 { background-color: rgba(255, 255, 255, 0.03); }
+  :where(html.dark) .hover\:bg-white:hover { background-color: var(--dm-surface-2); }
+  :where(html.dark) .hover\:bg-white\/70:hover { background-color: var(--dm-surface-2); }
+  :where(html.dark) .bg-crema { background-color: rgba(255, 255, 255, 0.05); }
+  :where(html.dark) .from-white { --tw-gradient-from: var(--dm-surface); }
+  :where(html.dark) .to-white { --tw-gradient-to: var(--dm-surface); }
+  :where(html.dark) .ring-white { --tw-ring-color: var(--dm-surface); }
+
+  /* Bordes claros → borde verde tenue de las tarjetas */
+  :where(html.dark) .border-white\/70,
+  :where(html.dark) .border-white\/60 { border-color: var(--dm-card-border); }
+
+  /* Botones "ink" y "pink" → estilo de la referencia: relleno tenue con contorno y brillo mint */
+  :where(html.dark) .bg-ink {
+    background-color: rgba(16, 185, 129, 0.1);
+    box-shadow: inset 0 0 0 1.5px rgba(52, 211, 153, 0.8), 0 0 24px -8px rgba(52, 211, 153, 0.55);
+  }
+  :where(html.dark) .bg-ink-card { background-color: #08231c; }
+  :where(html.dark) :is(.hover\:bg-ink-surface:hover, .hover\:bg-\[\#20203D\]:hover) { background-color: rgba(16, 185, 129, 0.24); }
+  :where(html.dark) .bg-pink.text-white {
+    background-color: rgba(16, 185, 129, 0.16);
+    box-shadow: inset 0 0 0 1.5px #34d399, 0 0 22px -7px rgba(52, 211, 153, 0.55);
+  }
+  :where(html.dark) .bg-pink.text-white:hover:not(:disabled) { background-color: rgba(16, 185, 129, 0.3); }
+  /* hover que oscurece el botón en claro (slate-700) → sube el tinte verde en oscuro */
+  :where(html.dark) .hover\:bg-slate-700:hover { background-color: rgba(16, 185, 129, 0.24); }
+  /* Texto con degradado de marca (títulos): tonos mint legibles sobre fondo oscuro */
+  :where(html.dark) .bg-clip-text.text-transparent {
+    --tw-gradient-from: #6ee7b7;
+    --tw-gradient-via: #34d399;
+    --tw-gradient-to: #2dd4bf;
+  }
+  :where(html.dark) .bg-ink\/40,
+  :where(html.dark) .bg-ink\/50,
+  :where(html.dark) .bg-ink\/70 { background-color: rgba(0, 4, 3, 0.66); }
+
+  /* Texto */
+  :where(html.dark) .text-ink,
+  :where(html.dark) .hover\:text-ink:hover,
+  :where(html.dark) .group-hover\:text-ink { color: var(--dm-text); }
+  :where(html.dark) .text-ink\/70,
+  :where(html.dark) .text-ink\/90 { color: var(--dm-text-2); }
+  :where(html.dark) .text-crema { color: var(--dm-text); }
+  :where(html.dark) .hover\:text-crema:hover { color: var(--dm-text); }
+  :where(html.dark) .text-crema\/80 { color: color-mix(in srgb, var(--dm-text) 80%, transparent); }
+  :where(html.dark) .text-crema\/60 { color: color-mix(in srgb, var(--dm-text) 60%, transparent); }
+  :where(html.dark) .text-crema\/50 { color: color-mix(in srgb, var(--dm-text) 50%, transparent); }
+  :where(html.dark) .text-crema\/40 { color: color-mix(in srgb, var(--dm-text) 40%, transparent); }
+  :where(html.dark) .placeholder\:text-crema\/30::placeholder { color: color-mix(in srgb, var(--dm-text) 30%, transparent); }
+  :where(html.dark) .text-pink,
+  :where(html.dark) .hover\:text-pink:hover,
+  :where(html.dark) .group-hover\:text-pink { color: var(--dm-accent); }
+  :where(html.dark) .hover\:text-pink-deep:hover { color: var(--dm-accent-2); }
+
+  /* Texto de acento sobre fondos pastel → tonos claros de la misma familia */
+  :where(html.dark) .text-emerald-100 { color: #d1fae5; }
+  :where(html.dark) .text-emerald-200 { color: #a7f3d0; }
+  :where(html.dark) .text-emerald-600 { color: #34d399; }
+  :where(html.dark) .text-emerald-700 { color: #6ee7b7; }
+  :where(html.dark) .text-emerald-800 { color: #a7f3d0; }
+  :where(html.dark) .text-emerald-900 { color: #d1fae5; }
+  :where(html.dark) .text-red-500,
+  :where(html.dark) .text-red-600 { color: #f87171; }
+  :where(html.dark) .text-red-700 { color: #fca5a5; }
+  :where(html.dark) .text-red-800 { color: #fecaca; }
+  :where(html.dark) .text-red-900 { color: #fee2e2; }
+  :where(html.dark) .text-amber-600 { color: #fbbf24; }
+  :where(html.dark) .text-amber-700 { color: #fcd34d; }
+  :where(html.dark) .text-amber-800 { color: #fde68a; }
+  :where(html.dark) .text-amber-900 { color: #fef3c7; }
+  :where(html.dark) .text-blue-600 { color: #60a5fa; }
+  :where(html.dark) .text-blue-700 { color: #93c5fd; }
+  :where(html.dark) .text-blue-800 { color: #bfdbfe; }
+  :where(html.dark) .text-blue-900 { color: #dbeafe; }
+  :where(html.dark) .text-violet-600 { color: #a78bfa; }
+  :where(html.dark) .text-violet-700 { color: #c4b5fd; }
+  :where(html.dark) .text-violet-800 { color: #ddd6fe; }
+  :where(html.dark) .text-violet-900 { color: #ede9fe; }
+  :where(html.dark) .text-indigo-600,
+  :where(html.dark) .text-indigo-700 { color: #a5b4fc; }
+  :where(html.dark) .text-teal-700 { color: #5eead4; }
+  :where(html.dark) .text-rose-700 { color: #fda4af; }
+  :where(html.dark) .text-sky-800 { color: #bae6fd; }
+
+  /* Bordes de énfasis que en claro eran de tono medio */
+  :where(html.dark) .border-amber-300 { border-color: rgba(251, 191, 36, 0.4); }
+  :where(html.dark) .border-red-300 { border-color: rgba(248, 113, 113, 0.4); }
+}
+
+/* ------------------------------------------------------------------
+   Tarjetas del panel/admin (reemplazan a las reglas "ui-standard" de styles.css)
+   ------------------------------------------------------------------ */
+html.dark :is(app-panel-layout, app-admin-layout) :is(.shadow-neu-raised, .shadow-neu-raised-lg) {
+  box-shadow: 0 0 0 1px var(--dm-card-border), 0 18px 40px -26px rgba(0, 0, 0, 0.9);
+}
+html.dark :is(app-panel-layout, app-admin-layout) .shadow-neu-raised-sm {
+  box-shadow: 0 0 0 1px var(--dm-line-strong);
+}
+html.dark :is(app-panel-layout, app-admin-layout) :is(.shadow-neu-inset, .shadow-neu-inset-sm) {
+  box-shadow: inset 0 0 0 1px var(--dm-line);
+}
+html.dark :is(app-panel-layout, app-admin-layout) .bg-crema-inset {
+  background-color: var(--dm-surface-2);
+}
+html.dark :is(app-panel-layout, app-admin-layout) :is(.hover\:shadow-neu-raised-lg:hover, .hover\:shadow-neu-raised:hover) {
+  box-shadow: 0 0 0 1px var(--dm-card-border-hover), var(--dm-glow);
+}
+
+/* Botones primarios del panel: mismo hover que en claro */
+html.dark app-panel-layout .primary-button:not(:disabled):hover,
+html.dark app-create-group .primary-button:not(:disabled):hover {
+  background: #10b981 !important;
+}
+
+/* ------------------------------------------------------------------
+   Modales de confirmación (SweetAlert2)
+   ------------------------------------------------------------------ */
+html.dark .swal2-container.swal2-backdrop-show,
+html.dark .swal2-container.swal2-noanimation { background: rgba(0, 4, 3, 0.7); }
+html.dark .vk-swal {
+  background: var(--dm-surface);
+  color: var(--dm-text);
+  box-shadow: 0 0 0 1px var(--dm-card-border), 0 30px 70px rgba(0, 0, 0, 0.7);
+}
+html.dark .vk-swal-title { color: var(--dm-text); }
+html.dark .vk-swal-text { color: var(--dm-muted); }
+html.dark .vk-swal-cancel { background: rgba(255, 255, 255, 0.08); color: var(--dm-text-2); }
+html.dark .vk-swal-cancel:hover { background: rgba(255, 255, 255, 0.14); }
+html.dark .vk-swal-input { background: var(--dm-bg-2); border-color: var(--dm-line-strong); color: var(--dm-text); }
+html.dark .vk-swal-input:focus { border-color: var(--dm-accent); box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.15); }
+html.dark .swal2-html-container { color: var(--dm-muted); }
+
+/* Botones con hover propio definido en styles.css */
+html.dark app-profile .secondary-button:not(:disabled):hover,
+html.dark app-profile .data-export button:hover { background: rgba(255, 255, 255, 0.08); }
+html.dark app-payments-monitor .filter-tabs button:hover,
+html.dark app-payments-monitor .refresh-button:hover { background: rgba(255, 255, 255, 0.09); }
+html.dark app-payments-monitor .receipt-button:hover { background: rgba(16, 185, 129, 0.24); }
+html.dark app-admin-group-detail .ghost-button:hover,
+html.dark app-admin-group-detail .outline-button:hover { background: rgba(255, 255, 255, 0.08); }
+html.dark app-admin-group-detail .reject-button:hover { background: rgba(248, 113, 113, 0.2); }

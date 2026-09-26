@@ -1,0 +1,127 @@
+<main class="admin-login-page">
+  <div class="ambient ambient-left anim-in-scale" style="animation-duration: 1.3s" aria-hidden="true"></div>
+  <div class="ambient ambient-right anim-in-scale" style="animation-duration: 1.3s; animation-delay: 0.08s" aria-hidden="true"></div>
+  <div class="ambient ambient-bottom anim-in-scale" style="animation-duration: 1.3s; animation-delay: 0.14s" aria-hidden="true"></div>
+
+  <a routerLink="/" class="back-link anim-in-down">
+    <span class="material-symbols-outlined">arrow_back</span>
+    Volver a Vakeva
+  </a>
+
+  <section class="login-card anim-in-scale" style="animation-delay: 0.05s" aria-labelledby="admin-login-title">
+    <header class="login-heading">
+      <a routerLink="/" aria-label="Ir al inicio de Vakeva" class="anim-in-bounce" style="animation-delay: 0.18s">
+        <img src="vakeva-logo.png" alt="Vakeva" class="admin-logo" />
+      </a>
+
+      <span class="staff-badge anim-in-bounce" style="animation-delay: 0.26s">
+        <span class="material-symbols-outlined">shield_person</span>
+        STAFF
+      </span>
+
+      <h1 id="admin-login-title" class="anim-in" style="animation-delay: 0.34s">Acceso de administrador</h1>
+      <p class="anim-in" style="animation-delay: 0.4s">Solo cuentas de staff autorizadas.</p>
+    </header>
+
+    <form (submit)="onSubmit($event, emailInput, passwordInput)" class="login-form">
+      <div class="field-group anim-in" style="animation-delay: 0.48s">
+        <label for="admin-email">Correo de administrador</label>
+        <div class="field-shell">
+          <span class="material-symbols-outlined field-icon">mail</span>
+          <input
+            #emailInput
+            id="admin-email"
+            type="email"
+            autocomplete="username"
+            required
+            placeholder="tu@correo.com"
+            [disabled]="submitting()"
+          />
+        </div>
+      </div>
+
+      <div class="field-group anim-in" style="animation-delay: 0.54s">
+        <label for="admin-password">Contraseña</label>
+        <div class="field-shell">
+          <span class="material-symbols-outlined field-icon">lock</span>
+          <input
+            #passwordInput
+            id="admin-password"
+            [type]="showPassword() ? 'text' : 'password'"
+            autocomplete="current-password"
+            required
+            placeholder="Ingresa tu contraseña"
+            [disabled]="submitting()"
+          />
+          <button
+            type="button"
+            (click)="togglePassword()"
+            class="password-toggle"
+            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+          >
+            <span class="material-symbols-outlined">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-options anim-in" style="animation-delay: 0.6s">
+        <label class="remember-option">
+          <input type="checkbox" checked />
+          <span class="custom-check"><span class="material-symbols-outlined">check</span></span>
+          <span>Mantener sesión iniciada</span>
+        </label>
+        <a routerLink="/iniciar-sesion" class="forgot-link">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="login-alert error-alert" role="alert">
+          <span class="material-symbols-outlined">error</span>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      @if (notAdmin()) {
+        <div class="login-alert warning-alert" role="alert">
+          <span class="material-symbols-outlined">block</span>
+          <span>
+            Esa cuenta no tiene acceso de administrador.
+            <a routerLink="/panel">Ir a mi panel</a>
+          </span>
+        </div>
+      }
+
+      <button type="submit" [disabled]="submitting()" class="submit-button anim-in-bounce" style="animation-delay: 0.68s">
+        <span>{{ submitting() ? 'Entrando…' : 'Entrar al panel' }}</span>
+        @if (!submitting()) {
+          <span class="material-symbols-outlined">arrow_forward</span>
+        }
+      </button>
+    </form>
+
+    <div class="secure-divider anim-in" style="animation-delay: 0.78s">
+      <span></span>
+      <p>Acceso seguro</p>
+      <span></span>
+    </div>
+
+    <div class="security-features" aria-label="Características de seguridad">
+      <div class="security-item anim-in-bounce" style="animation-delay: 0.84s">
+        <span class="security-icon material-symbols-outlined">lock</span>
+        <span>Conexión<br />cifrada</span>
+      </div>
+      <div class="security-item anim-in-bounce" style="animation-delay: 0.9s">
+        <span class="security-icon material-symbols-outlined">shield</span>
+        <span>Solo personal<br />autorizado</span>
+      </div>
+      <div class="security-item anim-in-bounce" style="animation-delay: 0.96s">
+        <span class="security-icon material-symbols-outlined">schedule</span>
+        <span>Registro de<br />actividad</span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="login-footer anim-in" style="animation-delay: 1.05s">
+    <p>Juntos hacemos una mejor experiencia</p>
+    <span><i></i></span>
+  </footer>
+</main>

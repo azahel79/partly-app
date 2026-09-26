@@ -1,0 +1,199 @@
+<div class="group-detail-page">
+  @if (errorMessage()) { <div class="error-banner">{{ errorMessage() }}</div> }
+  @if (group() === null && !errorMessage()) { <div class="loading-card">Cargando información del grupo…</div> }
+
+  @if (group(); as g) {
+    <div class="page-heading">
+      <div>
+        <a routerLink="/admin/grupos" class="back-link"><span class="material-symbols-outlined">arrow_back</span>Volver a Grupos</a>
+        <h1>Detalles del grupo</h1>
+        <p>Revisa la información del grupo y decide si aprobarlo o rechazarlo.</p>
+      </div>
+      @if (statusBanner(); as banner) {
+        <div class="review-banner" [attr.data-tone]="banner.tone"><span class="material-symbols-outlined">{{ banner.icon }}</span><div><strong>{{ banner.title }}</strong><small>{{ banner.subtitle }}</small></div></div>
+      }
+    </div>
+
+    <div class="detail-layout">
+      <main class="detail-main">
+        <section class="platform-hero" [style.background]="brand().background">
+          <div class="hero-glow" [style.background]="brand().accent"></div>
+          <div class="platform-mark"><span>{{ g.plan.platform.name.charAt(0).toUpperCase() }}</span>@if (brand().logoUrl) { <img [class.local]="brand().logoUrl?.startsWith('/logos/')" [src]="brand().logoUrl" [alt]="'Logo de ' + g.plan.platform.name" (error)="hideBrokenImage($event)" /> }</div>
+          <div class="hero-copy">
+            <div class="hero-title-row"><h2>{{ g.plan.platform.name }} {{ g.plan.tierName }}</h2><span class="approval-pill" [attr.data-status]="g.approvalStatus">{{ g.approvalStatus === 'PENDING' ? 'Pendiente' : g.approvalStatus === 'APPROVED' ? 'Aprobado' : 'Rechazado' }}</span></div>
+            <p class="hero-meta">{{ g.plan.tierName }} · #{{ g.id.slice(0, 8) }}</p><p class="hero-description">{{ brand().description }}</p>
+            <div class="hero-tags">@if (g.plan.platform.categoryName) { <span>{{ g.plan.platform.categoryName }}</span> }<span>{{ g.plan.billingPeriod === 'MONTHLY' ? 'Mensual' : g.plan.billingPeriod === 'QUARTERLY' ? 'Trimestral' : g.plan.billingPeriod === 'SEMIANNUAL' ? 'Semestral' : 'Anual' }}</span><span>{{ groupStatusLabel(g.status) }}</span></div>
+          </div>
+          <div class="hero-slogan"><strong>{{ g.plan.platform.name }}</strong><span>Comparte más.<br />Paga menos.</span></div>
+        </section>
+
+        <nav class="detail-tabs" aria-label="Secciones del grupo">
+          <button type="button" [class.active]="activeSection() === 'information'" (click)="selectSection('information')"><span class="material-symbols-outlined">article</span>Información</button>
+          <button type="button" [class.active]="activeSection() === 'seller'" (click)="selectSection('seller')"><span class="material-symbols-outlined">person</span>Vendedor</button>
+          <button type="button" [class.active]="activeSection() === 'history'" (click)="selectSection('history')"><span class="material-symbols-outlined">history</span>Historial</button>
+          <button type="button" [class.active]="activeSection() === 'activity'" (click)="selectSection('activity')"><span class="material-symbols-outlined">receipt_long</span>Movimientos</button>
+        </nav>
+
+        @if (activeSection() === 'information') {
+          <section class="content-card information-card">
+            <div class="card-heading"><span class="heading-icon"><span class="material-symbols-outlined">description</span></span><div><h3>Información del grupo</h3><p>Datos principales de la solicitud.</p></div>@if (!editingInfo()) { <button type="button" class="outline-button" (click)="startEditInfo()"><span class="material-symbols-outlined">edit</span>Editar</button> }</div>
+            @if (!editingInfo()) {
+              <div class="info-grid">
+                <article><span class="info-icon material-symbols-outlined">attach_money</span><div><strong>${{ g.pricePerSlot }} / mes</strong><small>Precio por cupo</small></div></article>
+                <article><span class="info-icon material-symbols-outlined">groups</span><div><strong>{{ g.occupiedSlots }} / {{ g.availableSlots }}</strong><small>Cupos ocupados</small></div></article>
+                <article><span class="info-icon material-symbols-outlined">calendar_month</span><div><strong>Día {{ g.billingDay }}</strong><small>Día de cobro</small></div></article>
+                <article><span class="info-icon material-symbols-outlined">event</span><div><strong>{{ formatDate(g.createdAt) }}</strong><small>Fecha de solicitud</small></div></article>
+                <article><span class="info-icon material-symbols-outlined">sync</span><div><strong>{{ formatCalendarDate(g.nextRenewalDate) }}</strong><small>Próxima renovación</small></div></article>
+                <article><span class="info-icon material-symbols-outlined">inventory_2</span><div><strong>{{ g.plan.tierName }}</strong><small>{{ features().length ? features()[0].label : 'Plan registrado' }}</small></div></article>
+              </div>
+              <div class="plan-description"><span class="material-symbols-outlined">description</span><div><strong>Descripción del plan</strong><p>{{ planDescription() }}</p></div></div>
+              @if (g.approvalStatus === 'REJECTED' && g.rejectionReason) { <div class="rejection-reason"><span class="material-symbols-outlined">info</span><p><strong>Motivo del rechazo:</strong> {{ g.rejectionReason }}</p></div> }
+            } @else {
+              <div class="edit-form"><label><span>Precio por cupo</span><input type="number" min="1" step="0.01" [value]="editPrice()" (input)="editPrice.set(+$any($event.target).value)" /></label><label><span>Cupos disponibles</span><input type="number" min="1" [value]="editSlots()" (input)="editSlots.set(+$any($event.target).value)" /></label><label><span>Día de cobro</span><input type="number" min="1" max="31" [value]="editBillingDay()" (input)="editBillingDay.set(+$any($event.target).value)" /></label><div class="form-actions"><button type="button" class="ghost-button" (click)="cancelEditInfo()">Cancelar</button><button type="button" class="primary-small" [disabled]="working()" (click)="saveEditInfo()">Guardar cambios</button></div></div>
+            }
+          </section>
+        }
+
+        @if (activeSection() === 'information' || activeSection() === 'seller') {
+          <section class="content-card seller-card">
+            <div class="card-heading compact"><span class="heading-icon blue"><span class="material-symbols-outlined">person</span></span><div><h3>Vendedor</h3></div></div>
+            <div class="seller-row"><div class="seller-avatar">{{ g.owner.name.charAt(0) }}</div><div class="seller-copy"><div><strong>{{ g.owner.name }}</strong>@if (g.owner.emailVerified) { <span>Vendedor verificado</span> }</div><p>⭐ {{ g.owner.ratingAvg }} · {{ g.sellerSalesCount }} ventas</p><small>Vendedor desde {{ formatDate(g.owner.memberSince) }}</small></div>
+              @if (!messaging()) { <div class="seller-actions">@if (g.approvalStatus === 'PENDING' && g.credentialReviewStatus !== 'SUBMITTED') { <button type="button" class="credential-button" [disabled]="requestingCredentials() || !g.commissionPercentage" [attr.title]="!g.commissionPercentage ? 'Primero define y avisa la comisión al vendedor' : null" (click)="requestCredentials()"><span class="material-symbols-outlined">key</span>{{ requestingCredentials() ? 'Enviando…' : g.credentialReviewStatus === 'REQUESTED' ? 'Volver a solicitar credenciales' : 'Pedir credenciales' }}</button> }<button type="button" class="outline-button" (click)="startMessage()"><span class="material-symbols-outlined">mail</span>Enviar mensaje específico</button></div>@if (g.approvalStatus === 'PENDING' && g.credentialReviewStatus !== 'SUBMITTED' && !g.commissionPercentage) { <p class="credential-lock-hint"><span class="material-symbols-outlined">lock</span>Primero define la comisión (tarjeta "Comisión de Vakeva"): el vendedor debe conocerla antes de que le pidas las credenciales.</p> } }
+            </div>
+            @if (messageSent()) { <p class="success-message"><span class="material-symbols-outlined">check_circle</span>{{ sentConfirmation() }} Le llegó como notificación.</p> }
+            @if (messaging()) { <div class="message-form"><div><strong>Mensaje específico para el vendedor</strong><p>Escribe la indicación o aclaración relacionada con este grupo.</p></div><textarea rows="3" maxlength="500" placeholder="Escribe tu mensaje para el vendedor…" [value]="messageDraft()" (input)="messageDraft.set($any($event.target).value)"></textarea><div class="form-footer"><small>{{ messageDraft().length }}/500</small><button type="button" class="ghost-button" (click)="cancelMessage()">Cancelar</button><button type="button" class="primary-small" [disabled]="!messageDraft().trim() || sendingMessage()" (click)="sendMessage()">{{ sendingMessage() ? 'Enviando…' : 'Enviar mensaje' }}</button></div></div> }
+          </section>
+        }
+
+        @if (activeSection() === 'history') {
+          <section class="content-card history-card"><div class="card-heading"><span class="heading-icon blue"><span class="material-symbols-outlined">history</span></span><div><h3>Historial del grupo</h3><p>Movimientos principales de esta solicitud.</p></div></div><div class="history-list"><article><span class="material-symbols-outlined">add_circle</span><div><strong>Solicitud creada</strong><p>El vendedor envió el grupo para revisión.</p><small>{{ formatDate(g.createdAt) }}</small></div></article>@if (g.reviewedAt) { <article><span class="material-symbols-outlined">fact_check</span><div><strong>Revisión administrativa</strong><p>Resultado: {{ g.approvalStatus === 'APPROVED' ? 'Aprobado' : 'Rechazado' }}.</p><small>{{ formatDate(g.reviewedAt) }}</small></div></article> }@if (g.hasCredentials) { <article><span class="material-symbols-outlined">key</span><div><strong>Credenciales registradas</strong><p>El vendedor añadió el acceso de la plataforma.</p></div></article> }</div></section>
+        }
+
+        @if (activeSection() === 'activity') {
+          <section class="content-card activity-card">
+            <div class="card-heading"><span class="heading-icon blue"><span class="material-symbols-outlined">groups</span></span><div><h3>Miembros del grupo ({{ members()?.length ?? 0 }})</h3><p>Quién está adentro, su estado y el perfil que tiene asignado.</p></div></div>
+            @if (members() === null) {
+              <p class="activity-empty">Cargando miembros…</p>
+            } @else if (members()!.length === 0) {
+              <p class="activity-empty">Todavía nadie se ha unido a este grupo.</p>
+            } @else {
+              <div class="member-rows">
+                @for (m of members()!; track m.id) {
+                  <article class="member-row">
+                    <div class="member-avatar">{{ m.user.name.charAt(0).toUpperCase() }}</div>
+                    <div class="member-copy">
+                      <strong>{{ m.user.name }}</strong>
+                      <small>Se unió el {{ formatDate(m.joinedAt) }}@if (m.leftAt) { · Salió el {{ formatDate(m.leftAt) }} }@if (m.profile) { · {{ m.profile.label }} }</small>
+                    </div>
+                    <span class="status-pill" [attr.data-status]="m.status">{{ membershipStatusLabel[m.status] }}</span>
+                  </article>
+                }
+              </div>
+            }
+          </section>
+
+          <section class="content-card activity-card">
+            <div class="card-heading"><span class="heading-icon blue"><span class="material-symbols-outlined">receipt_long</span></span><div><h3>Pagos y comprobantes ({{ activityPayments()?.length ?? 0 }})</h3><p>Todos los pagos de este grupo, con el estado real de cada comprobante.</p></div></div>
+            @if (activityPayments() === null) {
+              <p class="activity-empty">Cargando pagos…</p>
+            } @else if (activityPayments()!.length === 0) {
+              <p class="activity-empty">Todavía no hay pagos registrados en este grupo.</p>
+            } @else {
+              <div class="payment-rows">
+                @for (p of activityPayments()!; track p.id) {
+                  <article class="payment-row">
+                    <div class="member-avatar">{{ p.buyer.name.charAt(0).toUpperCase() }}</div>
+                    <div class="member-copy">
+                      <strong>{{ p.buyer.name }} · ${{ p.amount }}</strong>
+                      <small>
+                        @if (p.receiptUploadedAt) { Comprobante subido el {{ formatDate(p.receiptUploadedAt) }} } @else { Sin comprobante subido }
+                        @if (p.paidAt) { · Aprobado el {{ formatDate(p.paidAt) }} }
+                      </small>
+                    </div>
+                    <span class="status-pill" [attr.data-status]="p.status">{{ paymentStatusLabel[p.status] }}</span>
+                    @if (p.receiptUploadedAt) {
+                      <button type="button" class="outline-button" [disabled]="viewingReceiptId() === p.id" (click)="viewReceipt(p.id)">
+                        <span class="material-symbols-outlined">visibility</span>{{ viewingReceiptId() === p.id ? 'Abriendo…' : 'Ver comprobante' }}
+                      </button>
+                    }
+                  </article>
+                }
+              </div>
+            }
+          </section>
+        }
+      </main>
+
+      <aside class="detail-sidebar">
+        <section class="side-card state-card"><div class="side-title"><span class="material-symbols-outlined">schedule</span><h3>Estado actual</h3></div><div class="status-steps"><div class="step" [class.current]="reviewStep() === 1" [class.done]="reviewStep() > 1"><i>1</i><strong>Revisión</strong><small>Datos del grupo</small></div><div class="step-line" [class.done]="reviewStep() > 1"></div><div class="step" [class.current]="reviewStep() === 2" [class.done]="reviewStep() > 2"><i>2</i><strong>Credenciales</strong><small>{{ g.credentialReviewStatus === 'SUBMITTED' ? 'Revisar acceso' : 'Esperando envío' }}</small></div><div class="step-line" [class.done]="reviewStep() > 2"></div><div class="step" [class.current]="reviewStep() === 3"><i>3</i><strong>Aprobado</strong><small>Grupo publicado</small></div></div></section>
+        @if (g.approvalStatus === 'PENDING' && g.credentialReviewStatus === 'SUBMITTED') {
+          <section class="side-card credential-review-card">
+            <div class="side-title"><span class="material-symbols-outlined">key</span><div><h3>Credenciales enviadas</h3><p>Comprueba que el acceso funcione antes de aprobar.</p></div></div>
+            @if (submittedCredential() === undefined) { <p class="credential-loading">Descifrando credenciales de forma segura…</p> }
+            @else if (submittedCredential(); as credential) {
+              <div class="credential-field"><small>Usuario o correo</small><strong>{{ credential.username }}</strong></div>
+              <div class="credential-field"><small>Contraseña</small><div><strong>{{ showSubmittedPassword() ? credential.password : '••••••••••' }}</strong><button type="button" (click)="toggleSubmittedPassword()"><span class="material-symbols-outlined">{{ showSubmittedPassword() ? 'visibility_off' : 'visibility' }}</span></button></div></div>
+              @if (credential.notes) { <div class="credential-notes"><small>Indicaciones</small><p>{{ credential.notes }}</p></div> }
+              <p class="credential-date">Enviadas el {{ g.credentialsSubmittedAt ? formatDate(g.credentialsSubmittedAt) : formatDate(credential.updatedAt) }}</p>
+            } @else { <p class="credential-loading error">No fue posible abrir las credenciales.</p> }
+          </section>
+        }
+        <section class="side-card notes-card"><div class="side-title"><span class="material-symbols-outlined">note_alt</span><h3>Notas del administrador</h3></div><textarea rows="4" maxlength="500" placeholder="Añade una nota sobre esta revisión…" [value]="notesDraft()" (input)="notesDraft.set($any($event.target).value)"></textarea><div class="notes-footer"><small>Esta nota solo la ve el equipo administrativo.</small><span>{{ notesDraft().length }}/500</span></div><div class="notes-save">@if (notesSaved()) { <span><span class="material-symbols-outlined">check</span>Guardado</span> }<button type="button" [disabled]="savingNotes()" (click)="saveNotes()">{{ savingNotes() ? 'Guardando…' : 'Guardar nota' }}</button></div></section>
+        @if (g.approvalStatus === 'PENDING') {
+          <section class="side-card commission-card proposal-card">
+            <div class="side-title"><span class="material-symbols-outlined">percent</span><h3>Comisión de Vakeva</h3></div>
+            @if (g.commissionPercentage) {
+              <p class="commission-hint">Ya se le comunicó al vendedor y no se puede modificar: él decide con base en esta cifra.</p>
+              <div class="commission-locked"><span class="material-symbols-outlined">lock</span><strong>{{ g.commissionPercentage }}%</strong><small>Comisión definida</small></div>
+            } @else {
+              <p class="commission-hint">Rango permitido: {{ commissionMin }}% a {{ commissionMax }}%. Fíjala ahora, antes de pedir credenciales: el vendedor la ve y decide si le conviene. Una vez guardada ya no se puede cambiar.</p>
+              <label class="commission-input" [class.invalid]="!proposalValid()"><input type="number" [min]="commissionMin" [max]="commissionMax" step="0.5" [value]="proposalInput()" (input)="proposalInput.set(+$any($event.target).value || 0)" /><span>%</span></label>
+              @if (!proposalValid()) { <p class="proposal-error">Debe estar entre {{ commissionMin }}% y {{ commissionMax }}%.</p> }
+            }
+            @if (proposalValid() && proposalPreview(); as p) {
+              <div class="commission-breakdown">
+                <div><small>Total a miembros</small><strong>${{ p.gross.toFixed(2) }}</strong></div>
+                <div><small>Comisión Vakeva</small><strong>${{ p.commission.toFixed(2) }}</strong></div>
+                <div><small>Recibe el vendedor</small><strong>${{ p.net.toFixed(2) }}</strong></div>
+              </div>
+            }
+            @if (!g.commissionPercentage) {
+              <div class="proposal-actions">
+                @if (proposalNotice()) { <span class="success-message"><span class="material-symbols-outlined">check</span>{{ proposalNotice() }}</span> }
+                <button type="button" class="primary-small" [disabled]="proposing() || !proposalValid()" (click)="saveProposal()">{{ proposing() ? 'Guardando…' : 'Guardar y avisar al vendedor' }}</button>
+              </div>
+            }
+          </section>
+        }
+        @if (g.approvalStatus === 'PENDING') {
+          <section class="side-card checklist-card"><div class="side-title"><span class="material-symbols-outlined">verified_user</span><h3>Antes de aprobar</h3></div><ul><li><span class="material-symbols-outlined">check_circle</span>Verifica que la información del plan sea correcta.</li><li><span class="material-symbols-outlined">check_circle</span>Confirma que el precio sea competitivo.</li><li><span class="material-symbols-outlined">check_circle</span>Revisa el historial del vendedor.</li><li><span class="material-symbols-outlined">check_circle</span>Asegúrate de que cumpla con nuestras políticas.</li></ul></section>
+          @if (!rejecting()) {
+            <div class="approval-actions">
+              <button type="button" class="reject-button" [disabled]="working()" (click)="startReject()"><span class="material-symbols-outlined">close</span>Rechazar</button>
+              <button type="button" class="approve-button" [disabled]="working() || !proposalValid() || g.credentialReviewStatus !== 'SUBMITTED' || submittedCredential() === undefined || submittedCredential() === null" (click)="confirmApprove()"><span class="material-symbols-outlined">check</span>{{ g.credentialReviewStatus === 'SUBMITTED' ? 'Aprobar grupo' : 'Faltan credenciales' }}</button>
+            </div>
+          } @else if (rejecting()) {
+            <section class="side-card reject-card"><h3>Motivo del rechazo</h3><textarea rows="3" maxlength="500" placeholder="Explícale al vendedor por qué se rechaza…" [value]="rejectReason()" (input)="rejectReason.set($any($event.target).value)"></textarea><div><button type="button" class="ghost-button" (click)="cancelReject()">Cancelar</button><button type="button" class="reject-confirm" [disabled]="!rejectReason().trim() || working()" (click)="confirmReject()">Confirmar rechazo</button></div></section>
+          }
+        } @else if (g.approvalStatus === 'APPROVED') {
+          <section class="side-card business-card"><div class="side-title"><span class="material-symbols-outlined">settings</span><h3>Administrar grupo</h3></div><p>Estado: <strong>{{ groupStatusLabel(g.status) }}</strong></p><div>@if (g.status === 'PAUSED') { <button type="button" class="approve-button" (click)="setBusinessStatus('SEARCHING_MEMBERS')">Reactivar grupo</button> } @else if (g.status !== 'CANCELLED') { <button type="button" class="outline-button" (click)="setBusinessStatus('PAUSED')">Pausar grupo</button> } @if (g.status !== 'CANCELLED') { <button type="button" class="reject-button" (click)="setBusinessStatus('CANCELLED')">Cancelar grupo</button> }</div></section>
+        }
+      </aside>
+    </div>
+  }
+
+  @if (receiptPreviewUrl(); as url) {
+    <div class="receipt-modal-backdrop" (click)="closeReceiptPreview()">
+      <div class="receipt-modal" (click)="$event.stopPropagation()">
+        <div class="receipt-modal-header"><strong>Comprobante de pago</strong><button type="button" (click)="closeReceiptPreview()"><span class="material-symbols-outlined">close</span></button></div>
+        <div class="receipt-modal-body">
+          @if (receiptPreviewIsPdf()) {
+            <iframe [src]="receiptPreviewSafeUrl()" title="Comprobante de pago (PDF)"></iframe>
+          } @else {
+            <img [src]="url" alt="Comprobante de pago" />
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

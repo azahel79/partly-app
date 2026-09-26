@@ -1,0 +1,30 @@
+.floating-socials{position:fixed;left:24px;bottom:24px;z-index:50}
+.social-links{display:flex;flex-direction:column;gap:10px}
+.social-button,.social-toggle{position:relative;width:48px;height:48px;display:grid;place-items:center;border:1px solid #ffffff55;border-radius:50%;color:#fff;cursor:pointer;box-shadow:0 6px 18px #14142b26;transition:transform .2s,box-shadow .2s}
+.social-button:hover,.social-toggle:hover{transform:translateY(-3px);box-shadow:0 9px 22px #14142b38}
+.social-button:focus-visible,.social-toggle:focus-visible{outline:3px solid #0ab58a;outline-offset:4px}
+.social-button svg{width:24px;height:24px}
+.instagram{background:radial-gradient(circle at 28% 105%,#ffd776 0%,#f77737 23%,#e1306c 52%,#833ab4 85%)}
+.facebook{background:#1877f2}
+.whatsapp{background:#128c56}
+.social-label{position:absolute;left:calc(100% + 12px);padding:7px 11px;border-radius:9px;background:#14142b;color:white;font-size:12px;font-weight:700;white-space:nowrap;opacity:0;transform:translateX(-4px);pointer-events:none;transition:.2s}
+.social-button:hover .social-label,.social-button:focus-visible .social-label{opacity:1;transform:translateX(0)}
+.social-toggle{display:none;background:#14142b}
+.social-notice{position:absolute;left:0;bottom:calc(100% + 14px);width:260px;max-width:calc(100vw - 100px);padding:13px 12px;display:flex;gap:10px;align-items:center;background:#fff;color:#14142b;border:1px solid #dde8e3;border-radius:14px;box-shadow:0 8px 25px #14142b26;font-size:12px;line-height:1.5}
+.social-notice button{border:0;background:transparent;color:#14142b;font-size:23px;cursor:pointer;padding:3px 7px}
+@media(max-width:767px){.floating-socials{left:16px;bottom:calc(20px + env(safe-area-inset-bottom,0px))}.social-toggle{display:grid}.social-links{display:none;margin-bottom:12px}.social-links.is-open{display:flex}.social-label{display:none}}
+@media(prefers-reduced-motion:reduce){.social-button,.social-toggle,.social-label{transition:none}}
+
+
+.public-header-row { gap: 24px; }
+.public-header-row > a, .public-header-actions { flex-shrink: 0; }
+.public-header-actions a { white-space: nowrap; }
+#public-mobile-nav { max-height: calc(100dvh - 110px); overflow-y: auto; }
+@media (max-width: 639px) {
+  .public-header-row { height: 72px; padding-inline: 14px; gap: 10px; }
+  .public-header-row > a img { height: 32px; }
+  .public-header-actions { gap: 8px; }
+  .public-header-actions > a { padding: 12px; font-size: 12px; }
+  .public-header-actions > a > span { display: none; }
+}
+

@@ -1,0 +1,44 @@
+<section class="platforms-showcase" id="plataformas">
+  <div class="dark-shape shape-one"></div><div class="dark-shape shape-two"></div><div class="dark-shape shape-three"></div>
+  <div class="platforms-dots dots-left">· · ·<br />· · ·<br />· · ·</div><div class="platforms-dots dots-right">· · ·<br />· · ·</div>
+  <div class="platforms-note note-top">Más entretenimiento,<br />menos gastos<i></i></div>
+  <div class="platforms-note note-bottom-left">Tu tiempo<br />también vale<i></i></div>
+  <div class="platforms-note note-bottom-right">Más<br />posibilidades<br />juntos<i></i></div>
+  <div class="floating-apps" aria-hidden="true"><span class="float-netflix">N</span><span class="float-disney">Disney+</span><span class="float-youtube material-symbols-outlined">smart_display</span><span class="float-spotify">●</span><p>Comparte lo que te gusta</p></div>
+
+  <div class="platforms-shell">
+    <header appReveal appRevealVariant="scale" class="platforms-heading">
+      <div class="catalog-badge"><span class="material-symbols-outlined">grid_view</span>Catálogo de servicios</div>
+      <h2>Tus plataformas favoritas<br />listas <span>para compartir</span></h2>
+      <p>Ejemplos de servicios que puedes compartir en Vakeva. El catálogo de plataformas<br />y planes sigue creciendo.</p>
+    </header>
+
+    <div appReveal appRevealVariant="blur" class="platform-carousel-wrap">
+      <button type="button" class="platform-nav prev" (click)="scrollPrev()" aria-label="Anterior"><span class="material-symbols-outlined">chevron_left</span></button>
+      <button type="button" class="platform-nav next" (click)="scrollNext()" aria-label="Siguiente"><span class="material-symbols-outlined">chevron_right</span></button>
+      <div appCarousel [appCarouselOptions]="{ loop: true, align: 'center', startIndex: 3 }" [appCarouselPlugins]="carouselPlugins" (appCarouselReady)="onCarouselReady($event)" class="platform-viewport">
+        <div class="platform-track">
+          @for (tile of tiles; track tile.name; let i = $index) {
+            <div class="platform-slide" [class.is-current]="selectedIndex() === i">
+              <article appTilt [appTiltStrength]="2" class="platform-card">
+                <div class="platform-art" [class]="'platform-art ' + tile.bannerFrom + ' ' + tile.bannerTo">
+                  @if (tile.badge || i === 2 || i === 3 || i === 4) {<span class="platform-badge"><span class="material-symbols-outlined">{{ i === 4 ? 'groups' : (i === 3 ? 'star' : 'local_fire_department') }}</span>{{ tile.badge || (i === 2 ? 'Popular' : (i === 3 ? 'Recomendado' : 'Ideal para creadores')) }}</span>}
+                  <div class="art-brand">
+                    @if (tile.letter) {<strong>{{ tile.letter }}</strong>} @else {<span class="material-symbols-outlined">{{ tile.icon }}</span>}
+                    <b>{{ tile.name }}</b>
+                  </div>
+                </div>
+                <div class="platform-card-body">
+                  <div class="platform-logo" [class]="tile.iconColor">@if (tile.letter) {<strong>{{ tile.letter }}</strong>} @else {<span class="material-symbols-outlined">{{ tile.icon }}</span>}</div>
+                  <h3>{{ tile.name }}</h3><strong class="platform-price">{{ tile.price }}</strong><p>{{ tile.description }}</p>
+                  <div class="platform-card-footer"><div>@for (feature of tile.features; track feature) {<span><i class="material-symbols-outlined">{{ featureIcon(feature) }}</i>{{ feature }}</span>}</div><button type="button" aria-label="Ver {{ tile.name }}"><span class="material-symbols-outlined">arrow_forward</span></button></div>
+                </div>
+              </article>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="platform-dots">@for (dot of dots; track dot) {<button type="button" [class.active]="selectedIndex() === dot" (click)="scrollTo(dot)" [attr.aria-label]="'Ir a ' + tiles[dot].name"></button>}</div>
+    </div>
+  </div>
+</section>

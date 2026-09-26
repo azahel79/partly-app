@@ -1,0 +1,15 @@
+ALTER TABLE "users"
+ADD COLUMN "email_notifications" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN "in_app_notifications" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN "notify_payments" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN "notify_groups" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN "notify_credentials" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN "notify_payouts" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN "profile_name_visible" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN "profile_avatar_visible" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN "timezone" TEXT NOT NULL DEFAULT 'America/Mexico_City',
+ADD COLUMN "payout_account_holder" TEXT,
+ADD COLUMN "payout_bank_name" TEXT,
+ADD COLUMN "payout_clabe_encrypted" TEXT,
+ADD COLUMN "payout_clabe_last4" TEXT,
+ADD COLUMN "payout_verified" BOOLEAN NOT NULL DEFAULT false;

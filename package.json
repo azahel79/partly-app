@@ -1,0 +1,16 @@
+{
+  "name": "vakeva",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plataforma Vakeva para compartir y comercializar suscripciones digitales",
+  "scripts": {
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "test": "npm test --prefix backend && npm test --prefix frontend -- --watch=false",
+    "verify": "npm run test && npm run build",
+    "start:backend": "npm run start:dev --prefix backend",
+    "start:frontend": "npm start --prefix frontend"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

@@ -1,0 +1,375 @@
+<div class="ph-page space-y-8">
+  <!-- Encabezado -->
+  <div class="anim-in relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-5 h-px bg-on-surface-variant/40"></span>
+        <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.15em]">Tu panel de control</span>
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight flex flex-wrap items-center gap-1.5">
+        ¡Hola, <span class="bg-linear-to-r from-pink via-pink-deep to-pink-dark bg-clip-text text-transparent">{{ authService.currentUser()?.name }}!</span>
+      </h1>
+      <p class="text-sm text-on-surface-variant font-medium mt-1">Tu resumen de suscripciones compartidas y grupos administrados.</p>
+    </div>
+
+    <div class="flex items-center gap-6 shrink-0">
+      <p class="hand-note hand-note-home hidden xl:block" aria-hidden="true">
+        Más servicios<br />para más personas
+        <svg class="hand-note-arrow" viewBox="0 0 40 34" fill="none" aria-hidden="true"><path d="M35 3C30 14 20 22 6 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" /><path d="M13 27 L5 25 L8 32" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </p>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <a
+          routerLink="/panel/explorar"
+          class="hover:bg-slate-50 group inline-flex items-center gap-3 pl-2 pr-6 py-2 bg-white border border-white/70 rounded-lg.5 active:translate-y-0 active:scale-95 transition-all"
+        >
+          <span class="w-9 h-9 rounded-full bg-crema-inset flex items-center justify-center text-on-surface-variant shrink-0 group-hover:bg-pink/10 group-hover:text-pink group-hover:rotate-12 transition-all">
+            <span class="material-symbols-outlined text-lg">search</span>
+          </span>
+          <span class="text-sm font-bold text-ink whitespace-nowrap">Explorar marketplace</span>
+        </a>
+        <a
+          routerLink="/panel/grupos/nuevo"
+          class="inline-flex items-center gap-2 px-6 py-3.5 bg-linear-to-b from-emerald-500 to-pink-deep text-white text-sm font-bold rounded-lg active:scale-[0.98] transition-all whitespace-nowrap"
+        >
+          <span class="material-symbols-outlined text-xl">add</span>
+          Crear nuevo grupo
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tarjetas de resumen -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="anim-in ph-wallet-card group relative overflow-hidden p-5 rounded-3xl bg-white shadow-neu-raised border border-white/70 flex flex-col hover:shadow-neu-raised-lg hover:-translate-y-1 transition-all duration-300" style="animation-delay: 60ms">
+      <svg class="ph-wave" viewBox="0 0 300 120" preserveAspectRatio="none" fill="none" aria-hidden="true">
+        <path d="M0 90C40 70 70 100 110 80C150 60 180 95 220 75C250 60 270 80 300 65V120H0V90Z" fill="url(#phWave)" />
+        <defs>
+          <linearGradient id="phWave" x1="0" y1="0" x2="300" y2="120" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#059669" stop-opacity="0.14" />
+            <stop offset="1" stop-color="#059669" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <div class="relative flex items-center justify-between mb-4">
+        <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-pink shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+          <span class="material-symbols-outlined text-xl">savings</span>
+        </div>
+        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-crema-inset text-on-surface-variant">Ganancias</span>
+      </div>
+      <span class="relative text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Te queda este mes</span>
+      @if (earningsError()) {
+        <span class="relative text-xs text-red-600 font-semibold">{{ earningsError() }}</span>
+      } @else if (earnings(); as e) {
+        <div class="relative text-2xl font-black text-ink tabular-nums tracking-tight">${{ e.thisMonth.net.toFixed(2) }} <span class="text-sm font-semibold text-on-surface-variant">MXN</span></div>
+        <p class="relative text-xs text-on-surface-variant font-medium mt-1">
+          @if (e.commission.toPay > 0) { Debes ${{ e.commission.toPay.toFixed(2) }} de comisión } @else { De ${{ e.thisMonth.gross.toFixed(2) }} cobrados }
+        </p>
+        <a routerLink="/panel/ganancias" class="relative text-xs font-bold text-pink mt-3 inline-flex items-center gap-0.5 self-end hover:gap-1.5 transition-all">Ver mis ganancias<span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+      } @else {
+        <div class="relative text-2xl font-black text-on-surface-variant/40">…</div>
+      }
+    </div>
+
+    <div class="anim-in group p-5 rounded-3xl bg-white shadow-neu-raised border border-white/70 flex flex-col hover:shadow-neu-raised-lg hover:-translate-y-1 transition-all duration-300" style="animation-delay: 120ms">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 shadow-neu-inset-sm flex items-center justify-center text-emerald-600 shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+          <span class="material-symbols-outlined text-xl">groups</span>
+        </div>
+        @if (myGroups() && myGroups()!.length > 0) {
+          <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">{{ avgOccupancyPct() }}% ocupado</span>
+        } @else if (authService.isAdmin()) {
+          <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">Admin</span>
+        }
+      </div>
+      <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Grupos que administro</span>
+      <div class="text-2xl font-black text-ink tabular-nums tracking-tight">{{ myGroups() === null ? '…' : myGroups()!.length }}</div>
+      <p class="text-xs text-on-surface-variant font-medium mt-1">Grupos activos bajo tu administración</p>
+      <div class="flex-1"></div>
+      <a routerLink="/panel/grupos" class="group/link text-xs font-bold text-pink mt-2 inline-flex items-center gap-0.5 self-end hover:gap-1.5 transition-all">
+        Ver mis grupos
+        <span class="material-symbols-outlined text-sm transition-transform group-hover/link:translate-x-0.5">arrow_forward</span>
+      </a>
+    </div>
+
+    <div class="anim-in group p-5 rounded-3xl bg-white shadow-neu-raised border border-white/70 flex flex-col hover:shadow-neu-raised-lg hover:-translate-y-1 transition-all duration-300" style="animation-delay: 180ms">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 shadow-neu-inset-sm flex items-center justify-center text-indigo-600 shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+          <span class="material-symbols-outlined text-xl">subscriptions</span>
+        </div>
+        @if (joinedGroups() && joinedGroups()!.length > 0) {
+          <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">Miembro</span>
+        } @else {
+          <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-400">Sin grupo</span>
+        }
+      </div>
+      <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Cuentas a las que perteneces</span>
+      <div class="text-2xl font-black text-ink tabular-nums tracking-tight">{{ joinedGroups() === null ? '…' : joinedGroups()!.length }}</div>
+      <p class="text-xs text-on-surface-variant font-medium mt-1">Cuentas en las que participas</p>
+      <div class="flex-1"></div>
+      <a routerLink="/panel/grupos" class="group/link text-xs font-bold text-pink mt-2 inline-flex items-center gap-0.5 self-end hover:gap-1.5 transition-all">
+        {{ joinedGroups() && joinedGroups()!.length > 0 ? 'Ver mis suscripciones' : 'Únete a un grupo cuando quieras' }}
+        <span class="material-symbols-outlined text-sm transition-transform group-hover/link:translate-x-0.5">arrow_forward</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Mis grupos gestionados -->
+  <div>
+    <div class="anim-in flex items-center justify-between gap-3 flex-wrap mb-4" style="animation-delay: 220ms">
+      <div class="flex items-center gap-2.5">
+        <span class="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-pink shrink-0">
+          <span class="material-symbols-outlined text-lg">groups</span>
+        </span>
+        <div>
+          <h2 class="text-lg font-extrabold text-ink tracking-tight leading-tight">Mis grupos gestionados</h2>
+          <p class="text-xs text-on-surface-variant font-medium">Administra tus grupos, revisa miembros y mantiene todo en orden.</p>
+        </div>
+      </div>
+      @if (myGroups() && myGroups()!.length > 0) {
+        <a routerLink="/panel/grupos" class="group/link text-xs font-bold text-pink inline-flex items-center gap-0.5 hover:gap-1.5 transition-all">
+          Gestionar todos
+          <span class="material-symbols-outlined text-sm transition-transform group-hover/link:translate-x-0.5">arrow_forward</span>
+        </a>
+      }
+    </div>
+
+    @if (errorMessage()) {
+      <div class="p-4 rounded-2xl bg-crema-inset shadow-neu-inset text-xs text-red-600 font-semibold">{{ errorMessage() }}</div>
+    } @else if (myGroups() === null) {
+      <div class="p-8 rounded-3xl bg-crema-inset shadow-neu-inset text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+    } @else if (myGroups()!.length === 0) {
+      <div class="p-6 sm:p-8 rounded-3xl bg-white shadow-neu-raised border border-white/70 flex items-center justify-between gap-6 flex-wrap">
+        <div class="max-w-sm">
+          <p class="text-sm font-bold text-ink mb-1">Todavía no tienes grupos</p>
+          <p class="text-xs text-on-surface-variant mb-4">Crea uno con la plataforma que quieras y empieza a compartir cupos.</p>
+          <a
+            routerLink="/panel/grupos/nuevo"
+            class="hover:bg-[#047857] inline-flex items-center gap-1.5 px-5 py-2.5 bg-pink text-white text-xs font-bold rounded-lg active:scale-95 transition-all"
+          >
+            Crear mi primer grupo
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </a>
+        </div>
+
+        <div class="hidden sm:flex w-20 h-20 rounded-2xl bg-pink/10 items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-pink text-4xl">groups</span>
+        </div>
+      </div>
+    } @else {
+      <div class="space-y-4">
+        @for (group of previewGroups(); track group.id) {
+          <div class="anim-in p-5 rounded-3xl bg-white shadow-neu-raised border border-white/70 hover:shadow-neu-raised-lg transition-shadow duration-300">
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+              <!-- Plataforma -->
+              <div class="flex items-center gap-3 min-w-0 sm:w-64 shrink-0">
+                <app-platform-logo class="w-12 h-12 rounded-2xl font-black text-base shrink-0" [name]="group.plan.platform.name" />
+                <div class="min-w-0">
+                  <p class="text-sm font-bold text-ink leading-snug">{{ group.plan.tierName }}</p>
+                  <p class="text-[11px] text-on-surface-variant truncate">{{ group.plan.platform.categoryName ?? group.plan.tierName }}</p>
+                  <p class="text-[11px] text-on-surface-variant font-medium mt-0.5">{{ group.occupiedSlots }}/{{ group.availableSlots }} cupos ocupados</p>
+                </div>
+              </div>
+
+              <span
+                class="shrink-0 px-3 py-1 rounded-full text-xs font-bold"
+                [class]="group.approvalStatus === 'PENDING' ? 'bg-amber-100 text-amber-800' : group.approvalStatus === 'REJECTED' ? 'bg-red-100 text-red-800' : !group.hasCredentials ? 'bg-amber-100 text-amber-800' : group.status === 'SEARCHING_MEMBERS' ? 'bg-emerald-100 text-emerald-800' : group.status === 'FULL' ? 'bg-blue-100 text-blue-800' : group.status === 'PAUSED' ? 'bg-amber-100 text-amber-800' : 'bg-crema-inset text-on-surface-variant'"
+              >
+                {{ group.approvalStatus === 'PENDING' ? 'En revisión de Vakeva' : group.approvalStatus === 'REJECTED' ? 'Rechazado' : !group.hasCredentials ? 'Falta subir acceso' : group.status === 'SEARCHING_MEMBERS' ? 'Activo' : group.status === 'FULL' ? 'Lleno' : group.status === 'PAUSED' ? 'Pausado' : 'Cancelado' }}
+              </span>
+
+              <span class="shrink-0 flex items-center gap-1.5 text-xs text-on-surface-variant font-medium">
+                <span class="material-symbols-outlined text-base">event_repeat</span>
+                Renovación {{ renewalLabel(group.nextRenewalDate) }}
+              </span>
+
+              <div class="flex-1"></div>
+
+              <div class="shrink-0 flex items-center gap-2 text-on-surface-variant">
+                <span class="material-symbols-outlined text-xl">group</span>
+                <span class="leading-tight">
+                  <span class="block text-sm font-bold text-ink tabular-nums">{{ group.occupiedSlots }}/{{ group.availableSlots }}</span>
+                  <span class="block text-[10px] font-medium">ocupados</span>
+                </span>
+              </div>
+
+              <div class="shrink-0 text-right">
+                <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Mi parte</p>
+                <p class="text-lg font-black text-ink tabular-nums">${{ group.pricePerSlot }} <span class="text-xs font-medium text-on-surface-variant">/mes</span></p>
+              </div>
+
+              <div class="shrink-0 flex items-center gap-1.5">
+                <a
+                  [routerLink]="['/panel/grupos', group.id, 'gestion']"
+                  class="group/btn py-2.5 px-5 rounded-lg bg-ink text-white text-xs font-bold flex items-center gap-1.5 hover:bg-ink-surface active:scale-95 transition-all"
+                >
+                  Gestionar
+                  <span class="material-symbols-outlined text-sm transition-transform group-hover/btn:translate-x-0.5">arrow_forward</span>
+                </a>
+                <div class="relative">
+                  <button
+                    type="button"
+                    (click)="toggleMenu(group.id)"
+                    class="w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-slate-100 hover:text-ink active:scale-95 transition-all"
+                    aria-label="Más acciones"
+                  >
+                    <span class="material-symbols-outlined text-lg">more_vert</span>
+                  </button>
+                  @if (openMenuId() === group.id) {
+                    <div class="fixed inset-0 z-10" (click)="closeMenu()"></div>
+                    <div class="absolute right-0 top-9 z-20 w-44 py-1.5 rounded-2xl bg-white shadow-neu-raised-lg border border-white/70">
+                      @if (group.status !== 'CANCELLED') {
+                        <button
+                          type="button"
+                          [disabled]="togglingId() === group.id"
+                          (click)="toggleStatus(group)"
+                          class="w-full text-left px-4 py-2 text-xs font-semibold text-ink hover:bg-crema-inset transition-colors disabled:opacity-60"
+                        >
+                          {{ group.status === 'PAUSED' ? 'Reactivar grupo' : 'Pausar grupo' }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+        @if (hiddenGroupsCount() > 0) {
+          <a routerLink="/panel/grupos" class="block text-center text-xs font-bold text-pink py-2 hover:text-pink-deep transition-colors">
+            Ver los otros {{ hiddenGroupsCount() }} grupos →
+          </a>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Banner: comparte otra suscripción -->
+  <div class="anim-in group/banner flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 rounded-3xl bg-linear-to-r from-emerald-50 via-emerald-50/70 to-white border border-emerald-100 hover:shadow-neu-raised transition-shadow duration-300">
+    <div class="flex items-center gap-4 min-w-0">
+      <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-emerald-600 shrink-0 shadow-neu-raised-sm group-hover/banner:scale-110 group-hover/banner:-rotate-6 transition-transform duration-300">
+        <span class="material-symbols-outlined text-2xl">redeem</span>
+      </div>
+      <div class="min-w-0">
+        <p class="text-sm font-bold text-ink">¿Pagas por YouTube Premium, Canva u otro servicio que no compartes?</p>
+        <p class="text-xs text-on-surface-variant mt-0.5">Compártelo con Vakeva y recupera parte de lo que gastas cada mes.</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-4 shrink-0 self-end sm:self-auto">
+      <div class="ph-app-duo hidden sm:flex" aria-hidden="true">
+        <span class="ph-app-icon ph-app-youtube group-hover/banner:-translate-y-1 transition-transform duration-300"><span class="material-symbols-outlined">smart_display</span></span>
+        <span class="ph-app-swap material-symbols-outlined group-hover/banner:rotate-180 transition-transform duration-500">swap_horiz</span>
+        <span class="ph-app-icon ph-app-canva group-hover/banner:-translate-y-1 transition-transform duration-300" style="transition-delay: 60ms"><span class="material-symbols-outlined">palette</span></span>
+      </div>
+      <a
+        routerLink="/panel/grupos/nuevo"
+        class="hover:bg-slate-50 group/btn inline-flex items-center gap-1.5 px-5 py-2.5 bg-white border border-emerald-200 text-pink text-xs font-bold rounded-lg active:scale-95 transition-all whitespace-nowrap"
+      >
+        Compartir otra suscripción
+        <span class="material-symbols-outlined text-sm transition-transform group-hover/btn:translate-x-0.5">arrow_forward</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Mis suscripciones activas (comprador) -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="lg:col-span-2">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-extrabold text-ink tracking-tight flex items-center gap-2">
+          <span class="material-symbols-outlined text-pink">subscriptions</span>
+          Mis suscripciones activas
+        </h2>
+        @if (joinedGroups() && joinedGroups()!.length > 0) {
+          <a routerLink="/panel/grupos" class="group/link text-xs font-bold text-pink inline-flex items-center gap-0.5 hover:gap-1.5 transition-all">
+            Ver todas
+            <span class="material-symbols-outlined text-sm transition-transform group-hover/link:translate-x-0.5">arrow_forward</span>
+          </a>
+        }
+      </div>
+
+      @if (joinedGroups() === null) {
+        <div class="p-8 rounded-3xl bg-crema-inset shadow-neu-inset text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+      } @else if (joinedGroups()!.length === 0) {
+        <div class="relative overflow-visible p-6 sm:p-8 rounded-3xl bg-white shadow-neu-raised border border-white/70 flex items-center justify-between gap-6 flex-wrap">
+          <p class="hand-note hand-note-sub hidden lg:block" aria-hidden="true">
+            Comparte.<br />Ahorra.<br />Disfruta más.
+            <svg class="hand-note-arrow" viewBox="0 0 40 34" fill="none" aria-hidden="true"><path d="M35 3C30 14 20 22 6 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" /><path d="M13 27 L5 25 L8 32" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </p>
+          <div class="flex items-center gap-5 min-w-0">
+            <span class="ph-box-icon hidden sm:flex shrink-0 hover:scale-110 hover:-rotate-6 transition-transform duration-300" aria-hidden="true">
+              <span class="material-symbols-outlined">inventory_2</span>
+              <i class="ph-box-spark ph-box-spark-a"></i>
+              <i class="ph-box-spark ph-box-spark-b"></i>
+            </span>
+            <div class="max-w-sm">
+              <p class="text-sm font-bold text-ink mb-1">Aún no perteneces a ningún grupo</p>
+              <p class="text-xs text-on-surface-variant mb-4">Explora el marketplace y encuentra las suscripciones que mejor se adapten a ti.</p>
+              <a
+                routerLink="/panel/explorar"
+                class="group/btn inline-flex items-center gap-1.5 px-5 py-2.5 bg-ink text-white text-xs font-bold rounded-lg hover:bg-ink-surface active:scale-95 transition-all"
+              >
+                Ver marketplace
+                <span class="material-symbols-outlined text-sm transition-transform group-hover/btn:translate-x-0.5">arrow_forward</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          @for (group of previewJoinedGroups(); track group.id) {
+            <a
+              [routerLink]="['/panel/grupos', group.id]"
+              class="anim-in p-5 rounded-2xl bg-white shadow-neu-raised border border-white/70 block hover:shadow-neu-raised-lg hover:-translate-y-1 active:translate-y-0 transition-all duration-300"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <app-platform-logo class="w-9 h-9 rounded-lg font-black text-sm shrink-0" [name]="group.plan.platform.name" />
+                  <div class="min-w-0">
+                    <span class="text-sm font-bold text-ink block truncate">{{ group.plan.platform.name }}</span>
+                    <span class="text-[11px] text-on-surface-variant truncate block">{{ group.plan.tierName }}</span>
+                  </div>
+                </div>
+                <span class="text-sm font-black text-ink shrink-0">${{ group.pricePerSlot }}<span class="text-[10px] font-semibold text-on-surface-variant">/mes</span></span>
+              </div>
+              <span class="flex items-center gap-1 text-[11px] text-on-surface-variant font-medium">
+                <span class="material-symbols-outlined text-sm">event_repeat</span>
+                Renovación {{ renewalLabel(group.nextRenewalDate) }}
+              </span>
+            </a>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="group relative overflow-visible p-6 rounded-3xl bg-white shadow-neu-raised border border-white/70 hover:shadow-neu-raised-lg hover:-translate-y-1 transition-all duration-300">
+      <p class="text-sm font-extrabold text-ink flex items-center gap-2 mb-3.5">
+        <span class="material-symbols-outlined text-pink text-xl group-hover:scale-125 group-hover:rotate-12 transition-transform duration-300 inline-block" style="font-variation-settings: 'FILL' 1">star</span>
+        Te recomendamos
+      </p>
+      <ul class="space-y-2.5 text-xs text-on-surface-variant font-medium">
+        <li class="flex items-center gap-2 hover:text-ink transition-colors">
+          <span class="material-symbols-outlined text-pink text-base">check_circle</span>
+          Netflix, Spotify, Disney+ y más.
+        </li>
+        <li class="flex items-center gap-2 hover:text-ink transition-colors">
+          <span class="material-symbols-outlined text-pink text-base">check_circle</span>
+          Grupos seguros y verificados.
+        </li>
+        <li class="flex items-center gap-2 hover:text-ink transition-colors">
+          <span class="material-symbols-outlined text-pink text-base">check_circle</span>
+          Precios más bajos que en la app oficial.
+        </li>
+      </ul>
+
+      <div class="ph-brand-cluster-wrap" aria-hidden="true">
+        <app-platform-logo class="ph-brand-chip ph-brand-chip-1 rotate-[-8deg] transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-[-18deg]" name="Disney+" />
+        <app-platform-logo class="ph-brand-chip ph-brand-chip-2 rotate-6 transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-16" name="Spotify" />
+        <app-platform-logo class="ph-brand-chip ph-brand-chip-3 rotate-[-4deg] transition-transform duration-300 group-hover:translate-y-1 group-hover:rotate-[-14deg]" name="Netflix" />
+        <i class="ph-brand-spark ph-brand-spark-a"></i>
+        <i class="ph-brand-spark ph-brand-spark-b"></i>
+      </div>
+    </div>
+  </div>
+</div>

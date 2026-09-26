@@ -1,0 +1,102 @@
+<div class="max-w-3xl mx-auto space-y-5">
+  <a routerLink="/panel/mayoreo" class="inline-flex items-center gap-1.5 text-sm font-bold text-on-surface-variant hover:text-ink transition-colors">
+    <span class="material-symbols-outlined text-lg">arrow_back</span>
+    Volver a mayoreo
+  </a>
+
+  @if (listing() === undefined) {
+    <div class="p-8 rounded-3xl bg-white/90 shadow-neu-raised border border-white/70 text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+  } @else if (listing() === null) {
+    <div class="p-8 rounded-3xl bg-white/90 shadow-neu-raised border border-white/70 text-center space-y-3">
+      <span class="material-symbols-outlined text-3xl text-red-500 block">error</span>
+      <p class="text-sm font-semibold text-ink">{{ errorMessage() || 'No se pudo cargar esta cuenta.' }}</p>
+      <button type="button" (click)="goToMayoreo()" class="text-xs font-bold text-pink">Volver a mayoreo</button>
+    </div>
+  } @else if (listing(); as l) {
+    <div class="p-6 sm:p-8 rounded-[28px] bg-white shadow-neu-raised border border-white/70 space-y-6">
+      <div class="flex items-start gap-4">
+        <app-platform-logo class="w-16 h-16 rounded-2xl font-black text-2xl shrink-0" [name]="l.plan.platform.name" />
+        <div class="min-w-0">
+          <h1 class="text-xl font-extrabold text-ink tracking-tight">{{ l.plan.platform.name }}</h1>
+          <p class="text-sm text-on-surface-variant font-medium">{{ l.plan.tierName }}</p>
+          <p class="text-[11px] text-on-surface-variant mt-1">Vendido por <strong class="text-ink">{{ l.providerProfile.businessName }}</strong></p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 text-center">
+          <span class="material-symbols-outlined text-on-surface-variant text-lg">group</span>
+          <p class="text-lg font-black text-ink mt-1">{{ l.plan.maxSlots }}</p>
+          <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Perfiles</p>
+        </div>
+        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 text-center">
+          <span class="material-symbols-outlined text-on-surface-variant text-lg">sell</span>
+          <p class="text-lg font-black text-ink mt-1">${{ l.plan.officialPrice }}</p>
+          <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Oficial</p>
+        </div>
+        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 text-center">
+          <span class="material-symbols-outlined text-on-surface-variant text-lg">calendar_month</span>
+          <p class="text-sm font-black text-ink mt-1 capitalize">{{ billingPeriodLabel(l.plan.billingPeriod) }}</p>
+          <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Facturación</p>
+        </div>
+        <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-100 text-center">
+          <span class="material-symbols-outlined text-emerald-700 text-lg">inventory_2</span>
+          <p class="text-lg font-black text-emerald-800 mt-1">{{ l.stockQuantity }}</p>
+          <p class="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">Disponibles</p>
+        </div>
+      </div>
+
+      <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/70">
+        <p class="text-[11px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">Precio de mayoreo</p>
+        <p class="text-3xl font-black text-ink tabular-nums">${{ l.wholesalePrice }}</p>
+        @if (saving(); as s) {
+          <p class="text-xs font-semibold text-emerald-700 mt-1.5">Ahorras ${{ s.amount.toFixed(2) }} ({{ s.pct }}%) frente al precio oficial de ${{ l.plan.officialPrice }}.</p>
+        }
+        <p class="text-[11px] text-on-surface-variant mt-1">Precio por la cuenta completa. Tú decides después cómo repartir los perfiles.</p>
+      </div>
+
+      <!-- Renovable o no -->
+      <div class="flex items-start gap-3 p-4 rounded-2xl" [class]="l.renewable ? 'bg-blue-50 text-blue-900' : 'bg-amber-50 text-amber-900'">
+        <span class="material-symbols-outlined text-lg shrink-0">{{ l.renewable ? 'autorenew' : 'swap_horiz' }}</span>
+        <div class="text-xs leading-relaxed">
+          @if (l.renewable) {
+            <p class="font-bold">Cuenta renovable · vigencia de {{ l.validityDays }} días</p>
+            <p>Conservas la misma cuenta: cada {{ l.validityDays }} días la renuevas (mismo precio) desde Mayoreo y se alarga su vigencia. Puedes renovar desde 7 días antes de que venza.</p>
+          } @else {
+            <p class="font-bold">Cuenta no renovable · vigencia de {{ l.validityDays }} días</p>
+            <p>La cuenta se cambia cada {{ l.validityDays }} días: al vencer compras su reposición y actualizamos las credenciales de tu grupo automáticamente. Puedes pedirla desde 7 días antes.</p>
+          }
+        </div>
+      </div>
+
+      <div class="flex items-start gap-3 p-4 rounded-2xl bg-slate-50 text-ink border border-slate-200/70">
+        <span class="material-symbols-outlined text-lg shrink-0 text-pink">account_balance</span>
+        <p class="text-xs leading-relaxed">
+          Al reservar apartamos la cuenta para ti y tienes <strong>48 horas</strong> para transferir ${{ l.wholesalePrice }} a la cuenta de Vakeva y subir tu comprobante. Cuando confirmemos que llegó, te entregamos las credenciales.
+        </p>
+      </div>
+
+      @if (access(); as a) {
+        @if (a.authorized && a.monthlyCap !== null) {
+          <p class="text-xs font-semibold" [class]="capReached() ? 'text-amber-700' : 'text-on-surface-variant'">
+            Llevas {{ a.usedThisMonth }} de {{ a.monthlyCap }} {{ a.monthlyCap === 1 ? 'cuenta' : 'cuentas' }} este mes.
+          </p>
+        }
+      }
+
+      @if (errorMessage()) {
+        <div class="p-3 rounded-xl bg-red-50 text-red-700 text-xs font-semibold">{{ errorMessage() }}</div>
+      }
+
+      <button
+        type="button"
+        [disabled]="submitting() || l.stockQuantity < 1 || capReached()"
+        (click)="reserve()"
+        class="hover:bg-[#047857] w-full py-3.5 rounded-lg bg-pink text-white text-sm font-bold active:scale-[0.99] transition-all disabled:opacity-60 disabled:hover:bg-pink flex items-center justify-center gap-2"
+      >
+        <span class="material-symbols-outlined text-lg">lock_clock</span>
+        {{ submitting() ? 'Reservando…' : l.stockQuantity < 1 ? 'Sin stock disponible' : capReached() ? 'Llegaste a tu tope del mes' : 'Reservar y pagar' }}
+      </button>
+    </div>
+  }
+</div>

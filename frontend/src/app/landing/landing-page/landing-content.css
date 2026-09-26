@@ -1,0 +1,8 @@
+:host,.landing-progressive-content{display:block;background:#f8f7f3}
+.landing-section-placeholder{height:210px;display:flex;align-items:center;justify-content:center;gap:9px;background:#f8f7f3}
+.landing-section-placeholder.dark{background:#063e46}.landing-section-placeholder.footer{background:#0d1228}
+.landing-section-placeholder i{width:8px;height:8px;border-radius:50%;background:#079673;opacity:.22;animation:section-load 1.15s ease-in-out infinite}
+.landing-section-placeholder.dark i,.landing-section-placeholder.footer i{background:#65ebca}
+.landing-section-placeholder i:nth-child(2){animation-delay:.14s}.landing-section-placeholder i:nth-child(3){animation-delay:.28s}
+@keyframes section-load{50%{opacity:.9;transform:translateY(-6px)}}
+@media(prefers-reduced-motion:reduce){.landing-section-placeholder i{animation:none}}

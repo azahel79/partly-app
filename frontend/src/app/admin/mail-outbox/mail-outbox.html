@@ -1,0 +1,145 @@
+<div class="space-y-6">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-extrabold text-ink tracking-tight">Correos</h1>
+      <p class="text-sm text-on-surface-variant font-medium mt-1">Todo lo que la app le manda a las personas por correo: recordatorios de pago, avisos de comisión, vencimientos del mayoreo y más.</p>
+    </div>
+    <button type="button" (click)="sendTest()" [disabled]="testing()" class="py-2.5 px-5 rounded-lg bg-pink hover:bg-[#047857] active:scale-[0.98] text-white text-sm font-bold transition-all disabled:opacity-60 flex items-center gap-2">
+      <span class="material-symbols-outlined text-lg">send</span>{{ testing() ? 'Enviando…' : 'Enviar correo de prueba' }}
+    </button>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-2xl bg-red-50 border border-red-100 text-xs text-red-700 font-semibold">{{ errorMessage() }}</div>
+  }
+  @if (notice()) {
+    <div class="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-900"><span class="material-symbols-outlined">check_circle</span><p class="text-sm font-semibold">{{ notice() }}</p></div>
+  }
+
+  <!-- Estado del envío -->
+  @if (status(); as s) {
+    <section class="rounded-2xl bg-white border overflow-hidden" [class]="s.simulated ? 'border-amber-200' : s.ready ? 'border-emerald-200' : 'border-red-200'">
+      <div class="p-5 flex flex-wrap items-center gap-4 justify-between" [class]="s.simulated ? 'bg-amber-50/70' : s.ready ? 'bg-emerald-50/70' : 'bg-red-50/70'">
+        <div class="flex items-start gap-3 min-w-0">
+          <span class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" [class]="s.simulated ? 'bg-amber-100 text-amber-800' : s.ready ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'"><span class="material-symbols-outlined text-2xl">{{ s.simulated ? 'science' : s.ready ? 'mark_email_read' : 'error' }}</span></span>
+          <div class="min-w-0">
+            @if (s.simulated) {
+              <p class="text-sm font-extrabold text-ink">Modo simulado</p>
+              <p class="text-xs text-on-surface-variant mt-0.5 max-w-xl">Los correos se preparan y se guardan aquí, pero no salen de la app: sirve para ver cómo quedan y probar los flujos. Cuando tengas dominio y proveedor, se activa el envío real sin tocar código.</p>
+            } @else if (s.ready) {
+              <p class="text-sm font-extrabold text-ink">Envío real por {{ providerLabel[s.provider] }}</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">Remitente: {{ s.from }}{{ s.replyTo ? ' · responden a ' + s.replyTo : '' }}</p>
+            } @else {
+              <p class="text-sm font-extrabold text-red-800">{{ providerLabel[s.provider] }} está elegido, pero falta configurarlo</p>
+              <p class="text-xs text-red-900 mt-0.5">Faltan estas variables en el backend: <strong>{{ s.missing.join(', ') }}</strong>. Mientras tanto los correos quedan en cola y salen solos cuando lo completes.</p>
+            }
+          </div>
+        </div>
+        <dl class="grid grid-cols-3 gap-5 text-center shrink-0">
+          <div><dt class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Últimas 24 h</dt><dd class="text-xl font-black text-ink tabular-nums">{{ s.counts.sentLast24h }}</dd></div>
+          <div><dt class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">En cola</dt><dd class="text-xl font-black tabular-nums" [class]="s.counts.queued ? 'text-amber-700' : 'text-ink'">{{ s.counts.queued }}</dd></div>
+          <div><dt class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Fallidos</dt><dd class="text-xl font-black tabular-nums" [class]="s.counts.failed ? 'text-red-600' : 'text-ink'">{{ s.counts.failed }}</dd></div>
+        </dl>
+      </div>
+
+      <!-- Guía para activar el envío real -->
+      <div class="border-t border-slate-100">
+        <button type="button" (click)="guideOpen.set(!guideOpen())" class="w-full px-5 py-3.5 flex items-center justify-between gap-3 text-left hover:bg-slate-50 transition-colors">
+          <span class="flex items-center gap-2 text-sm font-bold text-ink"><span class="material-symbols-outlined text-lg text-pink">rocket_launch</span>Cómo activar el envío real cuando tengas dominio</span>
+          <span class="material-symbols-outlined text-on-surface-variant">{{ guideOpen() ? 'expand_less' : 'expand_more' }}</span>
+        </button>
+        @if (guideOpen()) {
+          <div class="px-5 pb-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ol class="space-y-3 text-sm text-on-surface-variant">
+              <li class="flex gap-3"><span class="w-6 h-6 rounded-full bg-slate-100 text-ink text-xs font-black flex items-center justify-center shrink-0">1</span><p><strong class="text-ink">Elige un proveedor.</strong> Resend y Brevo tienen plan gratuito y se configuran con una llave. SMTP sirve con cualquier correo (también puedes probar antes con una cuenta normal usando una contraseña de aplicación).</p></li>
+              <li class="flex gap-3"><span class="w-6 h-6 rounded-full bg-slate-100 text-ink text-xs font-black flex items-center justify-center shrink-0">2</span><p><strong class="text-ink">Verifica tu dominio</strong> en el proveedor y agrega en tu DNS los registros que te pida: <strong>SPF</strong> y <strong>DKIM</strong> (y DMARC, recomendado). Sin esto los correos caen en spam.</p></li>
+              <li class="flex gap-3"><span class="w-6 h-6 rounded-full bg-slate-100 text-ink text-xs font-black flex items-center justify-center shrink-0">3</span><p><strong class="text-ink">Copia las variables</strong> del recuadro a <code class="px-1 rounded bg-slate-100">backend/.env</code> y reinicia el backend.</p></li>
+              <li class="flex gap-3"><span class="w-6 h-6 rounded-full bg-slate-100 text-ink text-xs font-black flex items-center justify-center shrink-0">4</span><p><strong class="text-ink">Prueba.</strong> Vuelve aquí y pulsa "Enviar correo de prueba": este estado pasa de "Modo simulado" a "Envío real". Los que ya estén en cola salen solos.</p></li>
+            </ol>
+            <div>
+              <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg w-fit mb-2">
+                @for (tab of snippetTabs; track tab.key) {
+                  <button type="button" (click)="snippetTab.set(tab.key)" [class]="snippetTab() === tab.key ? 'bg-white text-ink shadow-sm' : 'text-on-surface-variant'" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all">{{ tab.label }}</button>
+                }
+              </div>
+              <div class="relative">
+                <pre class="p-4 rounded-xl bg-ink text-emerald-100 text-xs leading-relaxed overflow-x-auto"><code>{{ snippet() }}</code></pre>
+                <button type="button" (click)="copySnippet()" class="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold">{{ snippetCopied() ? 'Copiado' : 'Copiar' }}</button>
+              </div>
+              <p class="text-[11px] text-on-surface-variant mt-2">El remitente (MAIL_FROM_ADDRESS) debe ser una dirección de tu dominio verificado.</p>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Bandeja -->
+  <div class="flex flex-wrap items-center gap-3">
+    <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto max-w-full">
+      @for (opt of filters; track opt.value) {
+        <button type="button" (click)="setFilter(opt.value)" [class]="filter() === opt.value ? 'bg-white text-ink shadow-sm' : 'text-on-surface-variant hover:text-ink'" class="whitespace-nowrap px-3.5 py-2 text-xs font-bold rounded-lg transition-all">{{ opt.label }}</button>
+      }
+    </div>
+    <div class="relative flex-1 min-w-[220px] max-w-sm">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+      <input type="search" [value]="search()" (input)="onSearch($any($event.target).value)" placeholder="Buscar por destinatario o asunto" class="w-full bg-white rounded-xl py-2.5 pl-10 pr-4 text-sm font-semibold text-ink placeholder:text-slate-400 placeholder:font-medium border border-slate-200 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink" />
+    </div>
+    <button type="button" (click)="load()" class="py-2.5 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-ink text-xs font-bold flex items-center gap-1"><span class="material-symbols-outlined text-base">refresh</span>Actualizar</button>
+  </div>
+
+  @if (messages() === null) {
+    <div class="p-8 rounded-2xl bg-white border border-slate-200/70 text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+  } @else if (messages()!.length === 0) {
+    <div class="p-8 rounded-2xl bg-white border border-slate-200/70 text-center">
+      <span class="material-symbols-outlined text-2xl text-on-surface-variant/40 mb-2 block">outbox</span>
+      <p class="text-sm font-semibold text-on-surface-variant">No hay correos {{ filter() || search() ? 'con ese filtro' : 'todavía' }}.</p>
+    </div>
+  } @else {
+    <div class="space-y-2">
+      @for (m of messages(); track m.id) {
+        <article class="p-4 rounded-2xl bg-white border border-slate-200/70 flex flex-col md:flex-row md:items-center gap-3">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="px-2 py-0.5 rounded-full text-xs font-bold shrink-0" [class]="statusLabel[m.status].tone">{{ statusLabel[m.status].label }}</span>
+              <p class="text-sm font-bold text-ink truncate">{{ m.subject }}</p>
+            </div>
+            <p class="text-xs text-on-surface-variant mt-0.5 truncate">Para {{ m.toEmail }} · {{ templateLabel(m.template) }}</p>
+            <p class="text-[11px] text-on-surface-variant mt-0.5">
+              Creado {{ formatDate(m.createdAt) }}
+              @if (m.status === 'SENT' && m.sentAt) { · {{ m.provider === 'log' ? 'simulado' : 'enviado' }} {{ formatDate(m.sentAt) }}{{ m.provider && m.provider !== 'log' ? ' por ' + m.provider : '' }} }
+              @if (m.status === 'QUEUED' && m.sendAfter) { · sale a partir del {{ formatDate(m.sendAfter) }} }
+              @if (m.attempts > 1 || (m.attempts > 0 && m.status !== 'SENT')) { · {{ m.attempts }} intento{{ m.attempts === 1 ? '' : 's' }} }
+            </p>
+            @if (m.error) { <p class="text-[11px] text-red-600 font-semibold mt-0.5 break-words">{{ m.error }}</p> }
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button type="button" (click)="openPreview(m)" [disabled]="loadingPreviewId() === m.id" class="py-2 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-ink text-xs font-bold flex items-center gap-1 disabled:opacity-60"><span class="material-symbols-outlined text-sm">visibility</span>Ver correo</button>
+            @if (m.status === 'FAILED' || m.status === 'SKIPPED') {
+              <button type="button" (click)="retry(m)" [disabled]="retryingId() === m.id" class="py-2 px-3.5 rounded-lg bg-pink hover:bg-[#047857] text-white text-xs font-bold disabled:opacity-60">{{ retryingId() === m.id ? 'Reintentando…' : 'Reintentar' }}</button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+    @if (total() > messages()!.length) {
+      <p class="text-xs text-center text-on-surface-variant">Mostrando los {{ messages()!.length }} más recientes de {{ total() }}. Usa la búsqueda o los filtros para acotar.</p>
+    }
+  }
+
+  <!-- Vista previa -->
+  @if (preview(); as p) {
+    <div class="fixed inset-0 z-50 bg-ink/50 flex items-center justify-center p-4" (click)="preview.set(null)">
+      <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden" (click)="$event.stopPropagation()">
+        <header class="px-5 py-4 border-b border-slate-100 flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-sm font-extrabold text-ink truncate">{{ p.subject }}</p>
+            <p class="text-xs text-on-surface-variant truncate">Para {{ p.toEmail }} · {{ templateLabel(p.template) }}</p>
+          </div>
+          <button type="button" (click)="preview.set(null)" class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500" aria-label="Cerrar"><span class="material-symbols-outlined">close</span></button>
+        </header>
+        <iframe class="w-full flex-1 min-h-[480px] bg-[#f4f6fa]" sandbox="" title="Vista previa del correo" [srcdoc]="previewHtml()"></iframe>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,155 @@
+<div class="panel-shell min-h-screen w-full bg-[#FCF8FF]">
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="pl-blob pl-blob-slow absolute -top-40 -right-32 w-136 h-104 bg-emerald-200/22" style="animation-delay: -2s"></div>
+    <div class="pl-blob pl-blob-fast absolute -top-10 right-88 w-64 h-64 bg-emerald-300/16" style="animation-delay: -6s"></div>
+    <div class="pl-blob pl-blob-slow absolute -bottom-32 -left-28 w-120 h-104 bg-emerald-200/22" style="animation-delay: -12s"></div>
+    <div class="pl-blob pl-blob-fast absolute -bottom-36 -right-32 w-lg h-112 bg-[#E8E5FF]/38" style="animation-delay: -4s"></div>
+  </div>
+
+  <header class="panel-header sticky top-0 z-40 bg-[#FCF8FF]/90 backdrop-blur-md border-b border-crema-border/60">
+    <div class="panel-header-row max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <a routerLink="/" class="group flex items-center shrink-0">
+        <img [src]="theme.isDark() ? 'vakeva-logo-dark.png' : 'vakeva-logo.png'" alt="Vakeva" class="h-11 w-auto group-hover:scale-105 transition-transform" />
+      </a>
+
+      <nav aria-label="Panel" class="panel-navigation flex items-center gap-1 bg-crema-inset shadow-neu-inset-sm p-1 rounded-full overflow-x-auto">
+        <a
+          routerLink="/panel"
+          [routerLinkActiveOptions]="{ exact: true }"
+          routerLinkActive="bg-pink text-white shadow-[0_4px_12px_rgba(5,150,105,0.35)] hover:scale-100"
+          class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-surface-variant rounded-full transition-all hover:bg-white hover:text-ink hover:shadow-sm hover:scale-105 active:scale-95"
+        >
+          Inicio
+        </a>
+        <a
+          routerLink="/panel/explorar"
+          routerLinkActive="bg-pink text-white shadow-[0_4px_12px_rgba(5,150,105,0.35)] hover:scale-100"
+          class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-surface-variant rounded-full transition-all hover:bg-white hover:text-ink hover:shadow-sm hover:scale-105 active:scale-95"
+        >
+          Explorar grupos
+        </a>
+        <a
+          routerLink="/panel/grupos"
+          routerLinkActive="bg-pink text-white shadow-[0_4px_12px_rgba(5,150,105,0.35)] hover:scale-100"
+          class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-surface-variant rounded-full transition-all hover:bg-white hover:text-ink hover:shadow-sm hover:scale-105 active:scale-95"
+        >
+          Mis grupos
+        </a>
+        <a
+          routerLink="/panel/mayoreo"
+          routerLinkActive="bg-pink text-white shadow-[0_4px_12px_rgba(5,150,105,0.35)] hover:scale-100"
+          class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-surface-variant rounded-full transition-all hover:bg-white hover:text-ink hover:shadow-sm hover:scale-105 active:scale-95"
+        >
+          Mayoreo
+        </a>
+        <a
+          routerLink="/panel/soporte"
+          routerLinkActive="bg-pink text-white shadow-[0_4px_12px_rgba(5,150,105,0.35)] hover:scale-100"
+          class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-surface-variant rounded-full transition-all hover:bg-white hover:text-ink hover:shadow-sm hover:scale-105 active:scale-95"
+        >
+          Soporte
+        </a>
+      </nav>
+
+      <div class="panel-header-actions flex items-center gap-2 shrink-0">
+        @if (authService.isAdmin()) {
+          <a
+          routerLink="/admin"
+            class="h-9 px-2.5 sm:px-3 rounded-full bg-ink text-crema shadow-neu-raised-sm hover:bg-pink hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 transition-all"
+            aria-label="Panel de administración"
+            title="Panel de administración"
+          >
+            <span class="material-symbols-outlined text-lg">shield_person</span>
+            <span class="hidden lg:inline text-[11px] font-bold">Panel admin</span>
+          </a>
+        }
+        <app-theme-toggle />
+        <a
+          routerLink="/panel/explorar"
+          class="w-9 h-9 rounded-full bg-crema shadow-neu-raised-sm hover:shadow-neu-inset-sm hover:scale-110 active:scale-95 flex items-center justify-center text-on-surface-variant hover:text-pink transition-all"
+          aria-label="Buscar grupos"
+        >
+          <span class="material-symbols-outlined text-lg">search</span>
+        </a>
+
+        <div class="relative">
+          <button
+            type="button"
+            (click)="toggleNotifPanel()"
+            class="h-9 min-w-9 px-2 rounded-full bg-crema shadow-neu-raised-sm hover:shadow-neu-inset-sm hover:scale-110 active:scale-95 flex items-center justify-center gap-1 text-on-surface-variant hover:text-pink transition-all"
+            [attr.aria-label]="'Notificaciones, ' + unreadCount() + ' sin leer'"
+          >
+            <span class="material-symbols-outlined text-lg">notifications</span>
+            <span
+              class="min-w-[18px] h-[18px] px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center leading-none"
+              [class]="unreadCount() > 0 ? 'bg-pink' : 'bg-on-surface-variant/45'"
+            >{{ unreadCount() > 99 ? '99+' : unreadCount() }}</span>
+          </button>
+
+          @if (notifPanelOpen()) {
+            <div class="fixed inset-0 z-40" (click)="closeNotifPanel()"></div>
+            <section class="notification-panel">
+              <header class="notification-header">
+                <div><h2>Notificaciones</h2><p>Mantente al día con la actividad de tus grupos</p></div>
+                <button type="button" [disabled]="markingAllRead() || unreadCount() === 0" (click)="markAllRead()"><span class="material-symbols-outlined">done_all</span>{{ markingAllRead() ? 'Marcando…' : 'Marcar todas como leídas' }}</button>
+              </header>
+
+              <nav class="notification-filters" aria-label="Filtrar notificaciones">
+                <button type="button" [class.active]="notificationFilter() === 'all'" (click)="setNotificationFilter('all')">Todas <b>{{ notificationCounts().all }}</b></button>
+                <button type="button" [class.active]="notificationFilter() === 'groups'" (click)="setNotificationFilter('groups')">Grupos <b>{{ notificationCounts().groups }}</b></button>
+                <button type="button" [class.active]="notificationFilter() === 'system'" (click)="setNotificationFilter('system')">Sistema <b>{{ notificationCounts().system }}</b></button>
+                <button type="button" [class.active]="notificationFilter() === 'promotions'" (click)="setNotificationFilter('promotions')">Promociones @if (notificationCounts().promotions > 0) { <b>{{ notificationCounts().promotions }}</b> }</button>
+              </nav>
+
+              <div class="notification-list">
+                @if (notifications() === null) {
+                  <div class="notification-empty"><span class="material-symbols-outlined">hourglass_top</span><p>Cargando notificaciones…</p></div>
+                } @else if (filteredNotifications().length === 0) {
+                  <div class="notification-empty"><span class="material-symbols-outlined">notifications_none</span><p>No hay notificaciones en esta categoría.</p></div>
+                } @else {
+                  @for (notification of filteredNotifications(); track notification.id) {
+                    <button type="button" class="notification-item" [class.unread]="!notification.readAt" [attr.data-tone]="notificationTone(notification)" (click)="openNotification(notification)">
+                      @if (!notification.readAt) { <i class="unread-dot"></i> }
+                      <span class="notification-type-icon"><span class="material-symbols-outlined">{{ notificationIcon(notification) }}</span></span>
+                      <span class="notification-copy"><strong>{{ notificationTitle(notification) }}</strong><span>{{ notification.payload }}</span><small>{{ relativeTime(notification.createdAt) }}</small></span>
+                      @if (notification.groupId) { <span class="material-symbols-outlined notification-arrow">chevron_right</span> }
+                    </button>
+                  }
+                }
+              </div>
+
+              <a routerLink="/panel/notificaciones" class="notification-footer" (click)="closeNotifPanel()">Ver todas las notificaciones <span class="material-symbols-outlined">arrow_forward</span></a>
+            </section>
+          }
+        </div>
+
+        <div class="profile-menu-wrap">
+          <button type="button" class="profile-trigger" [class.open]="profileMenuOpen()" (click)="toggleProfileMenu()" aria-label="Abrir menú de cuenta" [attr.aria-expanded]="profileMenuOpen()">
+            <span class="profile-trigger-avatar">
+              @if (authService.currentUser()?.avatarUrl) { <img [src]="authService.currentUser()?.avatarUrl" alt="" /> }
+              @else { {{ initials() }} }
+            </span>
+            <span class="profile-trigger-copy"><strong>{{ authService.currentUser()?.name }}</strong>@if (authService.isAdmin()) { <small>Administrador</small> } @else { <small>Mi cuenta</small> }</span>
+            <span class="material-symbols-outlined profile-chevron">expand_more</span>
+          </button>
+          @if (profileMenuOpen()) {
+            <div class="fixed inset-0 z-40" (click)="closeProfileMenu()"></div>
+            <div class="profile-dropdown">
+              <header><span class="profile-trigger-avatar">@if (authService.currentUser()?.avatarUrl) { <img [src]="authService.currentUser()?.avatarUrl" alt="" /> } @else { {{ initials() }} }</span><div><strong>{{ authService.currentUser()?.name }}</strong><small>{{ authService.currentUser()?.email }}</small></div></header>
+              <a routerLink="/panel/ganancias" (click)="closeProfileMenu()"><span class="material-symbols-outlined">savings</span><div><strong>Mis ganancias</strong><small>Lo que ganas por tus grupos</small></div><i class="material-symbols-outlined">chevron_right</i></a>
+              <a routerLink="/panel/comisiones" (click)="closeProfileMenu()"><span class="material-symbols-outlined">request_quote</span><div><strong>Comisiones</strong><small>Lo que le pagas a Vakeva</small></div><i class="material-symbols-outlined">chevron_right</i></a>
+              <a routerLink="/panel/perfil" (click)="closeProfileMenu()"><span class="material-symbols-outlined">manage_accounts</span><div><strong>Editar perfil</strong><small>Datos, seguridad y preferencias</small></div><i class="material-symbols-outlined">chevron_right</i></a>
+              <a routerLink="/panel/perfil" [queryParams]="{ tab: 'notifications' }" (click)="closeProfileMenu()"><span class="material-symbols-outlined">notifications</span><div><strong>Notificaciones</strong><small>Configura tus avisos</small></div><i class="material-symbols-outlined">chevron_right</i></a>
+              <button type="button" (click)="logout()"><span class="material-symbols-outlined">logout</span><div><strong>Cerrar sesión</strong><small>Salir de este dispositivo</small></div></button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="panel-content relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <app-commission-notice class="block empty:hidden mb-5" />
+    <router-outlet />
+  </main>
+</div>

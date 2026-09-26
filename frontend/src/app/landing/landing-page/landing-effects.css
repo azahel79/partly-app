@@ -1,0 +1,135 @@
+app-landing-page .landing-scroll-progress {
+  position: fixed; z-index: 90; inset: 0 0 auto; height: 3px;
+  pointer-events: none; transform-origin: left;
+  background: linear-gradient(90deg, #008d71, #24ddb1, #b0fff0);
+  box-shadow: 0 0 14px #00bf9290;
+}
+app-landing-page :is(.security-card, .owner-card, .price-card) { position: relative; }
+app-landing-page .landing-cursor-glow {
+  position: absolute; z-index: 6; left: 0; top: 0; width: 170px; height: 170px;
+  margin: -85px 0 0 -85px; border-radius: 50%; opacity: 0; pointer-events: none;
+  background: radial-gradient(circle, #2edeb525, transparent 67%);
+}
+app-landing-page .landing-particles {
+  position: absolute; z-index: 1; inset: 0; pointer-events: none; overflow: hidden;
+  border-radius: inherit;
+}
+app-landing-page .landing-particle {
+  position: absolute; display: block; width: 3px; height: 3px;
+  border-radius: 50%; background: #79ffe0; box-shadow: 0 0 9px #36edbe;
+}
+@media(prefers-reduced-motion: no-preference) {
+  app-landing-page :is(.landing-scene-scope:not(.landing-scene-visible), .landing-scene-scope:not(.landing-scene-visible) *) {
+    animation-play-state: paused !important;
+  }
+}
+app-landing-page .landing-click-ring {
+  position: fixed; z-index: 100; width: 36px; height: 36px; margin: -18px;
+  border: 2px solid #0cba8d; border-radius: 50%; pointer-events: none;
+}
+@media(prefers-reduced-motion: no-preference) {
+  app-landing-page :is(.hero-accent, .process-header h2 span, .platforms-heading h2 span, .owners-heading h2 span, .testimonials-heading h2 span) {
+    background-image: linear-gradient(105deg, #009876 25%, #2cdcb0 43%, #98efd8 50%, #009876 65%);
+    background-size: 240% 100%; background-clip: text; -webkit-background-clip: text;
+    color: transparent; animation: landing-text-light 8s ease-in-out infinite;
+  }
+  app-landing-page :is(.hero-benefits>div, .platform-card-footer>div>span) {
+    transition: translate .3s ease, box-shadow .3s ease;
+  }
+  app-landing-page :is(.hero-benefits>div, .platform-card-footer>div>span):hover { translate: 0 -5px; }
+  app-landing-page :is(.hero-form button, .comparison-cta, .calculator>a, .cta-content form button) {
+    background-size: 200% 100%;
+    animation: landing-button-light 5s ease-in-out infinite;
+  }
+}
+@keyframes landing-text-light {
+  0%,100% { background-position: 100% 50%; }
+  50% { background-position: 0% 50%; }
+}
+@keyframes landing-button-light {
+  0%,100% { box-shadow: 0 8px 20px #00886620; }
+  50% { box-shadow: 0 10px 32px #00bb8555; }
+}
+@media(max-width:767px) {
+  app-landing-page .landing-cursor-glow { display:none; }
+}
+
+/* Decorative layers never capture clicks or add to the section's dimensions. */
+app-landing-page .landing-step-highlight {
+  position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
+  border: 1px solid #18bb9470; opacity: 0;
+  box-shadow: inset 0 0 36px #12c59a12, 0 12px 40px #049c791c;
+}
+app-landing-page .landing-radar-ring {
+  position: absolute; inset: -10%; border: 1px solid #5affe0;
+  border-radius: 50%; pointer-events: none; opacity: 0;
+}
+app-landing-page :is(.landing-scan-window, .landing-aurora-window) {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  border-radius: inherit;
+}
+app-landing-page .landing-scan-window { z-index: 2; }
+app-landing-page .landing-scan-light {
+  position: absolute; top: -35%; left: 0; height: 170%; width: 35%;
+  background: linear-gradient(110deg, transparent 25%, #caffee1a 48%, #ffffff24 50%, transparent 73%);
+  transform: translateX(-140%);
+}
+app-landing-page .landing-aurora-window { z-index: 0; }
+app-landing-page .landing-aurora {
+  position: absolute; inset: -12%;
+  background: radial-gradient(ellipse at 30% 40%, #12d0a42e, transparent 48%),
+    radial-gradient(ellipse at 70% 60%, #078ca52b, transparent 45%);
+}
+
+@media(prefers-reduced-motion: no-preference) {
+  app-landing-page .calendar-grid > .pay-day { position: relative; }
+  app-landing-page .calendar-grid > .pay-day::before {
+    content: ''; position: absolute; inset: 0; border: 1px solid #04af85;
+    border-radius: inherit; pointer-events: none;
+    animation: landing-payment-ring 3.8s ease-out infinite paused;
+  }
+  app-landing-page .landing-scene-visible .calendar-grid > .pay-day::before { animation-play-state: running; }
+  app-landing-page .step-arrow {
+    animation: landing-arrow-guide 3s ease-in-out infinite paused;
+  }
+  app-landing-page .landing-scene-visible .step-arrow { animation-play-state: running; }
+  app-landing-page .active-notice > .material-symbols-outlined {
+    transform-origin: 50% 20%; animation: landing-bell 5s ease-in-out infinite paused;
+  }
+  app-landing-page .landing-scene-visible .active-notice > .material-symbols-outlined { animation-play-state: running; }
+  app-landing-page .platform-card {
+    transition: border-color .6s ease, box-shadow .6s ease;
+  }
+  app-landing-page .platform-slide.is-current .platform-card {
+    border-color: #adffe8;
+    box-shadow: 0 18px 48px #001c3440, 0 0 0 1px #40dfb84d, 0 0 28px #15d7a522;
+  }
+  app-landing-page .platform-art .art-brand {
+    transition: scale .85s cubic-bezier(.2,.7,.3,1), translate .85s cubic-bezier(.2,.7,.3,1);
+  }
+  app-landing-page .platform-slide.is-current .art-brand { scale: 1.09; translate: 0 -5px; }
+  app-landing-page .platform-badge { transition: translate .6s ease; }
+  app-landing-page .platform-slide.is-current .platform-badge { translate: 0 3px; }
+  app-landing-page .platform-dots > button { transition: width .45s ease, background-color .45s ease, scale .3s ease; }
+  app-landing-page .platform-dots > button:hover { scale: 1.25; }
+  app-landing-page :is(.comparison-cta, .calendar-button, .results-button, .grace-button, .calculator > a, .cta-content button) > .material-symbols-outlined:last-child {
+    transition: translate .3s cubic-bezier(.2,.8,.2,1);
+  }
+  app-landing-page :is(.comparison-cta, .calendar-button, .results-button, .grace-button, .calculator > a, .cta-content button):is(:hover, :focus-visible) > .material-symbols-outlined:last-child { translate: 5px 0; }
+  app-landing-page .story-card > header > i { transition: box-shadow .35s ease; }
+  app-landing-page .story-card:hover > header > i { box-shadow: 0 0 0 7px #00ac8218; }
+}
+@keyframes landing-payment-ring {
+  0%, 65%, 100% { scale: 1; opacity: 0; }
+  10% { opacity: .65; }
+  55% { scale: 1.24; opacity: 0; }
+}
+@keyframes landing-arrow-guide {
+  0%, 65%, 100% { translate: 0 0; }
+  35% { translate: 7px 0; }
+}
+@keyframes landing-bell {
+  0%, 30%, 100% { rotate: 0deg; }
+  5%, 15% { rotate: 12deg; }
+  10%, 20% { rotate: -12deg; }
+}

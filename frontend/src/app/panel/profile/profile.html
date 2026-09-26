@@ -1,0 +1,157 @@
+<div class="profile-page">
+  @if (loading()) {
+    <div class="profile-loading"><span></span><span></span><span></span><p>Preparando tu perfil…</p></div>
+  } @else if (user(); as profile) {
+    <header class="profile-hero">
+      <div class="profile-avatar large">
+        @if (avatarPreview()) { <img [src]="avatarPreview()" alt="Foto de perfil" /> }
+        @else { <span>{{ initials() }}</span> }
+        <i class="material-symbols-outlined">verified</i>
+      </div>
+      <div class="profile-hero-copy">
+        <span class="eyebrow"><i class="material-symbols-outlined">shield</i> Cuenta protegida</span>
+        <h1>{{ profile.name }}</h1>
+        <p>{{ profile.email }} · Miembro desde {{ formatDate(profile.createdAt) }}</p>
+      </div>
+      <div class="completion">
+        <div><strong>{{ completion() }}%</strong><span>Perfil completo</span></div>
+        <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18"></circle><circle class="progress" cx="22" cy="22" r="18" [style.stroke-dasharray]="completion() + ' 100'"></circle></svg>
+      </div>
+    </header>
+
+    <div class="profile-layout">
+      <aside class="profile-nav" aria-label="Secciones del perfil">
+        @for (tab of tabs; track tab.id) {
+          <button type="button" [class.active]="activeTab() === tab.id" (click)="selectTab(tab.id)">
+            <span class="material-symbols-outlined">{{ tab.icon }}</span>{{ tab.label }}
+            <i class="material-symbols-outlined">chevron_right</i>
+          </button>
+        }
+      </aside>
+
+      <main class="profile-content">
+        @if (notice(); as message) {
+          <div class="notice" [attr.data-tone]="message.tone" role="status">
+            <span class="material-symbols-outlined">{{ message.tone === 'success' ? 'check_circle' : 'error' }}</span>
+            {{ message.text }}
+          </div>
+        }
+
+        @switch (activeTab()) {
+          @case ('profile') {
+            <section class="profile-section">
+              <header><span class="section-icon material-symbols-outlined">person</span><div><h2>Información personal</h2><p>Así te identificarán dentro de tus grupos y movimientos.</p></div></header>
+              <div class="avatar-editor">
+                <div class="profile-avatar">
+                  @if (avatarPreview()) { <img [src]="avatarPreview()" alt="Vista previa de la foto" /> }
+                  @else { <span>{{ initials() }}</span> }
+                </div>
+                <div><strong>Fotografía de perfil</strong><p>PNG, JPEG o WebP. Se optimiza automáticamente a 256 × 256 px.</p><div class="inline-actions"><label class="secondary-button">Cambiar imagen<input type="file" accept="image/png,image/jpeg,image/webp" (change)="chooseAvatar($event)" /></label>@if (avatarPreview()) { <button type="button" class="text-button danger" (click)="removeAvatar()">Eliminar</button> }</div></div>
+              </div>
+              <div class="form-grid">
+                <label><span>Nombre completo</span><div class="input-shell"><i class="material-symbols-outlined">badge</i><input type="text" maxlength="80" [value]="name()" (input)="name.set($any($event.target).value)" /></div></label>
+                <label><span>Teléfono</span><div class="input-shell"><i class="material-symbols-outlined">call</i><input type="tel" maxlength="80" placeholder="+52 55 1234 5678" [value]="phone()" (input)="phone.set($any($event.target).value)" /></div></label>
+                <label class="wide"><span>Correo electrónico</span><div class="input-shell readonly"><i class="material-symbols-outlined">mail</i><input type="email" [value]="profile.email" readonly /><b><i class="material-symbols-outlined">verified</i>{{ profile.emailVerified ? 'Verificado' : 'Pendiente' }}</b></div><small>Para proteger tus pagos, el correo no se modifica desde esta pantalla.</small></label>
+              </div>
+              <footer><button type="button" class="primary-button" [disabled]="saving() === 'profile'" (click)="saveProfile()">{{ saving() === 'profile' ? 'Guardando…' : 'Guardar cambios' }}<span class="material-symbols-outlined">arrow_forward</span></button></footer>
+            </section>
+          }
+
+          @case ('security') {
+            <section class="profile-section">
+              <header><span class="section-icon material-symbols-outlined">shield_lock</span><div><h2>Seguridad de la cuenta</h2><p>Actualiza tu contraseña y controla dónde está abierta tu cuenta.</p></div></header>
+              @if (profile.authProvider === 'LOCAL') {
+                <div class="security-form">
+                  <h3>Cambiar contraseña</h3>
+                  <label><span>Contraseña actual</span><div class="input-shell"><i class="material-symbols-outlined">lock</i><input [type]="showPasswords() ? 'text' : 'password'" autocomplete="current-password" [value]="currentPassword()" (input)="currentPassword.set($any($event.target).value)" /></div></label>
+                  <div class="form-grid">
+                    <label><span>Nueva contraseña</span><div class="input-shell"><i class="material-symbols-outlined">password</i><input [type]="showPasswords() ? 'text' : 'password'" autocomplete="new-password" [value]="newPassword()" (input)="newPassword.set($any($event.target).value)" /></div></label>
+                    <label><span>Confirmar contraseña</span><div class="input-shell"><i class="material-symbols-outlined">password</i><input [type]="showPasswords() ? 'text' : 'password'" autocomplete="new-password" [value]="confirmPassword()" (input)="confirmPassword.set($any($event.target).value)" /></div></label>
+                  </div>
+                  <div class="password-meter"><div><i [class.active]="passwordStrength() >= 1"></i><i [class.active]="passwordStrength() >= 2"></i><i [class.active]="passwordStrength() >= 3"></i><i [class.active]="passwordStrength() >= 4"></i></div><span>{{ passwordStrength() < 2 ? 'Débil' : passwordStrength() < 4 ? 'Segura' : 'Muy segura' }}</span></div>
+                  <label class="check-row compact"><input type="checkbox" [checked]="showPasswords()" (change)="showPasswords.set($any($event.target).checked)" /><span>Mostrar contraseñas</span></label>
+                  <button type="button" class="primary-button" [disabled]="saving() === 'password'" (click)="savePassword()">{{ saving() === 'password' ? 'Actualizando…' : 'Actualizar contraseña' }}</button>
+                </div>
+              } @else {
+                <div class="connected-provider"><span class="google-mark">G</span><div><strong>Cuenta conectada con Google</strong><p>La contraseña y la verificación en dos pasos se administran directamente desde tu cuenta de Google.</p></div><span class="status-pill">Protegida</span></div>
+              }
+
+              <div class="subsection-heading"><div><h3>Sesiones activas</h3><p>Revisa los dispositivos que todavía pueden acceder a Vakeva.</p></div><button type="button" class="text-button danger" [disabled]="saving() === 'logout-all'" (click)="logoutEverywhere()">Cerrar todas</button></div>
+              <div class="session-list">
+                @if (sessions() === null) { <p class="empty-line">Cargando sesiones…</p> }
+                @else { @for (session of sessions(); track session.id; let first = $first) {
+                  <article><span class="material-symbols-outlined">{{ session.userAgent?.includes('Mobile') ? 'smartphone' : 'laptop_windows' }}</span><div><strong>{{ deviceName(session.userAgent) }} @if (first) { <em>Más reciente</em> }</strong><small>{{ session.ip || 'IP no disponible' }} · Inició {{ formatDate(session.createdAt) }}</small></div><button type="button" [disabled]="saving() === 'session-' + session.id" (click)="revokeSession(session)">Cerrar</button></article>
+                } @empty { <p class="empty-line">No hay sesiones activas registradas.</p> } }
+              </div>
+            </section>
+          }
+
+          @case ('notifications') {
+            <section class="profile-section">
+              <header><span class="section-icon material-symbols-outlined">notifications</span><div><h2>Notificaciones</h2><p>Elige qué avisos necesitas y por dónde quieres recibirlos.</p></div></header>
+              <div class="preference-group"><h3>Canales</h3>
+                <label class="switch-row"><span class="material-symbols-outlined">inbox</span><div><strong>Dentro de Vakeva</strong><small>Centro de notificaciones del panel.</small></div><input type="checkbox" [checked]="inAppNotifications()" (change)="inAppNotifications.set($any($event.target).checked)" /><i></i></label>
+                <label class="switch-row"><span class="material-symbols-outlined">alternate_email</span><div><strong>Correo electrónico</strong><small>Recibe los avisos importantes aunque no tengas la app abierta. Los correos de seguridad (como restablecer tu contraseña) siempre se envían.</small></div><input type="checkbox" [checked]="emailNotifications()" (change)="emailNotifications.set($any($event.target).checked)" /><i></i></label>
+              </div>
+              <div class="preference-group"><h3>Tipos de aviso</h3>
+                <label class="switch-row"><span class="material-symbols-outlined">event_upcoming</span><div><strong>Pagos y renovaciones</strong><small>Recordatorios, comprobantes y periodos de gracia.</small></div><input type="checkbox" [checked]="notifyPayments()" (change)="notifyPayments.set($any($event.target).checked)" /><i></i></label>
+                <label class="switch-row"><span class="material-symbols-outlined">groups</span><div><strong>Actividad de grupos</strong><small>Solicitudes, miembros y cambios de estado.</small></div><input type="checkbox" [checked]="notifyGroups()" (change)="notifyGroups.set($any($event.target).checked)" /><i></i></label>
+                <label class="switch-row"><span class="material-symbols-outlined">key</span><div><strong>Cambios de credenciales</strong><small>Avisos de acceso actualizado o revocado.</small></div><input type="checkbox" [checked]="notifyCredentials()" (change)="notifyCredentials.set($any($event.target).checked)" /><i></i></label>
+                <label class="switch-row"><span class="material-symbols-outlined">account_balance_wallet</span><div><strong>Ganancias y comisiones</strong><small>Comisión por pagar y comprobantes revisados.</small></div><input type="checkbox" [checked]="notifyPayouts()" (change)="notifyPayouts.set($any($event.target).checked)" /><i></i></label>
+                <label class="switch-row"><span class="material-symbols-outlined">campaign</span><div><strong>Promociones</strong><small>Novedades, recomendaciones y beneficios.</small></div><input type="checkbox" [checked]="!marketingOptOut()" (change)="marketingOptOut.set(!$any($event.target).checked)" /><i></i></label>
+              </div>
+              <label class="timezone"><span>Zona horaria para recordatorios</span><select [value]="timezone()" (change)="timezone.set($any($event.target).value)"><option value="America/Mexico_City">Ciudad de México</option><option value="America/Cancun">Cancún</option><option value="America/Monterrey">Monterrey</option><option value="America/Tijuana">Tijuana</option><option value="America/Chihuahua">Chihuahua</option></select></label>
+              <footer><button type="button" class="primary-button" [disabled]="saving() === 'notifications'" (click)="saveNotifications()">{{ saving() === 'notifications' ? 'Guardando…' : 'Guardar preferencias' }}</button></footer>
+            </section>
+          }
+
+          @case ('trust') {
+            <section class="profile-section trust-section">
+              <header><span class="section-icon material-symbols-outlined">verified_user</span><div><h2>Perfil de confianza</h2><p>Estos indicadores se generan con tu actividad real y no pueden editarse.</p></div></header>
+              <div class="trust-score"><div class="trust-seal"><span class="material-symbols-outlined">verified</span></div><div><span>Nivel actual</span><h3>{{ profile.emailVerified ? 'Perfil verificado' : 'Verificación pendiente' }}</h3><p>Tu historial ayuda a que otras personas compartan contigo con tranquilidad.</p></div><strong>{{ profile.ratingAvg || '0.0' }} <i class="material-symbols-outlined">star</i></strong></div>
+              <div class="trust-metrics">
+                <article><span class="material-symbols-outlined">admin_panel_settings</span><strong>{{ summary()?.ownedGroups ?? 0 }}</strong><small>Grupos administrados</small></article>
+                <article><span class="material-symbols-outlined">group_add</span><strong>{{ summary()?.activeMemberships ?? 0 }}</strong><small>Membresías activas</small></article>
+                <article><span class="material-symbols-outlined">payments</span><strong>{{ summary()?.paidPayments ?? 0 }}</strong><small>Pagos confirmados</small></article>
+                <article><span class="material-symbols-outlined">rate_review</span><strong>{{ summary()?.reviewsWritten ?? 0 }}</strong><small>Reseñas realizadas</small></article>
+              </div>
+              <div class="badge-list"><h3>Insignias de seguridad</h3><span [class.unlocked]="profile.emailVerified"><i class="material-symbols-outlined">mark_email_read</i>Correo verificado</span><span [class.unlocked]="!!profile.phone"><i class="material-symbols-outlined">phone_iphone</i>Contacto completo</span><span [class.unlocked]="(summary()?.paidPayments ?? 0) > 0"><i class="material-symbols-outlined">task_alt</i>Primer pago confirmado</span><span [class.unlocked]="!!profile.payoutClabeLast4"><i class="material-symbols-outlined">account_balance</i>Cuenta de retiro guardada</span></div>
+            </section>
+          }
+
+          @case ('payouts') {
+            <section class="profile-section">
+              <header><span class="section-icon material-symbols-outlined">account_balance</span><div><h2>Cuenta para recibir pagos</h2><p>Aquí te transfieren tus compradores. Se autocompleta al crear un grupo y la ven al pagarte.</p></div></header>
+              @if (profile.payoutClabeLast4) {
+                <div class="saved-account"><span class="material-symbols-outlined">account_balance_wallet</span><div><small>Cuenta guardada</small><strong>{{ profile.payoutBankName }} · •••• {{ profile.payoutClabeLast4 }}</strong><p>{{ profile.payoutAccountHolder }}</p></div><b class="verified">Lista para retiros</b></div>
+              }
+              <div class="secure-note"><span class="material-symbols-outlined">enhanced_encryption</span><div><strong>Tu CLABE se almacena cifrada</strong><p>Nunca mostramos el número completo después de guardarlo.</p></div></div>
+              <div class="form-grid">
+                <label><span>Nombre del titular</span><div class="input-shell"><i class="material-symbols-outlined">person</i><input type="text" maxlength="100" [value]="payoutHolder()" (input)="payoutHolder.set($any($event.target).value)" /></div></label>
+                <label><span>Banco o institución</span><div class="input-shell" [class.valid]="bankDetected()"><i class="material-symbols-outlined">account_balance</i><input type="text" maxlength="80" [readOnly]="bankDetected()" placeholder="Se detecta al escribir la CLABE" [value]="payoutBank()" (input)="payoutBank.set($any($event.target).value)" />@if (bankDetected()) { <b class="detected-badge"><i class="material-symbols-outlined">auto_awesome</i>Detectado</b> }</div></label>
+                <label class="wide"><span>Nueva CLABE</span><div class="input-shell" [class.valid]="clabeInfo().isValid" [class.invalid]="clabeInfo().isComplete && !clabeInfo().isValid"><i class="material-symbols-outlined">pin</i><input type="text" inputmode="numeric" maxlength="18" placeholder="18 dígitos" [value]="payoutClabe()" (input)="onClabeInput($any($event.target).value)" /><b>{{ clabeInfo().digits.length }}/18</b></div>
+                  @if (clabeInfo().bankName) { <small class="clabe-hint ok"><span class="material-symbols-outlined">check_circle</span>Banco detectado: {{ clabeInfo().bankName }}{{ clabeInfo().isComplete ? (clabeInfo().isValid ? ' · CLABE válida' : ' · el dígito verificador no coincide') : '' }}</small> }
+                  @else if (clabeInfo().digits.length >= 3) { <small class="clabe-hint warn"><span class="material-symbols-outlined">info</span>No reconocemos ese banco: revisa los primeros 3 dígitos o escríbelo a mano.</small> }
+                  @else { <small class="clabe-hint"><span class="material-symbols-outlined">auto_awesome</span>Con los primeros 3 dígitos detectamos tu banco automáticamente.</small> }</label>
+              </div>
+              <footer class="split-footer"><button type="button" class="primary-button" [disabled]="saving() === 'payouts'" (click)="savePayoutAccount()">{{ saving() === 'payouts' ? 'Guardando…' : 'Guardar cuenta' }}</button>@if (profile.payoutClabeLast4) { <button type="button" class="text-button danger" (click)="clearPayoutAccount()">Eliminar cuenta guardada</button> }</footer>
+            </section>
+          }
+
+          @case ('privacy') {
+            <section class="profile-section">
+              <header><span class="section-icon material-symbols-outlined">privacy_tip</span><div><h2>Privacidad y cuenta</h2><p>Tú decides qué información se muestra y qué sucede con tus datos.</p></div></header>
+              <div class="preference-group"><h3>Visibilidad en grupos</h3>
+                <label class="switch-row"><span class="material-symbols-outlined">badge</span><div><strong>Mostrar mi nombre</strong><small>Los integrantes de tus grupos podrán identificarte.</small></div><input type="checkbox" [checked]="profileNameVisible()" (change)="profileNameVisible.set($any($event.target).checked)" /><i></i></label>
+                <label class="switch-row"><span class="material-symbols-outlined">account_circle</span><div><strong>Mostrar mi fotografía</strong><small>Si lo desactivas, utilizaremos tus iniciales.</small></div><input type="checkbox" [checked]="profileAvatarVisible()" (change)="profileAvatarVisible.set($any($event.target).checked)" /><i></i></label>
+              </div>
+              <button type="button" class="secondary-button save-privacy" [disabled]="saving() === 'privacy'" (click)="savePrivacy()">Guardar privacidad</button>
+              <div class="data-export"><span class="material-symbols-outlined">download</span><div><strong>Descargar mis datos</strong><p>Obtén una copia JSON de tu perfil, grupos, membresías y retiros.</p></div><button type="button" [disabled]="saving() === 'export'" (click)="exportData()">{{ saving() === 'export' ? 'Preparando…' : 'Descargar' }}</button></div>
+              <div class="danger-zone"><header><span class="material-symbols-outlined">warning</span><div><h3>Eliminar mi cuenta</h3><p>Anonimizaremos tus datos personales y cerraremos todas las sesiones. El historial financiero obligatorio se conserva sin asociarlo a tu identidad.</p></div></header>@if (profile.authProvider === 'LOCAL') { <label><span>Contraseña actual</span><div class="input-shell"><i class="material-symbols-outlined">lock</i><input type="password" autocomplete="current-password" [value]="deletePassword()" (input)="deletePassword.set($any($event.target).value)" /></div></label> }<label><span>Escribe ELIMINAR para confirmar</span><div class="input-shell"><i class="material-symbols-outlined">delete_forever</i><input type="text" [value]="deleteConfirmation()" (input)="deleteConfirmation.set($any($event.target).value)" /></div></label><button type="button" class="delete-button" [disabled]="saving() === 'delete'" (click)="deleteAccount()">{{ saving() === 'delete' ? 'Eliminando…' : 'Eliminar definitivamente mi cuenta' }}</button></div>
+            </section>
+          }
+        }
+      </main>
+    </div>
+  }
+</div>

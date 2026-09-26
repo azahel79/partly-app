@@ -1,0 +1,100 @@
+<section class="monitor-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">CONTROL DE COBROS</p>
+      <h1>Pagos y comprobantes</h1>
+      <p>Consulta qué compradores ya enviaron su comprobante y cuáles siguen pendientes.</p>
+    </div>
+    <div class="read-only-note">
+      <span class="note-icon"><span class="material-symbols-outlined">visibility</span></span>
+      <div><strong>Supervisión y recordatorios</strong><small>El vendedor aprueba el pago; tú puedes recordarle a cada quien lo que le toca.</small></div>
+    </div>
+  </header>
+
+  @if (page(); as result) {
+    <div class="metrics">
+      <button type="button" class="metric amber" (click)="setFilter('MISSING')">
+        <span class="metric-icon"><span class="material-symbols-outlined">upload_file</span></span>
+        <span class="metric-text"><strong>{{ result.counts.missingReceipt }}</strong><b>Sin comprobante</b><small>Faltan por subir</small></span>
+        <span class="metric-arrow"><span class="material-symbols-outlined">chevron_right</span></span>
+      </button>
+      <button type="button" class="metric violet" (click)="setFilter('UPLOADED')">
+        <span class="metric-icon"><span class="material-symbols-outlined">manage_search</span></span>
+        <span class="metric-text"><strong>{{ result.counts.awaitingSeller }}</strong><b>Esperando al vendedor</b><small>Comprobantes por revisar</small></span>
+        <span class="metric-arrow"><span class="material-symbols-outlined">chevron_right</span></span>
+      </button>
+      <button type="button" class="metric green" (click)="setFilter('PAID')">
+        <span class="metric-icon"><span class="material-symbols-outlined">verified</span></span>
+        <span class="metric-text"><strong>{{ result.counts.approved }}</strong><b>Pagos aprobados</b><small>Confirmados por el vendedor</small></span>
+        <span class="metric-arrow"><span class="material-symbols-outlined">chevron_right</span></span>
+      </button>
+      <button type="button" class="metric red" (click)="setFilter('FAILED')">
+        <span class="metric-icon"><span class="material-symbols-outlined">event_busy</span></span>
+        <span class="metric-text"><strong>{{ result.counts.failed }}</strong><b>Pagos vencidos</b><small>Pasaron su fecha límite</small></span>
+        <span class="metric-arrow"><span class="material-symbols-outlined">chevron_right</span></span>
+      </button>
+    </div>
+  } @else {
+    <div class="metrics loading"><article></article><article></article><article></article><article></article></div>
+  }
+
+  <section class="content-card">
+    <div class="toolbar">
+      <div class="filter-tabs">
+        @for (filter of filters; track filter.value) {
+          <button type="button" [class.active]="activeFilter() === filter.value" (click)="setFilter(filter.value)">
+            <span class="material-symbols-outlined">{{ filter.icon }}</span>{{ filter.label }}
+          </button>
+        }
+      </div>
+      <button class="refresh-button" type="button" (click)="load()"><span class="material-symbols-outlined">refresh</span>Actualizar</button>
+    </div>
+
+    @if (notice()) {
+      <div class="reminder-notice"><span class="material-symbols-outlined">mark_email_read</span>{{ notice() }}</div>
+    }
+    @if (errorMessage()) {
+      <div class="error-box"><span class="material-symbols-outlined">error</span>{{ errorMessage() }}<button type="button" (click)="load()">Reintentar</button></div>
+    } @else if (page() === null) {
+      <div class="empty-state"><span class="spinner"></span><p>Cargando pagos…</p></div>
+    } @else if (page()!.data.length === 0) {
+      <div class="empty-state"><span class="material-symbols-outlined">receipt_long</span><h2>No hay pagos en esta categoría</h2><p>Cuando exista actividad aparecerá aquí.</p></div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Grupo</th><th>Comprador</th><th>Vendedor</th><th>Monto y fecha</th><th>Estado</th><th>Comprobante</th><th class="th-more"></th></tr></thead>
+          <tbody>
+            @for (payment of page()!.data; track payment.id) {
+              <tr>
+                <td>
+                  <a class="group-cell" [routerLink]="['/admin/grupos', payment.group.id]">
+                    <app-platform-logo class="platform-logo" [name]="payment.group.platform.name" [logoUrl]="payment.group.platform.logoUrl" />
+                    <span><strong>{{ payment.group.platform.name }}</strong><small>{{ payment.group.planName }}</small></span>
+                  </a>
+                </td>
+                <td><div class="person"><span class="avatar">{{ initials(payment.buyer.name) }}</span><span><strong>{{ payment.buyer.name }}</strong><small [attr.title]="payment.buyer.email">{{ payment.buyer.email }}</small></span></div></td>
+                <td><div class="person"><span class="avatar">{{ initials(payment.seller.name) }}</span><span><strong>{{ payment.seller.name }}</strong><small [attr.title]="payment.seller.email">{{ payment.seller.email }}</small></span></div></td>
+                <td><strong class="amount">${{ payment.amount }} MXN</strong><small>Solicitado {{ formatDate(payment.requestedAt) }}</small></td>
+                <td>
+                  <span [class]="'status ' + statusClass(payment)"><span class="material-symbols-outlined">{{ statusIcon(payment) }}</span>{{ statusLabel(payment) }}</span>
+                  @if (payment.paidAt) {<small>{{ formatDate(payment.paidAt, true) }}</small>}
+                </td>
+                <td>
+                  @if (payment.receiptUploadedAt) {
+                    <button class="receipt-button" type="button" [disabled]="viewingId() === payment.id" (click)="viewReceipt(payment)"><span class="material-symbols-outlined">visibility</span>{{ viewingId() === payment.id ? 'Abriendo…' : 'Ver comprobante' }}</button>
+                    <small>{{ formatDate(payment.receiptUploadedAt, true) }}</small>
+                  } @else { <span class="no-receipt"><span class="material-symbols-outlined">schedule</span>Aún no enviado</span> }
+                  @if (payment.status === 'PENDING') {
+                    <button class="remind-button" type="button" [disabled]="remindingId() === payment.id" (click)="sendReminder(payment)"><span class="material-symbols-outlined">notifications</span>{{ remindingId() === payment.id ? 'Enviando…' : (payment.receiptUploadedAt ? 'Recordar al vendedor' : 'Enviar recordatorio') }}</button>
+                  }
+                </td>
+                <td class="td-more"><a class="more-button" [routerLink]="['/admin/grupos', payment.group.id]" title="Ver el grupo"><span class="material-symbols-outlined">more_horiz</span></a></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <footer class="table-footer"><span>Mostrando {{ page()!.data.length }} de {{ page()!.total }} pagos</span><span class="footer-note"><span class="material-symbols-outlined">info</span>El administrador solo envía recordatorios (1 vez por persona al día).</span></footer>
+    }
+  </section>
+</section>

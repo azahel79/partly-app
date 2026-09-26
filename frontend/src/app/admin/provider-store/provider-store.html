@@ -1,0 +1,336 @@
+<div class="space-y-8">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <div class="flex items-center gap-4 flex-1 min-w-[280px]">
+      <span class="w-10 h-10 rounded-xl bg-emerald-50 text-pink flex items-center justify-center shadow-neu-raised-sm shrink-0">
+        <span class="material-symbols-outlined text-xl">storefront</span>
+      </span>
+      <div>
+        <h1 class="text-2xl font-extrabold text-ink tracking-tight">Mi tienda de proveedor</h1>
+        <p class="text-sm text-on-surface-variant font-medium mt-1">Publica cuentas completas para que los vendedores las compren al por mayor y las revendan por cupos dentro de la app.</p>
+      </div>
+    </div>
+    @if (ready()) {
+      <div class="flex items-center gap-2 shrink-0">
+      <a routerLink="/admin/comisiones" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-ink text-sm font-bold rounded-lg transition-colors"><span class="material-symbols-outlined text-lg">request_quote</span>Comisiones</a>
+      <button
+        type="button"
+        (click)="openForm()"
+        class="hover:bg-[#047857] inline-flex items-center gap-2 px-4 py-2.5 bg-pink text-white text-sm font-bold rounded-lg active:scale-95 transition-all"
+      >
+        <span class="material-symbols-outlined text-lg">add</span>
+        Publicar cuenta
+      </button>
+      </div>
+    }
+  </div>
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 text-xs text-red-600 font-semibold">{{ errorMessage() }}</div>
+  }
+
+  @if (!ready()) {
+    <div class="p-8 rounded-2xl bg-slate-50 border border-slate-200/70 text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+  } @else {
+    @if (publishedNotice()) {
+      <div class="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-900">
+        <span class="material-symbols-outlined">check_circle</span>
+        <p class="text-sm font-semibold">{{ publishedNotice() }}</p>
+      </div>
+    }
+
+    @if (formOpen()) {
+      <div class="rounded-3xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-extrabold text-ink">Publicar una cuenta nueva</h2>
+            <p class="text-sm text-slate-500 mt-0.5">Vendes la cuenta completa. El vendedor decide después cómo repartir los perfiles.</p>
+          </div>
+          <button type="button" (click)="closeForm()" class="active:scale-[0.98] w-9 h-9 rounded-lg text-slate-400 hover:text-ink hover:bg-slate-100 flex items-center justify-center transition-colors" aria-label="Cerrar">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
+          <section class="space-y-4">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">La cuenta</h3>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5" for="pub-platform">Plataforma</label>
+              <input id="pub-platform" type="text" list="provider-store-platforms" [value]="platformNameInput()" (input)="platformNameInput.set($any($event.target).value)" placeholder="Ej. Netflix" class="w-full bg-white rounded-xl py-3 px-4 text-sm font-semibold text-ink placeholder:text-slate-400 placeholder:font-medium border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink" />
+              <datalist id="provider-store-platforms">
+                @for (name of commonPlatformNames; track name) { <option [value]="name"></option> }
+              </datalist>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5" for="pub-tier">Nombre del plan <span class="font-medium text-slate-400">(opcional)</span></label>
+              <input id="pub-tier" type="text" [value]="tierNameInput()" (input)="tierNameInput.set($any($event.target).value)" placeholder="Ej. Premium 4 pantallas" class="w-full bg-white rounded-xl py-3 px-4 text-sm font-semibold text-ink placeholder:text-slate-400 placeholder:font-medium border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5" for="pub-slots">Perfiles que incluye</label>
+              <input id="pub-slots" type="number" min="1" step="1" [value]="maxSlotsInput()" (input)="onMaxSlotsInput($any($event.target).value)" placeholder="Ej. 4" class="w-full bg-white rounded-xl py-3 px-4 text-sm font-semibold text-ink placeholder:text-slate-400 placeholder:font-medium border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink" />
+              <p class="text-xs text-slate-400 mt-1.5">Solo informativo: no cambia ningún precio.</p>
+            </div>
+          </section>
+
+          <section class="space-y-4">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Precios y stock (cuenta completa)</h3>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5" for="pub-official">Precio oficial de la plataforma</label>
+              <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">$</span>
+                <input id="pub-official" type="number" min="0.01" step="0.01" [value]="officialPriceInput()" (input)="onOfficialPriceInput($any($event.target).value)" placeholder="249.00" class="w-full bg-white rounded-xl py-3 pl-8 pr-4 text-sm font-semibold text-ink placeholder:text-slate-400 placeholder:font-medium border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink" /></div>
+              <p class="text-xs text-slate-400 mt-1.5">Es lo que pagaría el vendedor por su cuenta; sirve para que vea cuánto ahorra contigo.</p>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5" for="pub-wholesale">Tu precio al por mayor</label>
+              <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">$</span>
+                <input id="pub-wholesale" type="number" min="0.01" step="0.01" [value]="wholesalePriceInput()" (input)="onWholesaleInput($any($event.target).value)" placeholder="45.00" class="w-full bg-white rounded-xl py-3 pl-8 pr-4 text-sm font-semibold text-ink placeholder:text-slate-400 placeholder:font-medium border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink" /></div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5" for="pub-stock">Cuentas disponibles ahora</label>
+              <input id="pub-stock" type="number" min="0" step="1" [value]="stockQuantityInput()" (input)="onStockInput($any($event.target).value)" placeholder="Ej. 10" class="w-full bg-white rounded-xl py-3 px-4 text-sm font-semibold text-ink placeholder:text-slate-400 placeholder:font-medium border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink" />
+            </div>
+            <div>
+              <span class="block text-xs font-bold text-slate-600 mb-1.5">Tipo de cuenta</span>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" (click)="renewableInput.set(true)" [class]="renewableInput() ? 'border-pink bg-pink/5 text-ink' : 'border-slate-200 text-slate-500 hover:border-slate-300'" class="p-3 rounded-xl border-2 text-left transition-colors">
+                  <span class="flex items-center gap-1.5 text-sm font-extrabold"><span class="material-symbols-outlined text-lg">autorenew</span>Renovable</span>
+                  <span class="block text-xs font-medium mt-0.5">La misma cuenta; el vendedor la renueva cada periodo.</span>
+                </button>
+                <button type="button" (click)="renewableInput.set(false)" [class]="!renewableInput() ? 'border-pink bg-pink/5 text-ink' : 'border-slate-200 text-slate-500 hover:border-slate-300'" class="p-3 rounded-xl border-2 text-left transition-colors">
+                  <span class="flex items-center gap-1.5 text-sm font-extrabold"><span class="material-symbols-outlined text-lg">swap_horiz</span>No renovable</span>
+                  <span class="block text-xs font-medium mt-0.5">La cuenta se cambia cada periodo; compra una reposición.</span>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5" for="pub-validity">Días de vigencia por compra</label>
+              <input id="pub-validity" type="number" min="1" max="400" step="1" [value]="validityDaysInput()" (input)="onValidityInput($any($event.target).value)" placeholder="30" class="w-full bg-white rounded-xl py-3 px-4 text-sm font-semibold text-ink placeholder:text-slate-400 placeholder:font-medium border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink" />
+              <p class="text-xs text-slate-400 mt-1.5">Cuenta desde que entregas las credenciales. Se avisa al vendedor 7, 3 y 1 día antes de que venza.</p>
+            </div>
+            @if (discountPreview(); as d) {
+              <div class="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50 border border-emerald-100">
+                <span class="material-symbols-outlined text-lg text-emerald-700">trending_down</span>
+                <p class="text-sm text-emerald-900"><strong>{{ d.pct }}% más barato</strong> que el oficial: el vendedor ahorra <strong>${{ d.saving.toFixed(2) }}</strong> por cuenta.</p>
+              </div>
+            } @else if (officialPriceInput() && wholesalePriceInput()) {
+              <div class="flex items-center gap-3 p-3.5 rounded-xl bg-amber-50 border border-amber-100 text-amber-900">
+                <span class="material-symbols-outlined">warning</span>
+                <p class="text-sm">Tu precio al por mayor es igual o mayor al oficial: al vendedor no le convendría comprarte.</p>
+              </div>
+            }
+          </section>
+        </div>
+
+        <div class="px-6 py-4 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between gap-3 flex-wrap">
+          <p class="text-xs font-semibold" [class]="formError() ? 'text-red-600' : 'text-slate-500'">
+            {{ formError() || (missingFields().length ? 'Falta: ' + missingFields().join(', ') : 'Todo listo para publicar.') }}
+          </p>
+          <div class="flex items-center gap-2">
+            <button type="button" (click)="closeForm()" class="active:scale-[0.98] py-2.5 px-5 rounded-lg text-slate-600 text-sm font-bold hover:bg-slate-100 transition-colors">Cancelar</button>
+            <button type="button" [disabled]="saving() || missingFields().length > 0" (click)="submitListing()" class="py-2.5 px-7 rounded-full bg-pink text-white text-sm font-bold shadow-[0_6px_16px_rgba(5,150,105,0.3)] disabled:opacity-50 disabled:shadow-none transition-all">
+              {{ saving() ? 'Publicando…' : 'Publicar cuenta' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Cuentas publicadas -->
+    <section>
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-emerald-50 text-pink flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-xl">inventory_2</span></span>
+          <div>
+            <h2 class="text-base font-extrabold text-ink tracking-tight">Cuentas publicadas @if (listings(); as l) {({{ l.length }})}</h2>
+            <p class="text-xs text-on-surface-variant font-medium">Gestiona tus cuentas, edita precios, stock y vigencia.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <div class="relative flex-1 sm:flex-none">
+            <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
+            <input type="search" [value]="listingSearch()" (input)="listingSearch.set($any($event.target).value)" placeholder="Buscar cuenta…" class="w-full sm:w-52 bg-white rounded-lg py-2 pl-8 pr-3 text-xs font-semibold text-ink placeholder:text-slate-400 placeholder:font-medium border border-slate-200 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-pink/15 focus:border-pink" />
+          </div>
+          <select [value]="listingFilter()" (change)="listingFilter.set($any($event.target).value)" class="w-[176px] shrink-0 bg-white rounded-lg py-2 pl-3 pr-8 text-xs font-bold text-ink border border-slate-200 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-pink/15">
+            <option value="ALL">Todas las cuentas</option>
+            <option value="ACTIVE">Activas</option>
+            <option value="PAUSED">Pausadas</option>
+          </select>
+        </div>
+      </div>
+
+      @if (listings() === null) {
+        <div class="p-8 rounded-2xl bg-white border border-slate-200/70 text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+      } @else if (listings()!.length === 0) {
+        <div class="p-10 rounded-2xl bg-white border border-slate-200/70 text-center">
+          <span class="material-symbols-outlined text-2xl text-on-surface-variant/40 mb-2 block">storefront</span>
+          <p class="text-sm font-semibold text-on-surface-variant">Todavía no has publicado ninguna cuenta.</p>
+        </div>
+      } @else if (filteredListings().length === 0) {
+        <div class="p-8 rounded-2xl bg-white border border-slate-200/70 text-center text-sm font-semibold text-on-surface-variant">Ninguna cuenta coincide con tu búsqueda.</div>
+      } @else {
+        <div class="space-y-3">
+          @for (listing of filteredListings(); track listing.id) {
+            <article class="p-4 rounded-2xl bg-white border border-slate-200/70 hover:border-slate-300 transition-colors flex flex-col xl:flex-row xl:items-center gap-4">
+              <!-- Cuenta -->
+              <div class="flex items-center gap-3.5 xl:w-[270px] shrink-0 min-w-0">
+                <app-platform-logo class="w-14 h-14 rounded-xl font-black text-xl shrink-0" [name]="listing.plan.platform.name" [logoUrl]="listing.plan.platform.logoUrl" />
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <p class="text-[15px] font-extrabold text-ink truncate">{{ listing.plan.platform.name }}</p>
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0" [class]="listing.active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-on-surface-variant'"><span class="w-1.5 h-1.5 rounded-full" [class]="listing.active ? 'bg-emerald-500' : 'bg-slate-400'"></span>{{ listing.active ? 'Activa' : 'Pausada' }}</span>
+                  </div>
+                  <p class="text-xs text-on-surface-variant truncate">{{ listing.plan.tierName }}</p>
+                  <div class="flex flex-wrap gap-1 mt-1.5">
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold" [class]="listing.renewable ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-800'">{{ listing.renewable ? 'Renovable' : 'No renovable' }}</span>
+                    @for (feature of planFeatures(listing.plan.tierName).slice(0, 2); track feature.label) {
+                      <span class="px-2 py-0.5 rounded-md bg-slate-100 text-[10px] font-semibold text-on-surface-variant">{{ feature.label }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Datos -->
+              <div class="flex flex-wrap xl:flex-nowrap items-stretch gap-y-3 flex-1 xl:border-l xl:border-slate-100 xl:pl-2">
+                <div class="px-3.5 xl:border-r border-slate-100 leading-tight"><p class="flex items-center gap-1 text-[11px] font-medium text-on-surface-variant whitespace-nowrap"><span class="material-symbols-outlined text-sm text-blue-600">group</span>Perfiles</p><p class="text-sm font-extrabold text-ink mt-1">{{ listing.plan.maxSlots }}</p></div>
+                <div class="px-3.5 xl:border-r border-slate-100 leading-tight"><p class="flex items-center gap-1 text-[11px] font-medium text-on-surface-variant whitespace-nowrap"><span class="material-symbols-outlined text-sm text-blue-600">sell</span>Precio oficial</p><p class="text-sm font-extrabold text-ink mt-1">${{ listing.plan.officialPrice }}</p></div>
+                <label class="px-3.5 xl:border-r border-slate-100 leading-tight block">
+                  <span class="flex items-center gap-1 text-[11px] font-medium text-on-surface-variant whitespace-nowrap"><span class="material-symbols-outlined text-sm text-amber-500">workspace_premium</span>Precio mayoreo</span>
+                  <span class="mt-1 flex items-center bg-emerald-50 border border-emerald-100 rounded-md px-2 py-1 text-sm font-extrabold text-emerald-700 w-24">$<input type="number" min="0.01" step="0.01" [value]="listing.wholesalePrice" (change)="updateWholesalePrice(listing, $any($event.target).value)" [disabled]="updatingId() === listing.id" class="w-full bg-transparent border-0 p-0 pl-0.5 font-extrabold text-emerald-700 focus:outline-none focus:ring-0 disabled:opacity-60" /></span>
+                </label>
+                <label class="px-3.5 xl:border-r border-slate-100 leading-tight block">
+                  <span class="flex items-center gap-1 text-[11px] font-medium text-on-surface-variant whitespace-nowrap"><span class="material-symbols-outlined text-sm text-blue-600">deployed_code</span>Stock</span>
+                  <input type="number" min="0" step="1" [value]="listing.stockQuantity" (change)="updateStockQuantity(listing, $any($event.target).value)" [disabled]="updatingId() === listing.id" class="mt-1 w-14 bg-transparent hover:bg-slate-50 focus:bg-slate-50 rounded px-1 -ml-1 text-sm font-extrabold text-ink focus:outline-none focus:ring-2 focus:ring-pink/15 disabled:opacity-60 block" />
+                </label>
+                <label class="px-3.5 leading-tight block">
+                  <span class="flex items-center gap-1 text-[11px] font-medium text-on-surface-variant whitespace-nowrap"><span class="material-symbols-outlined text-sm text-blue-600">event_repeat</span>Vigencia</span>
+                  <span class="mt-1 flex items-center text-sm font-extrabold text-ink"><input type="number" min="1" max="400" step="1" [value]="listing.validityDays" (change)="updateValidityDays(listing, $any($event.target).value)" [disabled]="updatingId() === listing.id" class="w-12 bg-transparent hover:bg-slate-50 focus:bg-slate-50 rounded px-1 -ml-1 text-sm font-extrabold text-ink focus:outline-none focus:ring-2 focus:ring-pink/15 disabled:opacity-60" /><span class="text-xs font-bold text-on-surface-variant ml-0.5">días</span></span>
+                </label>
+              </div>
+
+              <!-- Estado y opciones -->
+              <div class="flex items-center gap-3 xl:pl-4 xl:border-l xl:border-slate-100 shrink-0 relative">
+                <div class="leading-tight hidden 2xl:block">
+                  <p class="text-[11px] font-medium text-on-surface-variant">Publicado</p>
+                  <p class="text-xs font-bold text-ink mt-0.5">{{ formatDate(listing.createdAt) }}</p>
+                </div>
+                <button type="button" role="switch" [attr.aria-checked]="listing.active" [attr.title]="listing.active ? 'Pausar' : 'Activar'" [disabled]="updatingId() === listing.id" (click)="toggleActive(listing)" class="flex items-center gap-2 disabled:opacity-60">
+                  <span class="relative w-9 h-5 rounded-full transition-colors" [class]="listing.active ? 'bg-emerald-500' : 'bg-slate-300'"><span class="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all" [class]="listing.active ? 'left-[18px]' : 'left-0.5'"></span></span>
+                  <span class="text-xs font-bold" [class]="listing.active ? 'text-emerald-700' : 'text-on-surface-variant'">{{ listing.active ? 'Activa' : 'Pausada' }}</span>
+                </button>
+                <button type="button" (click)="toggleMenu('l-' + listing.id)" class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500" aria-label="Más opciones"><span class="material-symbols-outlined text-xl">more_vert</span></button>
+                @if (menuId() === 'l-' + listing.id) {
+                  <button type="button" class="fixed inset-0 z-30 cursor-default" aria-label="Cerrar menú" (click)="menuId.set(null)"></button>
+                  <div class="absolute right-0 top-full mt-1 z-40 w-52 p-1 rounded-xl bg-white border border-slate-200 shadow-lg text-xs font-bold text-ink">
+                    <button type="button" (click)="toggleRenewable(listing); menuId.set(null)" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 text-left"><span class="material-symbols-outlined text-base text-on-surface-variant">{{ listing.renewable ? 'swap_horiz' : 'autorenew' }}</span>Marcar como {{ listing.renewable ? 'no renovable' : 'renovable' }}</button>
+                    <button type="button" (click)="toggleActive(listing); menuId.set(null)" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 text-left"><span class="material-symbols-outlined text-base text-on-surface-variant">{{ listing.active ? 'pause_circle' : 'play_circle' }}</span>{{ listing.active ? 'Pausar cuenta' : 'Activar cuenta' }}</button>
+                  </div>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Pedidos recibidos -->
+    <section>
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-xl">shopping_cart</span></span>
+          <div>
+            <h2 class="text-base font-extrabold text-ink tracking-tight">Pedidos recibidos @if (orders(); as o) {({{ o.length }})}</h2>
+            <p class="text-xs text-on-surface-variant font-medium">Los vendedores te pagan por transferencia y suben su comprobante.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          @for (f of orderFilters; track f.k) {
+            <button type="button" (click)="orderFilter.set(f.k)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors" [class]="orderFilter() === f.k ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-200 text-ink hover:bg-slate-50'">
+              @if (f.dot) { <span class="w-1.5 h-1.5 rounded-full" [class]="f.dot"></span> }{{ f.label }} ({{ orderCounts()[f.k] }})
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (orders() === null) {
+        <div class="p-8 rounded-2xl bg-white border border-slate-200/70 text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+      } @else if (filteredOrders().length === 0) {
+        <div class="p-8 rounded-2xl bg-white border border-slate-200/70 text-center">
+          <p class="text-sm text-on-surface-variant font-medium">{{ orders()!.length === 0 ? 'Todavía no te ha comprado ningún vendedor.' : 'No hay pedidos en esta categoría.' }}</p>
+        </div>
+      } @else {
+        <div class="space-y-2.5">
+          @for (order of filteredOrders(); track order.id) {
+            <article class="rounded-2xl bg-white border border-slate-200/70 hover:border-slate-300 transition-colors">
+              <div class="p-3 flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4">
+                <div class="flex items-center gap-3 lg:w-[220px] shrink-0 min-w-0 cursor-pointer" role="link" tabindex="0" (click)="openOrder(order)" (keydown.enter)="openOrder(order)">
+                  <app-platform-logo class="w-10 h-10 rounded-lg font-black text-sm shrink-0" [name]="order.listing.platform.name" />
+                  <div class="min-w-0">
+                    <p class="text-sm font-bold text-ink truncate">{{ order.listing.platform.name }}</p>
+                    <p class="text-xs text-on-surface-variant truncate">{{ order.kind === 'PURCHASE' ? order.listing.tierName : (order.kind === 'RENEWAL' ? 'Renovación' : 'Reposición') + ' · ' + order.listing.tierName }}</p>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-x-5 gap-y-2 flex-1 lg:border-l lg:border-slate-100 lg:pl-4">
+                  <div class="flex items-center gap-2 leading-tight"><span class="material-symbols-outlined text-lg text-on-surface-variant">paid</span><div><p class="text-[11px] text-on-surface-variant font-medium">Precio</p><p class="text-sm font-extrabold text-ink">${{ order.unitPrice }}</p></div></div>
+                  <div class="flex items-center gap-2 leading-tight"><span class="material-symbols-outlined text-lg text-on-surface-variant">calendar_month</span><div><p class="text-[11px] text-on-surface-variant font-medium">Fecha</p><p class="text-xs font-bold text-ink">{{ formatDate(order.createdAt) }}</p></div></div>
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold" [class]="orderStatus(order).tone"><span class="w-1.5 h-1.5 rounded-full" [class]="orderStatus(order).dot"></span>{{ orderStatus(order).label }}</span>
+                  <div class="flex items-center gap-2 leading-tight">
+                    <span class="material-symbols-outlined text-lg" [class]="order.hasReceipt ? 'text-blue-600' : 'text-slate-300'">{{ order.hasReceipt ? 'image' : 'hide_image' }}</span>
+                    <div>
+                      <p class="text-[11px] text-on-surface-variant font-medium">Comprobante</p>
+                      @if (order.hasReceipt) {
+                        <button type="button" (click)="viewReceipt(order)" [disabled]="viewingReceiptId() === order.id" class="text-xs font-bold text-blue-600 hover:underline disabled:opacity-60">{{ viewingReceiptId() === order.id ? 'Abriendo…' : 'Ver archivo' }}</button>
+                      } @else { <p class="text-xs font-bold text-on-surface-variant">Sin subir</p> }
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0 relative">
+                  @if (order.status === 'PENDING_APPROVAL') {
+                    <button type="button" [disabled]="decidingOrderId() === order.id" (click)="approveOrder(order)" class="inline-flex items-center gap-1 py-1.5 px-3 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-bold transition-colors disabled:opacity-60"><span class="material-symbols-outlined text-base">check_circle</span>{{ decidingOrderId() === order.id ? 'Aprobando…' : 'Aprobar' }}</button>
+                    <button type="button" [disabled]="decidingOrderId() === order.id" (click)="rejectOrder(order)" class="inline-flex items-center gap-1 py-1.5 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition-colors disabled:opacity-60"><span class="material-symbols-outlined text-base">cancel</span>Rechazar</button>
+                  } @else if (order.status === 'PENDING_DELIVERY') {
+                    <button type="button" (click)="openDeliverForm(order)" class="py-1.5 px-3.5 rounded-lg bg-pink hover:bg-[#047857] text-white text-xs font-bold active:scale-95 transition-all">Entregar credenciales</button>
+                  } @else if (order.status === 'CANCELLED' && order.paidAt && !order.refundedAt) {
+                    <button type="button" [disabled]="decidingOrderId() === order.id" (click)="markRefunded(order)" class="py-1.5 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold disabled:opacity-60">Marcar reembolso</button>
+                  }
+                  <button type="button" (click)="toggleMenu('o-' + order.id)" class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500" aria-label="Más opciones"><span class="material-symbols-outlined text-xl">more_vert</span></button>
+                  @if (menuId() === 'o-' + order.id) {
+                    <button type="button" class="fixed inset-0 z-30 cursor-default" aria-label="Cerrar menú" (click)="menuId.set(null)"></button>
+                    <div class="absolute right-0 top-full mt-1 z-40 w-52 p-1 rounded-xl bg-white border border-slate-200 shadow-lg text-xs font-bold text-ink">
+                      <button type="button" (click)="openOrder(order)" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 text-left"><span class="material-symbols-outlined text-base text-on-surface-variant">open_in_new</span>Ver detalle y comprador</button>
+                      @if (order.status === 'AWAITING_PAYMENT' || order.status === 'PENDING_APPROVAL') {
+                        <button type="button" (click)="rejectOrder(order)" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 text-left text-red-600"><span class="material-symbols-outlined text-base">block</span>Rechazar solicitud</button>
+                      }
+                      @if (order.status === 'PENDING_DELIVERY') {
+                        <button type="button" (click)="cancelPaidOrder(order)" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 text-left text-red-600"><span class="material-symbols-outlined text-base">undo</span>Cancelar y reembolsar</button>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+
+              @if (deciderError() && deciderErrorOrderId() === order.id) {
+                <p class="px-4 pb-3 text-xs text-red-600 font-semibold">{{ deciderError() }}</p>
+              }
+
+              @if (deliveringOrderId() === order.id) {
+                <div class="px-4 pb-4 space-y-3 border-t border-slate-100 pt-3">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" [value]="deliverUsername()" (input)="deliverUsername.set($any($event.target).value)" placeholder="Usuario o correo de la cuenta" class="w-full bg-white rounded-lg py-2.5 px-3.5 text-sm font-medium text-ink placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-pink/15 focus:border-pink" />
+                    <input type="text" [value]="deliverPassword()" (input)="deliverPassword.set($any($event.target).value)" placeholder="Contraseña real de la cuenta" class="w-full bg-white rounded-lg py-2.5 px-3.5 text-sm font-medium text-ink placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-pink/15 focus:border-pink" />
+                  </div>
+                  <textarea [value]="deliverNotes()" (input)="deliverNotes.set($any($event.target).value)" rows="2" placeholder="Instrucciones para el vendedor (opcional)" class="w-full bg-white rounded-lg py-2.5 px-3.5 text-sm font-medium text-ink placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-pink/15 focus:border-pink resize-none"></textarea>
+                  @if (deliverError()) { <p class="text-xs text-red-600 font-semibold">{{ deliverError() }}</p> }
+                  <div class="flex items-center gap-2">
+                    <button type="button" [disabled]="savingDelivery() || !deliverUsername().trim() || !deliverPassword()" (click)="submitDelivery(order)" class="active:scale-[0.98] hover:bg-[#047857] py-2 px-4 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-60 transition-all">{{ savingDelivery() ? 'Enviando…' : 'Confirmar entrega' }}</button>
+                    <button type="button" (click)="closeDeliverForm()" class="active:scale-[0.98] hover:bg-slate-200 py-2 px-4 rounded-lg bg-slate-100 text-ink text-xs font-bold transition-all">Cancelar</button>
+                  </div>
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>

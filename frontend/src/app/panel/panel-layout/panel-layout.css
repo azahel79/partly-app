@@ -1,0 +1,84 @@
+:host{display:block}
+
+/* Fondo animado del panel — amplitud propia (más notoria que el `.blob-drift`
+   global compartido con la landing) para que el movimiento se perciba a simple
+   vista. Nombre de keyframe distinto a propósito: no reutilizamos `drift` de
+   styles.css porque cambiarlo ahí afectaría también a la landing page. */
+@keyframes pl-drift {
+  0% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(60px, -45px) scale(1.14); }
+  50% { transform: translate(20px, 40px) scale(0.92); }
+  75% { transform: translate(-55px, -20px) scale(1.08); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+.pl-blob {
+  border-radius: 9999px;
+  filter: blur(70px);
+  animation: pl-drift 13s ease-in-out infinite;
+}
+.pl-blob-slow { animation-duration: 19s; }
+.pl-blob-fast { animation-duration: 10s; }
+
+.notification-panel{position:absolute;z-index:50;right:0;top:46px;width:min(500px,calc(100vw - 24px));max-height:min(690px,calc(100vh - 84px));display:flex;flex-direction:column;overflow:hidden;border:1px solid #eef0f4;border-radius:19px;background:#fff;box-shadow:0 22px 55px rgba(20,29,55,.18);color:#111735}.notification-header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px 18px 10px}.notification-header h2{margin:0;font-size:15px;font-weight:900;letter-spacing:-.02em}.notification-header p{margin:4px 0 0;color:#7a859f;font-size:10px;font-weight:600}.notification-header button{display:flex;align-items:center;gap:5px;padding:2px 0;border:0;background:transparent;color:#009777;font-size:10px;font-weight:800;white-space:nowrap;cursor:pointer}.notification-header button span{font-size:16px}.notification-header button:disabled{opacity:.45;cursor:not-allowed}.notification-filters{display:flex;gap:8px;padding:5px 18px 13px;overflow-x:auto}.notification-filters button{min-width:max-content;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 17px;border:1px solid #edf0f4;border-radius:999px;background:#fff;color:#5f6982;box-shadow:0 1px 2px rgba(16,24,40,.05);font-size:10px;font-weight:800;cursor:pointer;transition:.18s ease}.notification-filters button b{min-width:22px;height:22px;display:grid;place-items:center;padding:0 5px;border-radius:999px;background:#e7ebf0;color:#414b65;font-size:9px}.notification-filters button.active{border-color:#00a47d;background:#05a47e;color:#fff;box-shadow:0 7px 16px rgba(0,158,120,.25)}.notification-filters button.active b{background:#fff;color:#008c6c}.notification-list{min-height:150px;overflow-y:auto;padding:0 12px}.notification-item{position:relative;width:100%;display:grid;grid-template-columns:50px 1fr 20px;align-items:center;gap:12px;padding:14px 9px;border:0;border-bottom:1px solid #edf0f4;background:transparent;color:inherit;text-align:left;cursor:pointer;transition:.16s ease}.notification-item:hover{background:#f8fbfa}.notification-item.unread{margin:0 0 1px;border-bottom-color:transparent;border-radius:12px;background:#effaf7}.notification-item.unread:hover{background:#e8f7f3}.unread-dot{position:absolute;left:5px;top:17px;width:7px;height:7px;border-radius:50%;background:#0bac84}.notification-type-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:50%;background:#dcf6ee;color:#009777}.notification-type-icon span{font-size:24px}.notification-item[data-tone=amber] .notification-type-icon{color:#d98500;background:#fff0ca}.notification-item[data-tone=blue] .notification-type-icon{color:#1476df;background:#e1edff}.notification-item[data-tone=red] .notification-type-icon{color:#d53d53;background:#ffe5e9}.notification-item[data-tone=slate] .notification-type-icon{color:#59647c;background:#e9edf3}.notification-copy{min-width:0;display:grid;gap:3px}.notification-copy strong{font-size:11px;font-weight:900;line-height:1.3}.notification-copy>span{display:-webkit-box;overflow:hidden;color:#52617d;font-size:9.5px;font-weight:600;line-height:1.4;-webkit-line-clamp:2;-webkit-box-orient:vertical}.notification-copy small{color:#7e899f;font-size:9px;font-weight:600}.notification-arrow{color:#8c96aa;font-size:22px}.notification-empty{min-height:190px;display:grid;place-items:center;align-content:center;gap:8px;color:#7b859d;text-align:center}.notification-empty span{width:45px;height:45px;display:grid;place-items:center;border-radius:50%;background:#edf8f5;color:#00a07a}.notification-empty p{margin:0;font-size:10px;font-weight:700}.notification-footer{text-decoration:none;margin:10px 17px 15px;padding:13px 18px;display:flex;align-items:center;justify-content:center;gap:12px;border:1px solid #edf0f4;border-radius:12px;background:#fafbfd;color:#17203d;font-size:10px;font-weight:900;cursor:pointer}.notification-footer:hover{color:#008f6f;background:#f1faf7}.notification-footer span{font-size:17px}@media(max-width:600px){.notification-panel{position:fixed;top:70px;right:12px;left:12px;width:auto;max-height:calc(100vh - 84px)}.notification-header{padding:16px 15px 9px}.notification-header p{max-width:210px}.notification-header button{font-size:0}.notification-header button span{font-size:19px}.notification-filters{padding-inline:14px}.notification-item{grid-template-columns:44px 1fr 18px}.notification-type-icon{width:42px;height:42px}.notification-type-icon span{font-size:21px}}
+
+
+.panel-header-row { min-width: 0; }
+.panel-navigation { min-width: 0; }
+.panel-navigation a { min-height: 44px; display: flex; align-items: center; justify-content: center; }
+.panel-header-actions > a, .panel-header-actions > div > button { min-height: 44px; min-width: 44px; }
+@media (max-width: 1023px) {
+  .panel-header-row { height: auto; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 16px; padding-block: 10px; }
+  .panel-header-actions { justify-self: end; }
+  .panel-navigation { grid-column: 1 / -1; grid-row: 2; width: 100%; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-radius: 18px; }
+  .panel-navigation a { padding-inline: 6px; font-size: 12px; white-space: normal; text-align: center; line-height: 1.35; }
+  .panel-content { padding-top: 24px; }
+  .notification-panel { position: fixed; inset: 126px 12px auto; width: auto; max-width: 500px; margin-left: auto; max-height: calc(100dvh - 142px); }
+}
+@media (max-width: 379px) {
+  .panel-header-row { padding-inline: 12px; gap: 8px; }
+  .panel-header-actions { gap: 4px; }
+  .panel-header-row > a img { height: 27px; }
+  .panel-navigation a { font-size: 11px; }
+}
+
+
+/* ---------- Modo oscuro ---------- */
+:host-context(html.dark) .panel-shell {
+  background:
+    radial-gradient(1100px 560px at 82% -8%, rgba(16, 185, 129, 0.17), transparent 62%),
+    radial-gradient(900px 520px at -6% 104%, rgba(20, 184, 166, 0.13), transparent 62%),
+    radial-gradient(700px 400px at 105% 100%, rgba(16, 185, 129, 0.08), transparent 60%),
+    #04100e;
+}
+:host-context(html.dark) .pl-blob { background-color: rgba(16, 185, 129, 0.11); }
+:host-context(html.dark) .panel-header { background: rgba(4, 16, 14, 0.84); border-color: rgba(255, 255, 255, 0.07); }
+:host-context(html.dark) .panel-navigation { background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09); }
+:host-context(html.dark) .panel-navigation a { color: #a9c2ba; }
+:host-context(html.dark) .panel-navigation a:hover { background: rgba(255, 255, 255, 0.07); color: #fff; box-shadow: none; }
+:host-context(html.dark) .panel-navigation a.bg-pink { background: rgba(16, 185, 129, 0.16); color: #fff; box-shadow: inset 0 0 0 1.5px #34d399, 0 0 22px -6px rgba(52, 211, 153, 0.6); }
+:host-context(html.dark) .panel-header-actions button > span.bg-pink { background: #34d399; color: #04241b; }
+
+:host-context(html.dark) .notification-panel { border-color: rgba(52, 211, 153, 0.22); background: #0a1d19; box-shadow: 0 26px 70px rgba(0, 0, 0, 0.65); color: #eaf5f1; }
+:host-context(html.dark) .notification-header p { color: #8fa9a1; }
+:host-context(html.dark) .notification-header button { color: #34d399; }
+:host-context(html.dark) .notification-filters button { border-color: rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.04); color: #c3d7d0; box-shadow: none; }
+:host-context(html.dark) .notification-filters button b { background: rgba(255, 255, 255, 0.1); color: #c3d7d0; }
+:host-context(html.dark) .notification-filters button.active { border-color: #34d399; background: rgba(16, 185, 129, 0.2); color: #fff; box-shadow: 0 0 20px -6px rgba(52, 211, 153, 0.6); }
+:host-context(html.dark) .notification-filters button.active b { background: #34d399; color: #04241b; }
+:host-context(html.dark) .notification-item { border-bottom-color: rgba(255, 255, 255, 0.07); }
+:host-context(html.dark) .notification-item:hover { background: rgba(255, 255, 255, 0.04); }
+:host-context(html.dark) .notification-item.unread { background: rgba(16, 185, 129, 0.1); }
+:host-context(html.dark) .notification-item.unread:hover { background: rgba(16, 185, 129, 0.16); }
+:host-context(html.dark) .unread-dot { background: #34d399; }
+:host-context(html.dark) .notification-type-icon { background: rgba(16, 185, 129, 0.18); color: #34d399; }
+:host-context(html.dark) .notification-item[data-tone=amber] .notification-type-icon { color: #fbbf24; background: rgba(251, 191, 36, 0.16); }
+:host-context(html.dark) .notification-item[data-tone=blue] .notification-type-icon { color: #60a5fa; background: rgba(96, 165, 250, 0.16); }
+:host-context(html.dark) .notification-item[data-tone=red] .notification-type-icon { color: #f87171; background: rgba(248, 113, 113, 0.16); }
+:host-context(html.dark) .notification-item[data-tone=slate] .notification-type-icon { color: #a8beb7; background: rgba(255, 255, 255, 0.08); }
+:host-context(html.dark) .notification-copy > span { color: #c3d7d0; }
+:host-context(html.dark) .notification-copy small { color: #8fa9a1; }
+:host-context(html.dark) .notification-arrow { color: #62817a; }
+:host-context(html.dark) .notification-empty { color: #8fa9a1; }
+:host-context(html.dark) .notification-empty span { background: rgba(16, 185, 129, 0.14); color: #34d399; }
+:host-context(html.dark) .notification-footer { border-color: rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.04); color: #eaf5f1; }
+:host-context(html.dark) .notification-footer:hover { color: #34d399; background: rgba(16, 185, 129, 0.12); }

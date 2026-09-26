@@ -1,0 +1,152 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-ink tracking-tight">Comisiones</h1>
+    <p class="text-sm text-on-surface-variant font-medium mt-1">La comisión que los vendedores le pagan a Vakeva por transferencia. Revisa cada comprobante contra tu banco.</p>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-2xl bg-red-50 border border-red-100 text-xs text-red-700 font-semibold">{{ errorMessage() }}</div>
+  }
+  @if (notice()) {
+    <div class="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-900"><span class="material-symbols-outlined">mark_email_read</span><p class="text-sm font-semibold">{{ notice() }}</p></div>
+  }
+
+  <!-- Resumen -->
+  @if (summary(); as s) {
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <button type="button" (click)="setFilter('REVIEW')" class="text-left p-5 rounded-2xl border transition-colors" [class]="s.inReview.count > 0 ? 'bg-blue-50 border-blue-200 hover:bg-blue-100/60' : 'bg-white border-slate-200/70 hover:bg-slate-50'">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Por revisar</p>
+        <p class="text-2xl font-black text-ink tabular-nums mt-2">{{ s.inReview.count }}</p>
+        <p class="text-xs text-on-surface-variant mt-0.5">{{ money(s.inReview.amount) }}</p>
+      </button>
+      <button type="button" (click)="setFilter('PENDING')" class="text-left p-5 rounded-2xl bg-white border border-slate-200/70 hover:bg-slate-50 transition-colors">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Por cobrar</p>
+        <p class="text-2xl font-black text-ink tabular-nums mt-2">{{ money(s.pending.amount) }}</p>
+        <p class="text-xs text-on-surface-variant mt-0.5">{{ s.pending.count }} {{ s.pending.count === 1 ? 'cobro' : 'cobros' }} · +{{ money(s.accruedNotBilled) }} por generar</p>
+      </button>
+      <button type="button" (click)="setFilter('OVERDUE')" class="text-left p-5 rounded-2xl border transition-colors" [class]="s.overdue.count > 0 ? 'bg-red-50 border-red-200 hover:bg-red-100/60' : 'bg-white border-slate-200/70 hover:bg-slate-50'">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Vencidas</p>
+        <p class="text-2xl font-black text-ink tabular-nums mt-2">{{ s.overdue.count }}</p>
+        <p class="text-xs text-on-surface-variant mt-0.5">{{ money(s.overdue.amount) }} · {{ s.restrictedSellers }} {{ s.restrictedSellers === 1 ? 'vendedor restringido' : 'vendedores restringidos' }}</p>
+      </button>
+      <button type="button" (click)="setFilter('PAID')" class="text-left p-5 rounded-2xl bg-white border border-slate-200/70 hover:bg-slate-50 transition-colors">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Cobrado este mes</p>
+        <p class="text-2xl font-black text-ink tabular-nums mt-2">{{ money(s.paidThisMonth.amount) }}</p>
+        <p class="text-xs text-on-surface-variant mt-0.5">{{ s.paidThisMonth.count }} {{ s.paidThisMonth.count === 1 ? 'pago validado' : 'pagos validados' }}</p>
+      </button>
+    </div>
+  }
+
+  <!-- Cuenta de Vakeva -->
+  <section class="p-5 rounded-2xl bg-white border border-slate-200/70">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 class="text-sm font-extrabold text-ink flex items-center gap-2"><span class="material-symbols-outlined text-pink text-xl">account_balance</span>Cuenta donde los vendedores pagan la comisión</h2>
+        <p class="text-xs text-on-surface-variant mt-0.5">Es la que ven en su pantalla de Comisiones. Mientras no la configures no se restringe a ningún vendedor.</p>
+      </div>
+      @if (!editingBank() && bank()) {
+        <button type="button" (click)="startEditBank()" class="py-2 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-ink text-xs font-bold">Cambiar cuenta</button>
+      }
+    </div>
+
+    @if (bankMessage()) {
+      <p class="mt-3 text-xs font-semibold" [class]="editingBank() ? 'text-red-600' : 'text-emerald-700'">{{ bankMessage() }}</p>
+    }
+
+    @if (bank() === undefined) {
+      <p class="mt-3 text-sm text-on-surface-variant">Cargando…</p>
+    } @else if (editingBank()) {
+      @if (bank() === null) {
+        <div class="mt-3 flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-50 border border-amber-100 text-amber-900">
+          <span class="material-symbols-outlined text-lg">warning</span>
+          <p class="text-xs"><strong>Todavía no hay cuenta configurada.</strong> Configúrala para que los vendedores puedan pagar sus comisiones.</p>
+        </div>
+      }
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <label class="block">
+          <span class="block text-xs font-bold text-slate-600 mb-1.5">Titular de la cuenta</span>
+          <input type="text" maxlength="100" [value]="bankHolder()" (input)="bankHolder.set($any($event.target).value)" placeholder="Nombre o razón social" class="w-full bg-white rounded-xl py-3 px-4 text-sm font-semibold text-ink border border-slate-200 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink" />
+        </label>
+        <label class="block">
+          <span class="block text-xs font-bold text-slate-600 mb-1.5">CLABE interbancaria</span>
+          <input type="text" inputmode="numeric" maxlength="18" [value]="bankClabe()" (input)="onClabeInput($any($event.target).value)" placeholder="18 dígitos" class="w-full bg-white rounded-xl py-3 px-4 text-sm font-semibold text-ink tabular-nums border border-slate-200 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink" [class.border-red-300]="clabeInfo().isComplete && !clabeInfo().isValid" />
+          @if (clabeInfo().bankName) { <span class="block text-xs text-emerald-700 font-semibold mt-1">Banco detectado: {{ clabeInfo().bankName }}</span> }
+          @else if (clabeInfo().isComplete && !clabeInfo().isValid) { <span class="block text-xs text-red-600 font-semibold mt-1">La CLABE no es válida, revísala.</span> }
+        </label>
+        <label class="block md:col-span-2">
+          <span class="block text-xs font-bold text-slate-600 mb-1.5">Indicación para el vendedor (opcional)</span>
+          <input type="text" maxlength="200" [value]="bankReference()" (input)="bankReference.set($any($event.target).value)" placeholder="Ej. Escribe tu nombre y 'comisión' en el concepto" class="w-full bg-white rounded-xl py-3 px-4 text-sm font-semibold text-ink border border-slate-200 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink" />
+        </label>
+      </div>
+      <div class="mt-4 flex items-center gap-2">
+        <button type="button" (click)="saveBank()" [disabled]="!canSaveBank() || savingBank()" class="py-2.5 px-6 rounded-lg bg-pink hover:bg-[#047857] active:scale-[0.98] text-white text-sm font-bold transition-all disabled:opacity-50 disabled:hover:bg-pink">{{ savingBank() ? 'Guardando…' : 'Guardar cuenta' }}</button>
+        @if (bank()) { <button type="button" (click)="cancelEditBank()" class="py-2.5 px-4 rounded-lg bg-slate-100 hover:bg-slate-200 text-ink text-sm font-bold">Cancelar</button> }
+      </div>
+    } @else if (bank(); as acc) {
+      <div class="mt-3 inline-flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200/70 text-sm">
+        <span class="font-bold text-ink">{{ acc.bankName }}</span>
+        <span class="text-on-surface-variant">{{ acc.holder }}</span>
+        <span class="tabular-nums font-bold text-ink">{{ acc.clabe }}</span>
+      </div>
+    }
+  </section>
+
+  <!-- Filtros -->
+  <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto w-fit max-w-full">
+    @for (opt of filters; track opt.value) {
+      <button type="button" (click)="setFilter(opt.value)" [class]="filter() === opt.value ? 'bg-white text-ink shadow-sm' : 'text-on-surface-variant hover:text-ink'" class="whitespace-nowrap px-3.5 py-2 text-xs font-bold rounded-lg transition-all">{{ opt.label }}</button>
+    }
+  </div>
+
+  <!-- Lista -->
+  @if (charges() === null) {
+    <div class="p-8 rounded-2xl bg-white border border-slate-200/70 text-center text-sm text-on-surface-variant">Cargando…</div>
+  } @else if (charges()!.length === 0) {
+    <div class="p-8 rounded-2xl bg-white border border-slate-200/70 text-center">
+      <span class="material-symbols-outlined text-2xl text-on-surface-variant/40 mb-2 block">inbox</span>
+      <p class="text-sm font-semibold text-on-surface-variant">No hay comisiones en este estado.</p>
+    </div>
+  } @else {
+    <div class="space-y-3">
+      @for (charge of charges(); track charge.id) {
+        <article class="p-5 rounded-2xl bg-white border flex flex-col lg:flex-row lg:items-center gap-4" [class]="charge.overdue ? 'border-red-200' : 'border-slate-200/70'">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-0.5">
+              <span class="text-sm font-bold text-ink truncate">{{ charge.seller.name }}</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-bold shrink-0" [class]="statusLabel[charge.status].tone">{{ statusLabel[charge.status].label }}</span>
+              @if (charge.overdue) { <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 shrink-0">Vencida · vendedor restringido</span> }
+            </div>
+            <p class="text-xs text-on-surface-variant truncate">{{ charge.seller.email }}</p>
+            <div class="mt-2 flex flex-wrap gap-1.5">
+              @for (g of charge.groups; track g.groupId) {
+                <span class="px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-[11px] font-semibold text-ink">{{ g.platformName }} · {{ g.payments }} {{ g.payments === 1 ? 'pago' : 'pagos' }} · {{ money(g.commission) }}</span>
+              }
+            </div>
+            <p class="mt-2 text-[11px] text-on-surface-variant">
+              Generada el {{ formatDate(charge.createdAt) }} · límite {{ formatDate(charge.payBy) }}
+              @if (charge.receiptUploadedAt) { · comprobante subido el {{ formatDate(charge.receiptUploadedAt) }} }
+              @if (charge.paidAt) { · pagada el {{ formatDate(charge.paidAt) }} }
+            </p>
+            @if (charge.rejectionReason && charge.status === 'PENDING') {
+              <p class="mt-1 text-[11px] text-red-700 font-semibold">Último rechazo: {{ charge.rejectionReason }}</p>
+            }
+          </div>
+
+          <div class="flex items-center gap-3 shrink-0 flex-wrap">
+            <span class="text-xl font-black text-ink tabular-nums">{{ money(charge.amount) }}</span>
+            @if (charge.hasReceipt) {
+              <button type="button" (click)="viewReceipt(charge)" [disabled]="viewingId() === charge.id" class="py-2 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-ink text-xs font-bold flex items-center gap-1 disabled:opacity-60"><span class="material-symbols-outlined text-sm">visibility</span>{{ viewingId() === charge.id ? 'Abriendo…' : 'Ver comprobante' }}</button>
+            }
+            @if (charge.status === 'PENDING') {
+              <button type="button" (click)="sendReminder(charge)" [disabled]="remindingId() === charge.id" class="py-2 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-ink text-xs font-bold flex items-center gap-1 disabled:opacity-60"><span class="material-symbols-outlined text-sm">notifications_active</span>{{ remindingId() === charge.id ? 'Enviando…' : 'Enviar recordatorio' }}</button>
+            }
+            @if (charge.status === 'IN_REVIEW') {
+              <button type="button" (click)="approve(charge)" [disabled]="actingId() === charge.id" class="py-2 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold active:scale-[0.98] transition-all disabled:opacity-50">Aprobar</button>
+              <button type="button" (click)="reject(charge)" [disabled]="actingId() === charge.id" class="py-2 px-4 rounded-lg bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs font-bold active:scale-[0.98] transition-all disabled:opacity-50">Rechazar</button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>

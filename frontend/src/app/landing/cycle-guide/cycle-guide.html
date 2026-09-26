@@ -1,0 +1,92 @@
+<header class="guide-nav">
+  <a routerLink="/" class="guide-logo"><img src="vakeva-logo.png" alt="Vakeva" /></a>
+  <nav><a class="active" routerLink="/como-funciona-el-ciclo" fragment="inicio">La guía</a><a routerLink="/como-funciona-el-ciclo" fragment="primer-pago">Pagos y ciclo</a><a routerLink="/como-funciona-el-ciclo" fragment="comprobante">Comprobante</a><a routerLink="/como-funciona-el-ciclo" fragment="credenciales">Acceso</a><a routerLink="/como-funciona-el-ciclo" fragment="preguntas">Preguntas</a></nav>
+  <div><a class="login" routerLink="/iniciar-sesion">Iniciar sesión</a><a class="signup" routerLink="/crear-cuenta">Crear cuenta<span class="material-symbols-outlined">arrow_forward</span></a></div>
+</header>
+
+<main class="guide-page">
+  <section class="guide-hero" id="inicio">
+    <div appReveal class="guide-copy">
+      <div class="guide-label"><span class="material-symbols-outlined">payments</span>Guía de pagos</div>
+      <h1>Entiende exactamente<br /><span>qué pagas y cuándo.</span></h1>
+      <p>En Vakeva creemos en la transparencia. Aquí te explicamos, paso a paso, cómo funcionan los pagos, las renovaciones y todo lo que necesitas saber para disfrutar tus suscripciones sin sorpresas.</p>
+      <div class="guide-benefits"><span appReveal appRevealVariant="pop" [appRevealDelay]="150"><i>✓</i>Sin cargos ocultos</span><span appReveal appRevealVariant="pop" [appRevealDelay]="230"><i>✓</i>Pagos seguros</span><span appReveal appRevealVariant="pop" [appRevealDelay]="310"><i>✓</i>Todo en un solo lugar</span></div>
+    </div>
+    <figure appReveal appRevealVariant="blur" class="hero-photo"><img src="cycle-hero-phone.jpg" srcset="cycle-hero-phone-720.jpg 720w, cycle-hero-phone.jpg 1145w" sizes="(max-width: 900px) calc(100vw - 22px), 46vw" width="1145" height="1374" fetchpriority="high" decoding="async" alt="Teléfono mostrando una suscripción activa" /></figure>
+  </section>
+
+  <section class="guide-row first-payment" id="primer-pago">
+    <div appReveal class="row-copy">
+      <div class="row-number"><b>01</b><i></i><span>Tu primer pago</span></div>
+      <h2>Pagas solo por los días<br />que quedan del mes.</h2>
+      <p>Cuando te unes a un grupo, Vakeva calcula tu primer pago según los días restantes del ciclo. Así puedes comenzar a disfrutar tu suscripción sin pagar un mes completo a medias.</p>
+      <div class="calculation-card"><span class="material-symbols-outlined">calculate</span><div><small>Ejemplo de cálculo</small><strong>$53.40 <em>MXN</em><mark>Primer pago</mark></strong><p>Ejemplo ilustrativo; el importe depende del precio del cupo y los días restantes del mes.</p></div></div>
+    </div>
+    <figure appReveal appRevealVariant="right" class="payment-photo"><img src="cycle-payment-phone.jpg" srcset="cycle-payment-phone-768.jpg 768w, cycle-payment-phone.jpg 1536w" sizes="(max-width: 900px) calc(100vw - 44px), 46vw" width="1536" height="1024" loading="lazy" decoding="async" alt="Confirmación segura de pago" /></figure>
+  </section>
+
+  <section class="guide-row monthly-cycle" id="ciclo-mensual">
+    <div appReveal class="row-copy">
+      <div class="row-number"><b>02</b><i></i><span>Tu ciclo mensual</span></div>
+      <h2>Así funciona tu suscripción<br />de principio a fin.</h2>
+      <p>Una vez que te unes a un grupo, tienes acceso a la información de tu suscripción y puedes consultar tus próximas fechas de cobro. Antes de cada renovación, recibirás un recordatorio para confirmar tu pago.</p>
+      <p>Si realizas una transferencia, podrás subir tu comprobante desde Vakeva para que el vendedor lo revise. Desde tu panel podrás consultar el estado de tu solicitud y los movimientos de tu suscripción.</p>
+    </div>
+    <div appReveal appRevealVariant="right" class="cycle-timeline">
+      <article><i class="material-symbols-outlined">group_add</i><div><b>Te unes a un grupo</b><span>Selecciona tu suscripción y únete.</span></div></article>
+      <article><i class="material-symbols-outlined">receipt_long</i><div><b>Realizas tu primer pago</b><span>Pagas solo por los días restantes.</span></div></article>
+      <article><i class="material-symbols-outlined">upload_file</i><div><b>Subes tu comprobante</b><span>El vendedor recibe tu pago para revisarlo.</span></div></article>
+      <article><i class="material-symbols-outlined">fact_check</i><div><b>El titular confirma</b><span>El titular del plan aprueba el pago y habilita tu acceso.</span></div></article>
+      <article><i class="material-symbols-outlined">key</i><div><b>Disfrutas tu suscripción</b><span>Recibes las credenciales y el perfil asignado.</span></div></article>
+      <article><i class="material-symbols-outlined">notifications_active</i><div><b>Recibes un recordatorio</b><span>Antes de cada renovación te avisamos.</span></div></article>
+      <article><i class="material-symbols-outlined">check_circle</i><div><b>Confirmas tu pago</b><span>Mantén tu cupo activo sin interrupciones.</span></div></article>
+    </div>
+  </section>
+
+  <section class="guide-row responsibilities" id="responsabilidades">
+    <div appReveal class="row-copy">
+      <div class="row-number"><b>03</b><i></i><span>Responsabilidades</span></div>
+      <h2>Todos saben<br />qué les corresponde.</h2>
+      <p>El comprador confirma sus pagos y utiliza su espacio conforme a las condiciones del grupo. El titular del plan administra la suscripción, mantiene actualizada su información y atiende las solicitudes de sus miembros.</p>
+      <p>Vakeva facilita la administración del grupo, el seguimiento de los pagos y los procesos de revisión para que ambas partes tengan una experiencia segura y clara.</p>
+    </div>
+    <div appReveal appRevealVariant="pop" class="roles-panel">
+      <article><i class="material-symbols-outlined">person</i><div><h3>Comprador</h3><ul><li>Realiza sus pagos en tiempo</li><li>Usa su cupo de forma personal</li><li>Mantiene su información actualizada</li></ul></div></article>
+      <article><i class="material-symbols-outlined">crown</i><div><h3>Titular del plan</h3><ul><li>Administra la suscripción</li><li>Confirma los pagos de los miembros</li><li>Mantiene el grupo en orden</li><li>Brinda soporte a su comunidad</li></ul></div></article>
+      <article><i class="material-symbols-outlined">shield_person</i><div><h3>Vakeva</h3><ul><li>Muestra el estado del comprobante</li><li>Protege credenciales y actividad</li><li>Supervisa incidencias e irregularidades</li><li>No aprueba el pago ni concede el acceso</li></ul></div></article>
+    </div>
+  </section>
+
+  <section class="payment-review" id="comprobante">
+    <header appReveal appRevealVariant="flip" class="extra-heading"><div class="guide-label"><span class="material-symbols-outlined">fact_check</span>Revisión del comprobante</div><h2>Siempre sabes en qué estado está tu pago.</h2><p>Después de transferir, el seguimiento continúa dentro de Vakeva. Cada cambio aparece en tu panel y genera su notificación correspondiente.</p></header>
+    <div class="review-steps">
+      <article appReveal appRevealVariant="pop"><b>01</b><i class="material-symbols-outlined">upload_file</i><h3>Comprobante enviado</h3><p>Subes una imagen o PDF legible. Puedes reemplazarlo mientras todavía no sea revisado.</p><small>Responsable: comprador</small></article>
+      <article appReveal appRevealVariant="pop" [appRevealDelay]="80"><b>02</b><i class="material-symbols-outlined">hourglass_top</i><h3>En revisión</h3><p>El vendedor recibe una alerta y comprueba que el importe haya llegado correctamente.</p><small>Responsable: vendedor</small></article>
+      <article appReveal appRevealVariant="pop" [appRevealDelay]="160"><b>03</b><i class="material-symbols-outlined">verified</i><h3>Aprobado</h3><p>Se activa tu membresía y se habilitan las credenciales, instrucciones y perfil que debes utilizar.</p><small>Acceso habilitado</small></article>
+      <article appReveal appRevealVariant="pop" [appRevealDelay]="240"><b>04</b><i class="material-symbols-outlined">refresh</i><h3>Corrección</h3><p>Si se rechaza, verás el motivo y podrás subir otro comprobante sin crear una solicitud nueva.</p><small>Sin perder el seguimiento</small></article>
+    </div>
+    <aside appReveal appRevealVariant="left"><span class="material-symbols-outlined">admin_panel_settings</span><div><b>¿Qué puede ver el administrador de Vakeva?</b><p>Puede comprobar si el archivo fue enviado, consultar sus estados y atender una incidencia. No confirma el depósito y tampoco otorga el acceso al grupo.</p></div></aside>
+  </section>
+
+  <section class="access-section" id="credenciales">
+    <div appReveal class="access-copy"><div class="guide-label"><span class="material-symbols-outlined">lock</span>Acceso protegido</div><h2>Tus credenciales aparecen solo cuando corresponde.</h2><p>Una compra nueva no da acceso hasta que el titular del plan aprueba el comprobante. Cuando eso ocurre, Vakeva muestra los datos cifrados de la cuenta, el perfil asignado y cualquier instrucción especial.</p><ul><li>Solo el titular del plan y los miembros activos pueden consultar los datos.</li><li>Si cambian las credenciales, recibirás una notificación.</li><li>Al salir, cancelar o perder el espacio, el acceso se revoca.</li></ul></div>
+    <div appReveal appRevealVariant="blur" class="access-card"><header><div class="netflix-mini">N</div><div><b>Netflix Premium 4K</b><small>Acceso activo · Perfil 3</small></div><mark><i></i>Activo</mark></header><label>Correo de la cuenta</label><div class="credential"><span>a**********&#64;gmail.com</span><button type="button"><span class="material-symbols-outlined">visibility_off</span>Mostrar</button></div><label>Contraseña</label><div class="credential"><span>••••••••••••</span><button type="button"><span class="material-symbols-outlined">visibility_off</span>Mostrar</button></div><footer><span class="material-symbols-outlined">encrypted</span><p><b>Cifrado de extremo a extremo</b><small>Acceso disponible únicamente para miembros activos.</small></p></footer></div>
+  </section>
+
+  <section class="situations-section" id="casos-importantes">
+    <header appReveal appRevealVariant="flip" class="extra-heading"><div class="guide-label"><span class="material-symbols-outlined">info</span>Casos importantes</div><h2>¿Qué ocurre si algo cambia?</h2><p>El ciclo también contempla rechazos, actualizaciones y cancelaciones para que nunca pierdas de vista tu situación.</p></header>
+    <div class="situation-grid"><article appReveal appRevealVariant="pop"><i class="material-symbols-outlined">pending_actions</i><h3>Pendiente de comprobante</h3><p>Tu espacio todavía no está activo y no se muestran credenciales.</p></article><article appReveal appRevealVariant="pop" [appRevealDelay]="60"><i class="material-symbols-outlined">cancel</i><h3>Pago rechazado</h3><p>Verás el motivo y podrás corregir el archivo desde la misma solicitud.</p></article><article appReveal appRevealVariant="pop" [appRevealDelay]="120"><i class="material-symbols-outlined">key_off</i><h3>Cambio de credenciales</h3><p>El titular del plan actualiza los datos y los miembros reciben una notificación.</p></article><article appReveal appRevealVariant="pop" [appRevealDelay]="180"><i class="material-symbols-outlined">support_agent</i><h3>Incidencia</h3><p>Si no puedes entrar o existe una disputa, Vakeva conserva el historial para ayudarte.</p></article><article appReveal appRevealVariant="pop" [appRevealDelay]="240"><i class="material-symbols-outlined">logout</i><h3>Espacio liberado</h3><p>Si no renuevas a tiempo, el acceso se revoca y el lugar vuelve al catálogo.</p></article><article appReveal appRevealVariant="pop" [appRevealDelay]="300"><i class="material-symbols-outlined">autorenew</i><h3>Siguiente renovación</h3><p>Después del primer pago proporcional, se aplica el precio mensual publicado.</p></article></div>
+  </section>
+
+  <section appReveal class="grace-banner" id="periodo-gracia">
+    <div class="grace-copy"><div class="row-number"><b>04</b><i></i><span>Periodo de gracia</span></div><h2>48 horas para<br />conservar tu cupo.</h2><p>Antes de cada corte, Vakeva te avisa para que puedas realizar tu pago y conservar tu suscripción. Durante el periodo de gracia tendrás la oportunidad de confirmar tu renovación sin perder tu cupo.</p><div class="grace-facts"><span><i class="material-symbols-outlined">upload_file</i>Sube tu comprobante</span><span><i class="material-symbols-outlined">fact_check</i>El vendedor lo revisa</span><span><i class="material-symbols-outlined">lock_clock</i>Tu estado queda registrado</span></div><div class="grace-warning"><span class="material-symbols-outlined">info</span><p><b>Si el plazo termina sin confirmación</b><small>El cupo se libera y las credenciales dejan de estar disponibles.</small></p></div><a routerLink="/crear-cuenta">Crear mi cuenta<span class="material-symbols-outlined">arrow_forward</span></a></div>
+    <div class="reminder-area"><div class="green-orb"></div><article class="reminder-card"><span class="material-symbols-outlined">notifications</span><div><b>Recordatorio de pago</b><p>Tu suscripción se renueva en 2 días.<br />Confirma tu pago para conservar tu espacio.</p></div><small>hace 2h</small></article><div class="renewal-status"><header><span class="material-symbols-outlined">schedule</span><div><small>Fecha límite</small><b>20 de marzo · 11:59 p. m.</b></div></header><ol><li class="done"><i>✓</i><span><b>Aviso enviado</b><small>Recibiste el importe y la fecha.</small></span></li><li><i>2</i><span><b>Envía el comprobante</b><small>Quedará visible para el titular del plan.</small></span></li><li><i>3</i><span><b>Confirmación del titular</b><small>Al aprobarse, conservas el acceso.</small></span></li></ol></div><div class="hand-note">Tu entretenimiento<br />sin interrupciones<i></i></div></div>
+  </section>
+
+  <section class="guide-faq" id="preguntas">
+    <div appReveal appRevealVariant="flip" class="faq-intro"><div class="guide-label"><span class="material-symbols-outlined">help</span>Preguntas frecuentes</div><h2>Lo importante,<br />sin letra pequeña.</h2><p>Estas son las reglas generales del ciclo. Las condiciones particulares de cada grupo siempre aparecen antes de pagar.</p></div>
+    <div class="faq-list"><details appReveal appRevealVariant="left" open><summary>¿El administrador de Vakeva aprueba mi comprobante?<span>+</span></summary><p>No. El titular del plan confirma el depósito y concede el acceso. El administrador de Vakeva solo supervisa los estados y atiende incidencias.</p></details><details appReveal appRevealVariant="left" [appRevealDelay]="60"><summary>¿Por qué mi primer pago puede ser menor?<span>+</span></summary><p>Porque se calcula desde el día en que te unes hasta el final del ciclo. Después pagarás el precio mensual completo de tu espacio.</p></details><details appReveal appRevealVariant="left" [appRevealDelay]="120"><summary>¿Tengo acceso mientras el pago está en revisión?<span>+</span></summary><p>En una compra nueva, no. Las credenciales se habilitan cuando el titular del plan aprueba el comprobante.</p></details><details appReveal appRevealVariant="left" [appRevealDelay]="180"><summary>¿Qué sucede si no confirmo dentro de las 48 horas?<span>+</span></summary><p>Tu espacio puede liberarse automáticamente y el acceso será revocado para que otra persona pueda ocuparlo.</p></details><details appReveal appRevealVariant="left" [appRevealDelay]="240"><summary>¿Quién puede consultar las credenciales?<span>+</span></summary><p>Únicamente el titular del plan y los miembros activos del grupo. Vakeva las mantiene protegidas y registra sus actualizaciones.</p></details></div>
+  </section>
+
+</main>
+<app-footer surfaceColor="#EDF7F3" />

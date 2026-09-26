@@ -1,0 +1,22 @@
+<section class="owners-section" id="owners">
+  <div class="owner-blob blob-a"></div><div class="owner-blob blob-b"></div>
+  <div class="owner-note note-one">Comparte.<br />Recupera.<br />Sin complicaciones.<i></i></div><div class="owner-note note-two">Aprovecha mejor<br />tu plan familiar<i></i></div>
+  <div class="owners-shell">
+    <header appReveal appRevealVariant="flip" class="owners-heading"><div class="owners-badge"><i></i>Aprovecha tus espacios libres<span class="material-symbols-outlined">chevron_right</span></div><h2>Comparte tu plan y <span>recupera parte de lo que pagas</span></h2><p>Si ya pagas un plan familiar, publica los espacios que no utilizas y compártelos de forma segura.<br />Vakeva te ayuda a encontrar miembros, organizar los cobros y administrar tu grupo.</p><div class="owner-checks"><span>✓ Sin complicaciones</span><span>✓ Cobros automáticos</span><span>✓ Usuarios verificados</span></div></header>
+    <div class="owner-panels">
+      <article appReveal appRevealVariant="left" class="owner-card calculator">
+        <header><span class="material-symbols-outlined">trending_up</span><div><h3>Calcula cuánto puedes recuperar</h3><p>Selecciona tu servicio y ajusta los espacios que deseas compartir.</p></div><b>Simulador</b></header>
+        <strong class="field-label">1. Selecciona tu servicio</strong><div class="plan-tabs">@for(plan of plans;track plan.name;let i=$index){<button type="button" [class.active]="selectedIndex()===i" (click)="selectPlan(i)"><i [class.netflix]="plan.letter">@if(plan.letter){N}@else{<span class="material-symbols-outlined">{{plan.icon}}</span>}</i>{{plan.label}}</button>}</div>
+        <div class="range-head"><strong>2. Ajusta cuántos cupos compartirás</strong><b>{{spots()}} cupos libres</b></div><input type="range" min="1" [max]="selectedPlan().maxSpots" [value]="spots()" (input)="onSpotsChange($any($event.target).value)"/><div class="range-ends"><span>1 cupo</span><span>{{selectedPlan().maxSpots}} cupos</span></div>
+        <div class="earning-box"><div><strong>{{selectedPlan().name}}</strong><small>Recuperación mensual estimada</small><b [class.value-pop]="earningsPulse()">${{monthlyEarnings()}} <em>MXN/mes</em></b><span>↑ ≈ ${{annualEarnings().toLocaleString('es-MX')}} MXN al año</span></div><i class="netflix-card">N</i><mark><span class="material-symbols-outlined">group</span>+{{spots()}} espacios</mark></div>
+        <a href="/crear-cuenta"><span class="material-symbols-outlined">group</span>Publica tu primer grupo<span class="material-symbols-outlined">arrow_forward</span></a><small class="free-copy">Es gratis y solo te toma un minuto.</small>
+      </article>
+      <article appReveal appRevealVariant="right" class="owner-card wallet">
+        <header><span class="material-symbols-outlined">account_balance_wallet</span><div><h3>Saldo de tus grupos</h3><p>Moneda: MXN</p></div><b><i></i>Activo</b></header>
+        <div class="balance"><div><small>Saldo disponible para retiro</small><strong>$2,848.00 <em>MXN</em></strong></div><button type="button" (click)="requestWithdrawal()"><span class="material-symbols-outlined">payments</span>Solicitar retiro<span class="material-symbols-outlined">arrow_forward</span></button></div>
+        <h4>Grupos administrados</h4><div class="wallet-groups"><div><i class="netflix">N</i><p><b>Netflix Premium 4K</b><small>● 4 de 4 cupos ocupados</small></p><strong>+$356.00 MXN</strong><span>›</span></div><div><i class="spotify">●</i><p><b>Spotify Familiar</b><small>● 5 de 5 cupos ocupados</small></p><strong>+$275.00 MXN</strong><span>›</span></div><div><i class="disney">D+</i><p><b>Disney+ Premium</b><small>● 3 de 3 cupos ocupados</small></p><strong>+$195.00 MXN</strong><span>›</span></div></div>
+        <ul><li>✓ Historial completo de los movimientos de tu saldo</li><li>✓ Sigue el estado de tu retiro hasta que se marque como pagado</li></ul><button class="withdraw-bottom" type="button" (click)="requestWithdrawal()"><span class="material-symbols-outlined">payments</span>Solicitar retiro<span class="material-symbols-outlined">chevron_right</span></button>
+      </article>
+    </div><footer class="owners-footer">VAKEVA&nbsp;&nbsp;•&nbsp;&nbsp;PLATAFORMAS COMPARTIDAS, MAYORES POSIBILIDADES</footer>
+  </div>
+</section>

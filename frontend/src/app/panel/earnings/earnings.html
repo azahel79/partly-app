@@ -1,0 +1,128 @@
+<div class="max-w-5xl mx-auto space-y-6">
+  <div>
+    <h1 class="text-2xl font-extrabold text-ink tracking-tight flex items-center gap-2">
+      <span class="material-symbols-outlined text-pink text-2xl">savings</span>
+      Mis ganancias
+    </h1>
+    <p class="text-sm text-on-surface-variant font-medium mt-1">
+      Tus compradores te transfieren directo a tu cuenta. Aquí llevas la cuenta de lo que cobras, la comisión de Vakeva y lo que realmente te queda.
+    </p>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-xl bg-red-50 border border-red-100 text-xs text-red-700 font-semibold">{{ errorMessage() }}</div>
+  }
+
+  @if (summary(); as s) {
+    <!-- Resumen -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section class="p-5 rounded-2xl bg-white border border-slate-200/70">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Te queda este mes</p>
+        <p class="text-2xl font-black text-ink tabular-nums tracking-tight mt-2">{{ money(s.thisMonth.net) }}</p>
+        <p class="text-xs text-on-surface-variant mt-1">de {{ money(s.thisMonth.gross) }} cobrados · {{ s.thisMonth.payments }} {{ s.thisMonth.payments === 1 ? 'pago' : 'pagos' }}</p>
+      </section>
+      <section class="p-5 rounded-2xl bg-white border border-slate-200/70">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Te ha quedado en total</p>
+        <p class="text-2xl font-black text-ink tabular-nums tracking-tight mt-2">{{ money(s.totals.net) }}</p>
+        <p class="text-xs text-on-surface-variant mt-1">de {{ money(s.totals.gross) }} cobrados · {{ s.totals.payments }} {{ s.totals.payments === 1 ? 'pago' : 'pagos' }}</p>
+      </section>
+      <section class="p-5 rounded-2xl border" [class]="s.commission.toPay > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200/70'">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Comisión por pagar</p>
+        <p class="text-2xl font-black text-ink tabular-nums tracking-tight mt-2">{{ money(s.commission.toPay) }}</p>
+        @if (s.commission.toPay > 0) {
+          <a routerLink="/panel/comisiones" class="inline-flex items-center gap-1 text-xs font-bold text-pink mt-1 hover:underline">Pagar comisión<span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+        } @else if (s.commission.inReview > 0) {
+          <p class="text-xs text-on-surface-variant mt-1">{{ money(s.commission.inReview) }} en revisión</p>
+        } @else {
+          <p class="text-xs text-on-surface-variant mt-1">Estás al corriente</p>
+        }
+      </section>
+      <section class="p-5 rounded-2xl bg-white border border-slate-200/70">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Comisión pagada</p>
+        <p class="text-2xl font-black text-ink tabular-nums tracking-tight mt-2">{{ money(s.commission.paid) }}</p>
+        @if (s.commission.accrued > 0) {
+          <p class="text-xs text-on-surface-variant mt-1">+ {{ money(s.commission.accrued) }} se cobrará cuando el grupo se llene o pasen 7 días</p>
+        } @else {
+          <p class="text-xs text-on-surface-variant mt-1">Ya liquidada con Vakeva</p>
+        }
+      </section>
+    </div>
+
+    <!-- Por grupo -->
+    <section class="p-6 rounded-2xl bg-white border border-slate-200/70">
+      <h2 class="text-base font-extrabold text-ink">Ganancia por grupo</h2>
+      <p class="text-xs text-on-surface-variant mt-0.5 mb-4">Lo que te queda ya descontando la comisión y lo que te costó la cuenta cada ciclo.</p>
+
+      @if (s.byGroup.length === 0) {
+        <p class="text-sm text-on-surface-variant">Todavía no has validado ningún pago. Cuando lo hagas, aquí verás cuánto ganas por cada grupo.</p>
+      } @else {
+        <div class="hidden md:grid grid-cols-[minmax(0,2fr)_repeat(5,minmax(0,1fr))] gap-3 px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+          <span>Grupo</span><span class="text-right">Cobrado</span><span class="text-right">Comisión</span><span class="text-right">Te queda</span><span class="text-right">Costo cuenta</span><span class="text-right">Utilidad</span>
+        </div>
+        <ul class="divide-y divide-slate-100">
+          @for (g of s.byGroup; track g.groupId) {
+            <li class="py-3 px-3 md:grid md:grid-cols-[minmax(0,2fr)_repeat(5,minmax(0,1fr))] md:gap-3 md:items-center space-y-1.5 md:space-y-0">
+              <a [routerLink]="['/panel/grupos', g.groupId]" class="block min-w-0">
+                <p class="text-sm font-bold text-ink truncate hover:text-pink">{{ g.platformName }}</p>
+                <p class="text-xs text-on-surface-variant truncate">{{ g.tierName }} · {{ g.payments }} {{ g.payments === 1 ? 'pago' : 'pagos' }} · {{ g.cyclesBilled }} {{ g.cyclesBilled === 1 ? 'ciclo' : 'ciclos' }}</p>
+              </a>
+              <p class="flex justify-between md:block md:text-right text-sm tabular-nums"><span class="md:hidden text-xs text-on-surface-variant">Cobrado</span>{{ money(g.gross) }}</p>
+              <p class="flex justify-between md:block md:text-right text-sm tabular-nums text-on-surface-variant"><span class="md:hidden text-xs">Comisión</span>−{{ money(g.commission) }}</p>
+              <p class="flex justify-between md:block md:text-right text-sm tabular-nums font-bold text-ink"><span class="md:hidden text-xs font-normal text-on-surface-variant">Te queda</span>{{ money(g.net) }}</p>
+              <p class="flex justify-between md:block md:text-right text-sm tabular-nums text-on-surface-variant">
+                <span class="md:hidden text-xs">Costo cuenta</span>
+                −{{ money(g.accountCost * g.cyclesBilled) }}
+              </p>
+              <p class="flex justify-between md:block md:text-right text-sm tabular-nums font-black" [class]="g.profit < 0 ? 'text-red-600' : 'text-emerald-700'"><span class="md:hidden text-xs font-normal text-on-surface-variant">Utilidad</span>{{ money(g.profit) }}</p>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  } @else if (!errorMessage()) {
+    <div class="p-8 rounded-2xl bg-white border border-slate-200/70 text-center text-sm text-on-surface-variant">Cargando tus ganancias…</div>
+  }
+
+  <!-- Historial -->
+  <section class="p-6 rounded-2xl bg-white border border-slate-200/70">
+    <h2 class="text-base font-extrabold text-ink mb-4">Historial de pagos</h2>
+    @if (entries() === null) {
+      <p class="text-sm text-on-surface-variant">Cargando…</p>
+    } @else if (entries()!.length === 0) {
+      <p class="text-sm text-on-surface-variant">Aún no hay pagos validados.</p>
+    } @else {
+      <ul class="divide-y divide-slate-100">
+        @for (e of entries(); track e.id) {
+          <li class="py-3 flex items-center gap-3">
+            <span class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-lg">south_west</span></span>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-semibold text-ink truncate">{{ e.buyerName }} · {{ e.platformName }}</p>
+              <p class="text-xs text-on-surface-variant">
+                {{ formatDate(e.createdAt) }} · cobraste {{ money(e.gross) }} · comisión {{ e.commissionPercentage }}% ({{ money(e.commission) }})
+              </p>
+            </div>
+            <div class="text-right shrink-0">
+              <p class="text-sm font-black tabular-nums text-emerald-700">+{{ money(e.net) }}</p>
+              <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold" [class]="statusLabel[e.status].tone">{{ statusLabel[e.status].label }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+      @if (hasMore()) {
+        <button type="button" (click)="loadMore()" [disabled]="loadingMore()" class="mt-4 w-full py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-ink text-xs font-bold transition-colors disabled:opacity-60">
+          {{ loadingMore() ? 'Cargando…' : 'Ver más pagos' }}
+        </button>
+      }
+    }
+  </section>
+
+  <!-- Cómo funciona -->
+  <section class="p-6 rounded-2xl bg-slate-50 border border-slate-200/70">
+    <h2 class="text-sm font-extrabold text-ink mb-3">¿Cómo funciona el dinero?</h2>
+    <ol class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-on-surface-variant">
+      <li class="flex gap-2.5"><span class="w-6 h-6 rounded-full bg-white border border-slate-200 text-ink font-black flex items-center justify-center shrink-0">1</span><p>Tu comprador te transfiere <strong class="text-ink">directo a tu cuenta</strong> y sube su comprobante. Tú lo validas.</p></li>
+      <li class="flex gap-2.5"><span class="w-6 h-6 rounded-full bg-white border border-slate-200 text-ink font-black flex items-center justify-center shrink-0">2</span><p>Vakeva anota cuánto es tuyo y cuánto es <strong class="text-ink">comisión</strong> (10%–15% según tu grupo). Nada se descuenta de ningún saldo.</p></li>
+      <li class="flex gap-2.5"><span class="w-6 h-6 rounded-full bg-white border border-slate-200 text-ink font-black flex items-center justify-center shrink-0">3</span><p>Cuando el grupo se llena, o a los 7 días de arrancar, transfieres la comisión a Vakeva desde <a routerLink="/panel/comisiones" class="font-bold text-pink hover:underline">Comisiones</a>.</p></li>
+    </ol>
+  </section>
+</div>

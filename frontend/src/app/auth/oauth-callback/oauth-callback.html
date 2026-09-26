@@ -1,0 +1,21 @@
+<main class="min-h-screen w-full bg-crema flex flex-col justify-center items-center px-6 py-16 relative overflow-hidden">
+  <div class="blob-drift blob-slow w-72 h-72 bg-violet-400/15 -top-16 -left-16"></div>
+  <div class="blob-drift w-64 h-64 bg-sky-300/15 bottom-0 -right-10"></div>
+
+  <div class="anim-in-scale w-full max-w-sm relative text-center">
+    <img src="vakeva-logo.png" alt="Vakeva" class="h-10 w-auto mx-auto mb-8" />
+
+    @if (errorMessage()) {
+      <div class="flex flex-col items-center gap-3">
+        <span class="material-symbols-outlined text-red-500 text-4xl">error</span>
+        <p class="text-sm font-semibold text-ink">{{ errorMessage() }}</p>
+        <a routerLink="/iniciar-sesion" class="mt-2 text-sm font-bold text-pink hover:text-pink-dark transition-colors">Volver a iniciar sesión</a>
+      </div>
+    } @else {
+      <div class="flex flex-col items-center gap-3">
+        <span class="material-symbols-outlined text-pink text-4xl animate-spin">progress_activity</span>
+        <p class="text-sm font-semibold text-on-surface-variant">Conectando tu cuenta de Google…</p>
+      </div>
+    }
+  </div>
+</main>

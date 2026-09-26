@@ -1,0 +1,69 @@
+<app-navbar [links]="navLinks" />
+
+<main class="legal-page">
+  <section appReveal class="legal-hero" id="servicio">
+    <div class="legal-badge"><span class="material-symbols-outlined">gavel</span>Términos de servicio</div>
+    <h1>Las reglas claras de cómo funciona Vakeva.</h1>
+    <p>Última actualización: {{ lastUpdated }}</p>
+    <div class="legal-notice">
+      <span class="material-symbols-outlined">info</span>
+      <p>Este documento describe honestamente cómo funciona la plataforma hoy. Antes de un lanzamiento real, debe ser revisado por un abogado — esto no sustituye asesoría legal.</p>
+    </div>
+  </section>
+
+  <article class="legal-body">
+    <section appReveal appRevealVariant="left">
+      <h2>1. Qué es Vakeva</h2>
+      <p>Vakeva es una plataforma que conecta a personas que ya pagan un plan familiar o de varios cupos de un servicio de suscripción (streaming, música, IA, etc.) con personas que quieren compartir ese costo. Quien publica el grupo es el <strong>vendedor</strong>; quien se une y paga su cupo es el <strong>comprador</strong>. Vakeva no es dueño de las cuentas compartidas ni es parte del servicio original — solo administra la relación entre vendedor y comprador.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left" id="cuentas">
+      <h2>2. Tu cuenta</h2>
+      <p>Para usar Vakeva necesitas crear una cuenta con tu correo o con Google. Eres responsable de mantener segura tu contraseña y de la actividad que ocurra en tu cuenta. Debes darnos información real — si detectamos datos falsos o cuentas duplicadas para evadir una restricción, podemos suspender el acceso.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left" id="pagos">
+      <h2>3. Grupos, cupos y pagos</h2>
+      <p>Cuando te unes a un grupo, pagas exactamente el precio del cupo que el vendedor publicó — nunca de más. Si te unes a mitad de un ciclo, tu primer pago se calcula solo por los días restantes. Antes de cada corte te avisamos con anticipación; tienes un <strong>periodo de gracia de 48 horas</strong> para confirmar tu pago. Si no confirmas dentro de ese plazo, tu cupo se libera automáticamente para que otra persona pueda ocuparlo.</p>
+      <p>Todo grupo pasa por una revisión de nuestro equipo antes de aparecer en el catálogo, y el vendedor debe subir las credenciales reales de la cuenta antes de que el grupo se pueda unir — un grupo aprobado sin credenciales cargadas no aparece como disponible.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left">
+      <h2>4. Credenciales y acceso</h2>
+      <p>Las credenciales de la cuenta compartida (correo y contraseña) se almacenan cifradas con AES-256-GCM. Solo el vendedor y los miembros con membresía activa en ese momento pueden consultarlas — el acceso se verifica en cada solicitud, no solo al unirte. Más detalle en nuestra <a routerLink="/seguridad">página de seguridad</a>.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left">
+      <h2>5. Comisión de Vakeva</h2>
+      <p>Vakeva cobra una comisión sobre cada pago confirmado, que se descuenta del lado del vendedor al depositarse en su wallet. Esa comisión nunca se suma al precio que paga el comprador — el precio que ves publicado es el precio final.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left">
+      <h2>6. Cancelaciones</h2>
+      <p>No hay permanencia obligatoria. Como comprador, puedes salir de un grupo cuando quieras. Como vendedor, puedes pausar o cancelar tu grupo desde tu panel; los compradores activos dejan de tener acceso a partir de ese momento.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left">
+      <h2>7. Disputas e incidencias</h2>
+      <p>Si tienes un problema con una suscripción, puedes reportarlo desde <a routerLink="/panel/soporte">tu panel de soporte</a> — le llega directo al vendedor. Si no se resuelve, puedes escalarlo y nuestro equipo interviene para revisar el caso.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left">
+      <h2>8. Conducta prohibida</h2>
+      <p>No está permitido: publicar cuentas que no controlas legítimamente, compartir credenciales fuera de tu grupo, usar la plataforma para actividades fraudulentas, o intentar evadir el sistema de pagos coordinando transacciones fuera de Vakeva.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left">
+      <h2>9. Cambios a estos términos</h2>
+      <p>Podemos actualizar este documento conforme la plataforma evolucione. Si el cambio es significativo, te avisaremos por notificación o correo antes de que entre en vigor.</p>
+    </section>
+
+    <section appReveal appRevealVariant="left">
+      <h2>10. Contacto</h2>
+      <p>¿Dudas sobre estos términos? Escríbenos desde <a routerLink="/panel/soporte">tu panel de soporte</a> una vez que tengas una cuenta creada.</p>
+    </section>
+  </article>
+</main>
+
+<app-wave-divider backColor="#FAF9F5" waveColor="#14142B" />
+<app-footer />

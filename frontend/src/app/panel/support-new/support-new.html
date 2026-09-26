@@ -1,0 +1,73 @@
+<div class="max-w-xl mx-auto space-y-6">
+  <div class="anim-in">
+    <a routerLink="/panel/soporte" class="inline-flex items-center gap-1 text-xs font-bold text-on-surface-variant hover:text-ink transition-colors mb-3">
+      <span class="material-symbols-outlined text-sm">arrow_back</span>
+      Volver a Soporte
+    </a>
+    <h1 class="text-2xl font-extrabold text-ink tracking-tight flex items-center gap-2">
+      <span class="material-symbols-outlined text-pink">report_problem</span>
+      Reportar un problema
+    </h1>
+    <p class="text-sm text-on-surface-variant font-medium mt-1">Tu reporte le llega directo al vendedor de esa suscripción. Si no se resuelve, puedes escalarlo a Vakeva desde el hilo.</p>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-2xl bg-crema-inset shadow-neu-inset text-xs text-red-600 font-semibold">{{ errorMessage() }}</div>
+  }
+
+  @if (options() === null && !errorMessage()) {
+    <div class="p-8 rounded-2xl bg-crema-inset shadow-neu-inset text-center text-sm text-on-surface-variant font-medium">Cargando tus suscripciones…</div>
+  } @else if (options()!.length === 0) {
+    <div class="p-10 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 text-center">
+      <span class="material-symbols-outlined text-3xl text-on-surface-variant/50 mb-2 block">group_off</span>
+      <p class="text-sm font-semibold text-ink mb-1">Todavía no perteneces a ningún grupo</p>
+      <p class="text-xs text-on-surface-variant">Solo puedes reportar un problema sobre una suscripción a la que ya te hayas unido.</p>
+    </div>
+  } @else {
+    <div class="p-6 rounded-[28px] bg-white/90 shadow-neu-raised border border-white/70 space-y-5">
+      <label class="block">
+        <span class="text-xs font-bold text-ink uppercase tracking-wide">¿Sobre qué suscripción?</span>
+        <select
+          [value]="selectedMembershipId()"
+          (change)="selectedMembershipId.set($any($event.target).value)"
+          class="w-full mt-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-colors text-sm text-ink outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink"
+        >
+          @for (opt of options(); track opt.membershipId) {
+            <option [value]="opt.membershipId">{{ opt.group.plan.platform.name }} · {{ opt.group.plan.tierName }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="block">
+        <span class="text-xs font-bold text-ink uppercase tracking-wide">Asunto</span>
+        <input
+          type="text"
+          placeholder="Ej. No puedo iniciar sesión en la cuenta"
+          [value]="subject()"
+          (input)="subject.set($any($event.target).value)"
+          class="w-full mt-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-colors text-sm text-ink placeholder:text-on-surface-variant/50 outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink"
+        />
+      </label>
+
+      <label class="block">
+        <span class="text-xs font-bold text-ink uppercase tracking-wide">Cuéntanos qué pasó</span>
+        <textarea
+          rows="5"
+          placeholder="Desde ayer me sale contraseña incorrecta aunque no la he cambiado…"
+          [value]="message()"
+          (input)="message.set($any($event.target).value)"
+          class="w-full mt-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-colors text-sm text-ink placeholder:text-on-surface-variant/50 outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink resize-none"
+        ></textarea>
+      </label>
+
+      <button
+        type="button"
+        [disabled]="!selectedMembershipId() || !subject().trim() || !message().trim() || submitting()"
+        (click)="submit()"
+        class="active:scale-[0.98] hover:bg-[#047857] w-full py-3.5 rounded-lg bg-pink text-white text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50"
+      >
+        {{ submitting() ? 'Enviando…' : 'Enviar reporte' }}
+      </button>
+    </div>
+  }
+</div>

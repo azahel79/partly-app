@@ -1,0 +1,12 @@
+<section class="cta-section" id="cta-final">
+  <div appReveal appRevealVariant="scale" class="cta-panel">
+    <div class="cta-orbit orbit-a"></div><div class="cta-orbit orbit-b"></div><div class="cta-blob blob-one"></div><div class="cta-blob blob-two"></div>
+    <div class="floating-brand spotify">●</div><div class="floating-brand netflix">N</div><div class="floating-brand dropbox">◆</div>
+    <div class="cta-note note-a">Más<br />por menos<i></i></div><div class="cta-note note-b">Juntos<br />se ahorra más<i></i></div>
+    <div class="cta-content"><div class="cta-badge"><span class="material-symbols-outlined">group</span>Únete a miles de usuarios</div><h2>Empieza a ahorrar hoy mismo<br />en <span>tus suscripciones</span></h2><p>Crea tu cuenta gratuita en menos de dos minutos. Únete a un grupo<br />activo o comparte tus cupos libres sin riesgo.</p>
+      <form (submit)="onSubmit($event,emailInput)"><span class="material-symbols-outlined">mail</span><input #emailInput [disabled]="submitState()==='submitting'" type="email" required placeholder="Ingresa tu correo"/><button appMagnetic [disabled]="submitState()==='submitting'" type="submit">{{submitState()==='submitting'?'Enviando…':'Crear cuenta gratis'}}<span class="material-symbols-outlined">arrow_forward</span></button></form>
+      @if(submitState()==='success'){<small class="status success">✓ ¡Listo! Te avisaremos en cuanto tengas acceso.</small>}@else if(submitState()==='error'){<small class="status error">Algo salió mal. Intenta de nuevo.</small>}@else{<small class="safe"><span class="material-symbols-outlined">lock</span>Sin tarjeta para registrarte · Cancela cuando quieras</small>}
+      <div class="cta-benefits"><span><i class="material-symbols-outlined">bar_chart</i>Ahorra hasta 75%</span><b></b><span><i class="material-symbols-outlined">verified_user</i>Pagos seguros</span><b></b><span><i class="material-symbols-outlined">eco</i>Sin permanencia</span></div>
+    </div>
+  </div>
+</section>

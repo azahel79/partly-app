@@ -1,0 +1,167 @@
+<div class="payment-page anim-in">
+  <a routerLink="/panel/grupos" class="back-link">
+    <span class="material-symbols-outlined">arrow_back</span>
+    Volver a mis grupos
+  </a>
+
+  @if (notFound()) {
+    <section class="state-card">
+      <span class="material-symbols-outlined">search_off</span>
+      <strong>Este grupo ya no existe o no está disponible.</strong>
+    </section>
+  } @else if (group(); as g) {
+    <header class="page-heading">
+      <h1>Completa tu <em>pago</em></h1>
+      <p>Realiza la transferencia y sube tu comprobante para activar tu lugar en el grupo.</p>
+    </header>
+
+    @if (loadError()) {
+      <section class="state-card error-state"><span class="material-symbols-outlined">error</span><strong>{{ loadError() }}</strong></section>
+    } @else if (reservedOnly()) {
+      <section class="success-card">
+        <span class="success-icon material-symbols-outlined">bookmark</span>
+        <h2>Tu cupo está reservado</h2>
+        <p>Todavía no hay nada que pagar: el vendedor aún no inicia el grupo. Cuando lo inicie te avisamos y tendrás 48 horas para transferir y subir tu comprobante.</p>
+        <a [routerLink]="['/panel/grupos', g.id]">Ver el grupo <span class="material-symbols-outlined">arrow_forward</span></a>
+      </section>
+    } @else if (noSeat()) {
+      <section class="state-card"><span class="material-symbols-outlined">event_seat</span><strong>Todavía no tienes un lugar en este grupo.</strong></section>
+    } @else if (payment() === undefined) {
+      <section class="state-card"><span class="payment-spinner"></span><strong>Cargando información del pago…</strong></section>
+    } @else if (payment() === null) {
+      <section class="success-card">
+        <span class="success-icon material-symbols-outlined">verified</span>
+        <h2>¡Tu lugar ya está activo!</h2>
+        <p>El pago fue confirmado. Ya puedes consultar el acceso de la cuenta compartida.</p>
+        <a [routerLink]="['/panel/grupos', g.id]">Ver credenciales <span class="material-symbols-outlined">arrow_forward</span></a>
+      </section>
+    } @else if (payment(); as p) {
+      <div class="payment-grid">
+        <main class="payment-main">
+          <section class="group-hero">
+            <div class="hero-pattern hero-pattern-one"></div>
+            <div class="hero-pattern hero-pattern-two"></div>
+            <app-platform-logo class="platform-mark" [name]="g.plan.platform.name" [logoUrl]="g.plan.platform.logoUrl" />
+            <div class="hero-copy">
+              <h2>{{ g.plan.platform.name }}</h2>
+              <p>{{ g.plan.tierName }}</p>
+              <div class="hero-meta">
+                <span><i class="material-symbols-outlined">verified_user</i> Grupo verificado</span>
+                <span><i class="material-symbols-outlined">group</i> {{ g.occupiedSlots }}/{{ g.availableSlots + g.occupiedSlots }} cupos ocupados</span>
+                <span><i class="material-symbols-outlined">calendar_month</i> Se cobra cada mes</span>
+              </div>
+            </div>
+            <div class="hero-brand">
+              @if (g.plan.platform.logoUrl) {
+                <img [src]="g.plan.platform.logoUrl" [alt]="g.plan.platform.name" />
+              } @else {
+                <strong>{{ g.plan.platform.name }}</strong>
+              }
+            </div>
+          </section>
+
+          <app-renewal-toggle [groupId]="g.id" />
+
+          <section class="process-card">
+            <header class="step-heading">
+              <span>1</span>
+              <div><h2>Transfiere el monto</h2><p>Realiza una transferencia por el monto indicado a la siguiente cuenta.</p></div>
+              <small><i class="material-symbols-outlined">lock</i> Pago protegido con Vakeva Shield</small>
+            </header>
+            <div class="transfer-panel">
+              <div class="amount-box">
+                <small>Monto a transferir</small>
+                <strong>${{ p.amount }} <em>MXN</em></strong>
+                @if (p.includesNextCycle) {
+                  <p>Incluye {{ p.proratedDays }} días restantes de este ciclo más el ciclo siguiente completo. Cubre hasta el {{ p.coveredUntil ? formatDate(p.coveredUntil) : '' }}.</p>
+                } @else if (p.proratedDays) {
+                  <p>Entraste con el mes empezado, así que solo pagas los {{ p.proratedDays }} días que quedan de este ciclo{{ p.coveredUntil ? ' (hasta el ' + formatDate(p.coveredUntil) + ')' : '' }}.</p>
+                } @else {
+                  <p>Ciclo completo{{ p.coveredUntil ? ', hasta el ' + formatDate(p.coveredUntil) : '' }}.</p>
+                }
+              </div>
+              <div class="account-box">
+                @if (g.bankAccountNumber) {
+                  <span class="account-icon material-symbols-outlined">account_balance</span>
+                  <div>
+                    <div class="account-label"><strong>Cuenta bancaria</strong><button type="button" (click)="copyBankAccount(g.bankAccountNumber)"><span class="material-symbols-outlined">content_copy</span>{{ accountCopied() ? 'Copiado' : 'Copiar' }}</button></div>
+                    <small>Cuenta de {{ g.owner.name }}</small>
+                    <p>{{ g.bankAccountNumber }}</p>
+                  </div>
+                } @else {
+                  <span class="account-icon warning material-symbols-outlined">info</span>
+                  <div><strong>Cuenta pendiente</strong><p>El vendedor todavía no registra su cuenta bancaria.</p></div>
+                }
+              </div>
+            </div>
+          </section>
+
+          <section class="process-card">
+            <header class="step-heading">
+              <span>2</span>
+              <div><h2>Sube tu comprobante</h2><p>Adjunta una imagen o PDF de tu transferencia.</p></div>
+            </header>
+
+            @if (p.receiptUploadedAt) {
+              <div class="receipt-status"><span class="material-symbols-outlined">hourglass_top</span><div><strong>Comprobante enviado</strong><p>Está esperando la revisión del vendedor. Puedes reemplazarlo si elegiste el archivo equivocado.</p></div></div>
+            }
+
+            <label class="upload-zone" (dragover)="$event.preventDefault()" (drop)="onFileDropped($event)">
+              <span class="material-symbols-outlined">upload_file</span>
+              <strong>{{ selectedFile()?.name || 'Arrastra tu archivo aquí' }}</strong>
+              <p>{{ selectedFile() ? 'Archivo listo para enviar' : 'o haz clic para seleccionar' }}</p>
+              <small>JPG, PNG, WEBP o PDF (máx. 8MB)</small>
+              <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" (change)="onFileSelected($event)" />
+            </label>
+            @if (fileError()) { <p class="form-error">{{ fileError() }}</p> }
+            @if (uploadError()) { <p class="form-error">{{ uploadError() }}</p> }
+          </section>
+
+          <section class="process-card confirmation-card">
+            <header class="step-heading">
+              <span>3</span>
+              <div><h2>Espera la confirmación</h2><p>Revisaremos tu pago y te notificaremos en cuanto tu lugar sea activado.</p></div>
+            </header>
+            <div class="review-time"><span class="material-symbols-outlined">schedule</span><div><strong>Tiempo estimado de revisión: menos de 24 horas</strong><p>Te avisaremos por correo y en la plataforma.</p></div></div>
+          </section>
+
+          <p class="legal-copy"><span class="material-symbols-outlined">info</span> Al completar este pago aceptas los <a href="#">Términos de uso</a> y la <a href="#">Política de pagos</a> de Vakeva.</p>
+        </main>
+
+        <aside class="payment-aside">
+          <section class="side-card summary-card">
+            <h2><span class="material-symbols-outlined">account_balance</span> Resumen del grupo</h2>
+            <dl>
+              <div><dt><span class="material-symbols-outlined">business_center</span> Plataforma</dt><dd>{{ g.plan.platform.name }}</dd></div>
+              <div><dt><span class="material-symbols-outlined">layers</span> Plan</dt><dd>{{ g.plan.tierName }}</dd></div>
+              <div><dt><span class="material-symbols-outlined">paid</span> Precio por cupo</dt><dd>${{ g.pricePerSlot }} MXN / mes</dd></div>
+              <div><dt><span class="material-symbols-outlined">calendar_month</span> Cargo</dt><dd>Se cobra cada mes</dd></div>
+              <div><dt><span class="material-symbols-outlined">person</span> Vendedor</dt><dd>{{ g.owner.name }}<small><b>★</b> {{ g.owner.ratingAvg }} (reseñas)</small></dd></div>
+            </dl>
+          </section>
+
+          <section class="side-card shield-card">
+            <h2><span class="material-symbols-outlined">shield</span> Pago seguro con Vakeva Shield</h2>
+            <p>Tu pago y tus datos están protegidos. Solo liberamos el pago cuando tu lugar sea confirmado.</p>
+            <ul><li><span class="material-symbols-outlined">check_circle</span> Vendedores verificados</li><li><span class="material-symbols-outlined">check_circle</span> Protección al comprador</li><li><span class="material-symbols-outlined">check_circle</span> Soporte en caso de problemas</li></ul>
+          </section>
+
+          <section class="side-card help-card">
+            <h2><span class="material-symbols-outlined">chat_bubble</span> ¿Necesitas ayuda?</h2>
+            <p>Si tienes algún problema con tu pago, comunícate con nuestro equipo.</p>
+            <button type="button">Contactar soporte <span class="material-symbols-outlined">arrow_forward</span></button>
+          </section>
+        </aside>
+      </div>
+
+      <div class="payment-action">
+        <button type="button" [disabled]="!selectedFile() || uploading()" (click)="uploadReceipt()">
+          {{ uploading() ? 'Subiendo comprobante…' : p.receiptUploadedAt && !selectedFile() ? 'Comprobante enviado' : p.receiptUploadedAt ? 'Reemplazar comprobante' : 'Ya subí mi comprobante' }}
+          <span class="material-symbols-outlined">arrow_forward</span>
+        </button>
+      </div>
+    }
+  } @else {
+    <section class="state-card"><span class="payment-spinner"></span><strong>Cargando grupo…</strong></section>
+  }
+</div>

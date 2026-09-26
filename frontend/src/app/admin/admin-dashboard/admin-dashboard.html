@@ -1,0 +1,62 @@
+<section class="dashboard">
+  <div class="dashboard-heading">
+    <div><p class="eyebrow">Panel de administración</p><h1>Resumen</h1><span>Lo que necesita tu atención ahora mismo.</span></div>
+    <div class="date-card"><span class="material-symbols-outlined">calendar_today</span><div><strong>Hoy</strong><small>{{ formattedToday }}</small></div></div>
+  </div>
+
+  @if (errorMessage()) { <div class="error-box">{{ errorMessage() }}</div> }
+  @if (loading()) {
+    <div class="loading-box">Cargando información real del panel…</div>
+  } @else if (data(); as dashboardData) {
+    <div class="metric-grid">
+      @for (card of cards(); track card.label) {
+        <a [routerLink]="card.link" class="metric-card" [class]="'metric-card ' + card.tone">
+          <span class="metric-icon material-symbols-outlined">{{ card.icon }}</span>
+          <div><strong>{{ card.value }}</strong><p>{{ card.label }}</p></div>
+          <small>{{ card.value === 0 ? 'Sin pendientes' : 'Requiere revisión' }}</small>
+          <i></i><i></i><i></i><i></i>
+        </a>
+      }
+    </div>
+
+    <div class="content-grid top-grid">
+      <article class="panel chart-panel">
+        <header><div class="panel-title"><span class="material-symbols-outlined">group_add</span><div><h2>Usuarios</h2><p>Crecimiento de cuentas registradas.</p></div></div>
+          <div class="chart-total"><small>Total</small><strong>{{ dashboardData.counts.totalUsers }}</strong><span [class.negative]="dashboardData.users.monthlyChange < 0">{{ dashboardData.users.monthlyChange >= 0 ? '+' : '' }}{{ dashboardData.users.monthlyChange }}%</span></div>
+        </header>
+        <div #usersChart class="users-chart" role="img" aria-label="Crecimiento mensual acumulado de usuarios"></div>
+      </article>
+      <article class="panel actions-panel">
+        <header class="panel-title"><span class="material-symbols-outlined">bolt</span><div><h2>Acciones rápidas</h2><p>Accede a las colas de trabajo.</p></div></header>
+        <div class="action-grid">
+          <a routerLink="/admin/grupos" class="green"><span class="material-symbols-outlined">groups</span><div><strong>Revisar grupos</strong><small>{{ dashboardData.counts.pendingGroups }} pendientes</small></div><b>›</b></a>
+          <a routerLink="/admin/proveedores" class="purple"><span class="material-symbols-outlined">badge</span><div><strong>Proveedores</strong><small>{{ dashboardData.counts.pendingProviders }} solicitudes</small></div><b>›</b></a>
+          <a routerLink="/admin/mayoreo-acceso" class="purple"><span class="material-symbols-outlined">verified_user</span><div><strong>Acceso a mayoreo</strong><small>{{ dashboardData.counts.pendingWholesaleAccess }} solicitudes</small></div><b>›</b></a>
+          <a routerLink="/admin/mi-tienda" class="green"><span class="material-symbols-outlined">receipt_long</span><div><strong>Pagos de mayoreo</strong><small>{{ dashboardData.counts.pendingOrderPayments }} por validar</small></div><b>›</b></a>
+          <a routerLink="/admin/comisiones" class="orange"><span class="material-symbols-outlined">request_quote</span><div><strong>Comisiones</strong><small>{{ dashboardData.counts.pendingCommissions }} por revisar</small></div><b>›</b></a>
+          <a routerLink="/admin/incidencias" class="red"><span class="material-symbols-outlined">support_agent</span><div><strong>Incidencias</strong><small>{{ dashboardData.counts.escalatedIncidents }} escaladas</small></div><b>›</b></a>
+        </div>
+      </article>
+    </div>
+
+    <div class="content-grid bottom-grid">
+      <article class="panel activity-panel">
+        <header><div class="panel-title"><span class="material-symbols-outlined">schedule</span><div><h2>Actividad reciente</h2><p>Últimos registros y solicitudes reales.</p></div></div></header>
+        <div class="activity-list">
+          @for (item of dashboardData.activity; track item.type + item.id) {
+            <a [routerLink]="item.route"><span class="activity-icon material-symbols-outlined" [attr.data-type]="item.type">{{ activityIcon(item.type) }}</span><div><strong>{{ item.title }}</strong><small>{{ item.detail }}</small></div><time>{{ relativeTime(item.createdAt) }}</time><i></i></a>
+          } @empty { <p class="empty">Aún no hay actividad registrada.</p> }
+        </div>
+      </article>
+      <article class="panel status-panel">
+        <header><div class="panel-title"><span class="material-symbols-outlined">verified_user</span><div><h2>Estado general</h2><p>Lectura actual del sistema.</p></div></div><span class="stable"><i></i>Sistema conectado</span></header>
+        <ul>
+          <li><span class="material-symbols-outlined">check_circle</span><b>API administrativa</b><strong>Operativa</strong></li>
+          <li><span class="material-symbols-outlined">check_circle</span><b>Base de datos</b><strong>Conectada</strong></li>
+          <li><span class="material-symbols-outlined">database</span><b>Información actualizada</b><strong>{{ formatTime(dashboardData.generatedAt) }}</strong></li>
+        </ul>
+        <div class="status-note"><span class="material-symbols-outlined">{{ dashboardData.counts.escalatedIncidents ? 'warning' : 'check_circle' }}</span><div><strong>{{ dashboardData.counts.escalatedIncidents ? dashboardData.counts.escalatedIncidents + ' incidencias escaladas' : 'No hay incidencias escaladas' }}</strong><small>{{ dashboardData.counts.escalatedIncidents ? 'Requieren atención administrativa.' : 'No hay casos críticos en la cola.' }}</small></div></div>
+      </article>
+    </div>
+  }
+</section>

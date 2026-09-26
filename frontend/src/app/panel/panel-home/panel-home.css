@@ -1,0 +1,159 @@
+:host {
+  display: block;
+}
+
+/* ---------- Tarjeta wallet: onda decorativa ---------- */
+.ph-wallet-card {
+  isolation: isolate;
+}
+.ph-wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60%;
+  z-index: -1;
+}
+
+/* ---------- Nota manuscrita ---------- */
+.hand-note {
+  margin: 0;
+  color: #1a9e78;
+  font: 700 14px/1.3 "Comic Sans MS", "Segoe Print", cursive;
+  text-align: right;
+}
+.hand-note-arrow {
+  width: 34px;
+  height: 30px;
+  margin: 0 0 2px auto;
+  display: block;
+}
+.hand-note-home {
+  width: 10.5rem;
+  transform: rotate(-3deg);
+}
+.hand-note-sub {
+  position: absolute;
+  right: 1.5rem;
+  top: 1.25rem;
+  width: 9rem;
+  transform: rotate(-3deg);
+}
+
+/* ---------- Duo de apps (banner promo) ---------- */
+.ph-app-duo {
+  position: relative;
+  align-items: center;
+  gap: 0.5rem;
+}
+.ph-app-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.9rem;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(20, 20, 43, 0.12);
+}
+.ph-app-icon .material-symbols-outlined {
+  font-size: 1.4rem;
+}
+.ph-app-youtube {
+  background: #ff0000;
+}
+.ph-app-canva {
+  background: linear-gradient(135deg, #00c4cc, #7d2ae8);
+}
+.ph-app-swap {
+  color: #a3a8b8;
+  font-size: 1.1rem;
+}
+
+/* ---------- Icono "caja" (sin suscripciones) ---------- */
+.ph-box-icon {
+  position: relative;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(150deg, #e3f7ef, #f3fbf8);
+  color: #0d9166;
+}
+.ph-box-icon .material-symbols-outlined {
+  font-size: 2.25rem;
+}
+.ph-box-spark {
+  position: absolute;
+  width: 2px;
+  height: 10px;
+  border-radius: 2px;
+  background: #6fd0ac;
+  font-style: normal;
+}
+.ph-box-spark-a {
+  top: -0.3rem;
+  right: 0.4rem;
+  transform: rotate(20deg);
+}
+.ph-box-spark-b {
+  bottom: 0.2rem;
+  left: -0.5rem;
+  height: 7px;
+  transform: rotate(-15deg);
+}
+
+/* ---------- Cluster de marcas (te recomendamos) ---------- */
+.ph-brand-cluster-wrap {
+  position: relative;
+  height: 4.25rem;
+  margin-top: 0.75rem;
+}
+.ph-brand-chip {
+  position: absolute;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  box-shadow: 0 8px 16px rgba(20, 20, 43, 0.14);
+}
+.ph-brand-chip-1 {
+  right: 5rem;
+  top: 0;
+}
+.ph-brand-chip-2 {
+  right: 0;
+  top: 0.3rem;
+}
+.ph-brand-chip-3 {
+  right: 2.7rem;
+  bottom: 0;
+}
+.ph-brand-spark {
+  position: absolute;
+  width: 2px;
+  height: 9px;
+  border-radius: 2px;
+  background: #6fd0ac;
+}
+.ph-brand-spark-a {
+  right: 6.4rem;
+  top: 0.4rem;
+  transform: rotate(20deg);
+}
+.ph-brand-spark-b {
+  right: 5.8rem;
+  bottom: 0.9rem;
+  height: 6px;
+  transform: rotate(-25deg);
+}
+
+/* ---------- Modo oscuro ---------- */
+:host-context(html.dark) .hand-note { color: #34d399; }
+:host-context(html.dark) .ph-app-icon { box-shadow: 0 8px 16px rgba(0, 0, 0, 0.26); }
+:host-context(html.dark) .ph-app-swap { color: #8fa9a1; }
+:host-context(html.dark) .ph-box-icon { background: linear-gradient(150deg, rgba(68, 228, 164, 0.13), #0a1d19); color: #34d399; }
+:host-context(html.dark) .ph-brand-chip { box-shadow: 0 8px 16px rgba(0, 0, 0, 0.31); }

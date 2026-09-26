@@ -1,0 +1,19 @@
+<app-navbar />
+
+<main class="w-full" appLandingMotion>
+  <app-hero />
+  @defer (on idle) {
+    <!-- `on idle`, no `on viewport`: los links del navbar saltan a secciones de aquí adentro
+         (#como-funciona, #plataformas, #owners, #comparativa) y necesitan que existan en el DOM
+         antes de que el usuario haga scroll hasta ellas, no después. -->
+    <app-landing-content />
+  } @placeholder {
+    <div class="landing-defer-placeholder" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
+  } @loading (minimum 180ms) {
+    <div class="landing-defer-placeholder is-loading" role="status" aria-label="Cargando el resto de Vakeva">
+      <span></span><span></span><span></span>
+    </div>
+  }
+</main>

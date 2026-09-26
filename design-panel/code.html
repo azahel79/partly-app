@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>Vakeva - Suscripciones Compartidas</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; } .neumorphic-nav { box-shadow: -4px -4px 12px rgba(255, 255, 255, 0.85), 6px 6px 16px rgba(20, 20, 43, 0.05); } .neumorphic-glow { box-shadow: 0 8px 24px rgba(255, 49, 104, 0.28); }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary-container": "#e31456", "surface": "#fcf8ff", "primary-fixed-dim": "#ffb2bb", "surface-container-high": "#e8e5ff", "tertiary-fixed": "#e4e1ef", "secondary-fixed": "#ffd9dc", "on-secondary": "#ffffff", "on-tertiary-fixed-variant": "#464651", "on-tertiary-container": "#fffbff", "secondary-fixed-dim": "#ffb2bb", "outline": "#906f72", "on-surface": "#191930", "on-primary-fixed-variant": "#910032", "surface-bright": "#fcf8ff", "tertiary-fixed-dim": "#c7c5d3", "on-tertiary": "#ffffff", "tertiary": "#5c5b67", "surface-dim": "#d9d7f7", "surface-variant": "#e2dfff", "error": "#ba1a1a", "on-secondary-container": "#630020", "on-primary-container": "#fffbff", "surface-tint": "#bd0044", "primary": "#b90042", "on-tertiary-fixed": "#1b1b25", "on-error": "#ffffff", "inverse-on-surface": "#f2efff", "inverse-primary": "#ffb2bb", "outline-variant": "#e5bdc0", "surface-container-lowest": "#ffffff", "on-primary-fixed": "#400011", "primary-fixed": "#ffd9dc", "error-container": "#ffdad6", "secondary-container": "#fe5e7c", "on-background": "#191930", "inverse-surface": "#2e2e46", "on-secondary-fixed-variant": "#910032", "background": "#fcf8ff", "secondary": "#b32448", "on-primary": "#ffffff", "surface-container-highest": "#e2dfff", "on-surface-variant": "#5c3f42", "surface-container-low": "#f5f2ff", "tertiary-container": "#747380", "on-secondary-fixed": "#400011", "surface-container": "#efecff", "on-error-container": "#93000a" }, "borderRadius": { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" }, "spacing": { "space-xl": "2rem", "space-xs": "0.25rem", "space-lg": "1.5rem", "space-md": "1rem", "gutter-desktop": "2rem", "margin-desktop": "3rem", "space-sm": "0.5rem", "margin": "1.5rem", "gutter": "1.5rem" }, "fontFamily": { "headline-lg": ["Bricolage Grotesque"], "headline-lg-mobile": ["Bricolage Grotesque"], "display-lg-mobile": ["Bricolage Grotesque"], "headline-md": ["Bricolage Grotesque"], "body-md": ["Plus Jakarta Sans"], "headline-sm": ["Bricolage Grotesque"], "title-md": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "display-lg": ["Bricolage Grotesque"] }, "fontSize": { "headline-lg": ["40px", { "lineHeight": "48px", "fontWeight": "700" }], "headline-lg-mobile": ["30px", { "lineHeight": "38px", "fontWeight": "700" }], "display-lg-mobile": ["38px", { "lineHeight": "46px", "fontWeight": "800" }], "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "700" }], "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }], "headline-sm": ["22px", { "lineHeight": "30px", "fontWeight": "600" }], "title-md": ["18px", { "lineHeight": "26px", "fontWeight": "700" }], "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }], "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "500" }], "label-sm": ["10px", { "lineHeight": "14px", "fontWeight": "700" }], "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "600" }], "display-lg": ["56px", { "lineHeight": "64px", "fontWeight": "800" }] } } } };</script></head><body class="bg-background text-on-surface font-body-md text-body-md min-h-screen relative selection:bg-primary-fixed selection:text-on-primary-fixed"><div class="fixed inset-0 pointer-events-none overflow-hidden z-0"><div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-secondary-fixed/40 blur-3xl"></div><div class="absolute top-48 right-0 w-[28rem] h-[28rem] rounded-full bg-surface-container-high/60 blur-3xl"></div><div class="absolute bottom-20 left-1/4 w-80 h-80 rounded-full bg-primary-fixed/30 blur-3xl"></div></div><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-md shadow-[0_4px_20px_rgba(25,25,48,0.03)]"><div class="h-20 max-w-7xl mx-auto px-margin lg:px-margin-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm"><a class="flex items-center gap-space-sm group" data-path="explore-groups" href="#"><img alt="Vakeva Logo" class="h-8 w-auto object-contain transition-transform group-hover:scale-105" src="https://lh3.googleusercontent.com/aida/AEtjO1UGzi2-WSTUbsGPAUOROYMiyr7mPYA08KLU06z9OJdZzICz-u_rkQqxVMi90dEDOBRGs3nse9WCxHXYLl9Xot8TWXx5ek2RFb5QKRlmiARfx6GDphn9xSvQOBu52YqbHOl5miOx_40q42bz9hBD7LIm1uCx4wakXy_NS80xn7pUPWqPQdMcAVJlC2XyMPNT2UCxwO6irVmlZ7NDl9ji7X8vbyaKWn_WwuK0V0h08Erw7zpUGlUTmbldd3P_"/><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">Vakeva</span></a><span class="px-space-sm py-0.5 rounded-full bg-surface-container-highest text-primary font-label-sm text-label-sm uppercase tracking-wider">Beta</span></div><nav class="hidden md:flex items-center p-1.5 rounded-full bg-surface-container/70 backdrop-blur-sm neumorphic-nav" data-active-classes="bg-surface-container-lowest text-primary font-label-lg shadow-sm"><a aria-current="page" class="px-space-md py-space-sm rounded-full transition-all bg-surface-container-lowest text-primary font-label-lg shadow-sm" data-path="user-dashboard" href="#">Inicio (Mi panel)</a><a class="px-space-md py-space-sm rounded-full font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-all" data-path="explore-groups" href="#">Explorar grupos</a><a class="px-space-md py-space-sm rounded-full font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-all" data-path="create-group" href="#">Crear grupo</a></nav><div class="flex items-center gap-space-sm lg:gap-space-md"><a class="hidden sm:inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-full bg-surface-container-lowest text-primary font-label-md text-label-md transition-all hover:bg-primary hover:text-on-primary shadow-sm" data-path="admin-overview" href="#"><span>Panel Admin</span><span class="px-1.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm">Admin</span></a><button aria-label="Notificaciones" class="relative w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors neumorphic-nav" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary ring-2 ring-surface-container-lowest"></span></button><div class="flex items-center gap-space-sm pl-space-xs"><div class="relative group flex items-center gap-space-sm cursor-pointer"><img alt="Profile" class="w-9 h-9 rounded-full object-cover ring-2 ring-surface-container-lowest shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMXIOzYwlvAYHO71GxbxD-fP4-Gpvy_EAbNgfLwBBsHW_3-gZuG2wm_Ea-cziOV1f4ZP7e4mAbJDOwbX3fkoI_pO6aGiWZWD-Vo5yl7mYbdpl6_p18BHk0qJynRzTh5aPmtHJDbrtKF51L-6wHGowpjCi7nonyoqfjHcYLGQ4nTL52GdJlwdFWx2Wr-K99yjcgi0ytqciE1wLV5BHxpWNv_PxpxA2d78DvfA9jP5LYpsd-G6U6eqBG5g"/><div class="hidden xl:flex flex-col text-left"><span class="font-label-md text-label-md text-on-surface leading-tight">Valeria M.</span><span class="font-label-sm text-label-sm text-on-surface-variant">Suscritora Activa</span></div><span class="material-symbols-outlined text-on-surface-variant text-[18px]">expand_more</span></div></div></div></div></header><main class="relative z-10 w-full pt-20 bg-transparent min-h-screen"><div class="flex flex-col w-full max-w-7xl mx-auto px-margin lg:px-margin-desktop py-space-lg lg:py-space-xl gap-space-xl relative">
+<!-- Floating Ambient Sparkle / Glow Accents -->
+<div class="absolute -top-10 left-1/3 w-72 h-72 rounded-full bg-secondary-fixed/25 blur-3xl pointer-events-none -z-10"></div>
+<div class="absolute top-96 right-8 w-80 h-80 rounded-full bg-surface-container-high/40 blur-3xl pointer-events-none -z-10"></div>
+<!-- 1. Cabecera de Bienvenida & Acciones Duales -->
+<section class="flex flex-col gap-space-lg">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="space-y-1">
+<div class="inline-flex items-center gap-space-xs px-3 py-1 rounded-full bg-surface-container-lowest shadow-[inset_1px_1px_3px_rgba(20,20,43,0.05)] text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-primary" style="font-variation-settings: 'FILL' 1;">arrow_back_ios_new</span>
+<span>Panel Personal Verificado • Vakeva Shield On</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">
+          ¡Hola, <span class="bg-gradient-to-r from-primary-container via-primary to-on-primary-fixed-variant bg-clip-text text-transparent">Valeria!</span> ✨
+        </h1>
+<p class="font-body-lg text-body-lg text-tertiary max-w-2xl">
+          Tu resumen inteligente de suscripciones compartidas, transferencias automáticas y ahorro mensual en curso.
+        </p>
+</div>
+<!-- Quick Action Buttons -->
+<div class="flex items-center gap-space-sm sm:gap-space-md flex-wrap">
+<a class="px-space-md py-space-sm rounded-full bg-surface-container-lowest text-on-surface font-label-lg text-label-lg shadow-[-4px_-4px_12px_rgba(255,255,255,0.9),6px_6px_16px_rgba(20,20,43,0.06)] hover:text-primary hover:scale-[1.02] transition-all flex items-center gap-1.5" data-path="explore-groups" href="#">
+<span class="material-symbols-outlined text-[20px]">explore</span>
+<span>Explorar marketplace</span>
+</a>
+<a class="px-space-lg py-space-sm rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-[0_8px_24px_rgba(185,0,66,0.35)] hover:scale-[1.03] transition-all flex items-center gap-2 group" data-path="create-group" href="#">
+<span class="material-symbols-outlined text-[20px] transition-transform group-hover:rotate-90">add_circle</span>
+<span>Crear nuevo grupo</span>
+</a>
+</div>
+</div>
+<!-- 3 Tarjetas de Métricas Neumórficas -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md lg:gap-space-lg">
+<!-- Card 1: Ahorro Total -->
+<div class="p-space-lg rounded-[28px] bg-surface-container-lowest shadow-[-4px_-4px_14px_rgba(255,255,255,0.95),6px_6px_18px_rgba(20,20,43,0.05)] relative overflow-hidden flex flex-col justify-between group">
+<div class="flex items-center justify-between">
+<div class="w-12 h-12 rounded-2xl bg-secondary-fixed/50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[26px]">savings</span>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm">
+            +65% vs individual
+          </span>
+</div>
+<div class="mt-4">
+<span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wider block">Ahorro total este mes</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-headline-md text-headline-md text-on-surface tracking-tight">$34.500 <span class="font-title-md text-title-md text-tertiary">CLP</span></span>
+<span class="font-body-sm text-body-sm text-tertiary font-semibold">/ ~$28 USD</span>
+</div>
+<div class="mt-3 flex items-center gap-1.5 text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span>$414.000 proyectados en 12 meses</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Anfitriona / Vendedora -->
+<div class="p-space-lg rounded-[28px] bg-surface-container-lowest shadow-[-4px_-4px_14px_rgba(255,255,255,0.95),6px_6px_18px_rgba(20,20,43,0.05)] relative overflow-hidden flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<div class="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[26px]">admin_panel_settings</span>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm">
+            Rol Anfitriona
+          </span>
+</div>
+<div class="mt-4">
+<span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wider block">Mis grupos como anfitriona</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-headline-md text-headline-md text-on-surface">3 activos</span>
+<span class="font-body-sm text-body-sm text-tertiary font-semibold">(11 de 13 cupos cubiertos)</span>
+</div>
+<div class="mt-3 flex items-center gap-2">
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full transition-all duration-500" style="width: 85%;"></div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">85%</span>
+</div>
+</div>
+</div>
+<!-- Card 3: Compradora / Miembro -->
+<div class="p-space-lg rounded-[28px] bg-surface-container-lowest shadow-[-4px_-4px_14px_rgba(255,255,255,0.95),6px_6px_18px_rgba(20,20,43,0.05)] relative overflow-hidden flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<div class="w-12 h-12 rounded-2xl bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
+<span class="material-symbols-outlined text-[26px]">devices</span>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-surface-container-high text-tertiary font-label-sm text-label-sm">
+            Rol Compradora
+          </span>
+</div>
+<div class="mt-4">
+<span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wider block">Grupos a los que pertenezco</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-headline-md text-headline-md text-on-surface">3 servicios</span>
+<span class="font-body-sm text-body-sm text-primary font-semibold">Al día</span>
+</div>
+<div class="mt-3 flex items-center gap-1.5 text-tertiary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-primary">schedule</span>
+<span>Próximo cargo Vakeva Shield en <strong>6 días</strong></span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 2. SECCIÓN: Mis Grupos Creados (Anfitriona / Vendedora) -->
+<section class="flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pb-1">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-[18px]">key</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface tracking-tight">
+          Mis grupos gestionados
+        </h2>
+<span class="hidden sm:inline-flex px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-label-sm font-semibold shadow-sm">
+          Recibes $24.800/mes
+        </span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-tertiary font-body-sm text-body-sm">Depósito mensual directo</span>
+<span class="material-symbols-outlined text-primary text-[20px]">account_balance</span>
+</div>
+</div>
+<!-- Grid de Tarjetas de Grupos Propios -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md lg:gap-space-lg">
+<!-- Tarjeta 1: Netflix Premium 4K -->
+<div class="rounded-[28px] bg-surface-container-lowest p-space-lg shadow-[-4px_-4px_14px_rgba(255,255,255,0.95),6px_6px_18px_rgba(20,20,43,0.06)] flex flex-col justify-between relative">
+<div class="space-y-4">
+<!-- Top Row Service & Price -->
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-2xl bg-rose-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                N
+              </div>
+<div>
+<h3 class="font-title-md text-title-md text-on-surface leading-snug">Netflix Premium 4K</h3>
+<span class="font-body-sm text-body-sm text-tertiary">4 perfiles Ultra HD</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-title-md text-title-md text-primary font-bold">$4.500</span>
+<span class="block font-label-sm text-label-sm text-tertiary">CLP / cupo</span>
+</div>
+</div>
+<!-- Status Pill with soft pulse -->
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-900 font-label-sm text-label-sm">
+<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+<span>Buscando 1 miembro restante</span>
+</div>
+<!-- Cupos Visualization -->
+<div class="p-3 rounded-2xl bg-surface-container-low space-y-2">
+<div class="flex items-center justify-between text-xs font-semibold text-on-surface">
+<span>Cupos ocupados: 3 de 4</span>
+<span class="text-primary">1 disponible</span>
+</div>
+<!-- Member Avatars -->
+<div class="flex items-center gap-2 pt-1">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-[11px] font-bold text-on-surface ring-2 ring-surface-container-lowest" title="@camilo">
+                CM
+              </div>
+<div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-[11px] font-bold text-on-secondary-fixed ring-2 ring-surface-container-lowest" title="@sofia">
+                SO
+              </div>
+<div class="w-8 h-8 rounded-full bg-tertiary-fixed flex items-center justify-center text-[11px] font-bold text-on-tertiary-fixed ring-2 ring-surface-container-lowest" title="@diego">
+                DG
+              </div>
+<!-- Empty Slot placeholder -->
+<div class="w-8 h-8 rounded-full bg-surface border-dashed border-2 border-primary/40 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[16px]">person_add</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="mt-6 pt-4 flex items-center gap-2">
+<button class="flex-1 py-2.5 px-3 rounded-full bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center justify-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[16px]">link</span>
+<span>Copiar link</span>
+</button>
+<button class="flex-1 py-2.5 px-3 rounded-full bg-primary-fixed text-on-primary-fixed font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-all flex items-center justify-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[16px]">settings</span>
+<span>Gestionar</span>
+</button>
+</div>
+</div>
+<!-- Tarjeta 2: Spotify Familiar -->
+<div class="rounded-[28px] bg-surface-container-lowest p-space-lg shadow-[-4px_-4px_14px_rgba(255,255,255,0.95),6px_6px_18px_rgba(20,20,43,0.06)] flex flex-col justify-between">
+<div class="space-y-4">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+<span class="material-symbols-outlined text-[26px]">graphic_eq</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-on-surface leading-snug">Spotify Familiar</h3>
+<span class="font-body-sm text-body-sm text-tertiary">6 cuentas Premium</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-title-md text-title-md text-primary font-bold">$2.100</span>
+<span class="block font-label-sm text-label-sm text-tertiary">CLP / cupo</span>
+</div>
+</div>
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>Activo / Al día • 5 de 6 cupos</span>
+</div>
+<div class="p-3 rounded-2xl bg-surface-container-low space-y-2">
+<div class="flex items-center justify-between text-xs font-semibold text-on-surface">
+<span>Recaudación mensual</span>
+<span class="text-on-surface">$10.500 CLP</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-emerald-600 h-full rounded-full" style="width: 83%;"></div>
+</div>
+<p class="font-body-sm text-[11px] text-tertiary pt-1">Renovación de pago: 02 de cada mes</p>
+</div>
+</div>
+<div class="mt-6 pt-4 flex items-center gap-2">
+<button class="flex-1 py-2.5 px-3 rounded-full bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center justify-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[16px]">link</span>
+<span>Invitar</span>
+</button>
+<button class="flex-1 py-2.5 px-3 rounded-full bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-container transition-all flex items-center justify-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[16px]">group</span>
+<span>Ver 5 miembros</span>
+</button>
+</div>
+</div>
+<!-- Tarjeta 3: Disney+ Estándar -->
+<div class="rounded-[28px] bg-surface-container-lowest p-space-lg shadow-[-4px_-4px_14px_rgba(255,255,255,0.95),6px_6px_18px_rgba(20,20,43,0.06)] flex flex-col justify-between">
+<div class="space-y-4">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-2xl bg-blue-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+<span class="material-symbols-outlined text-[24px]">movie</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-on-surface leading-snug">Disney+ Estándar</h3>
+<span class="font-body-sm text-body-sm text-tertiary">3 perfiles simultáneos</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-title-md text-title-md text-primary font-bold">$3.200</span>
+<span class="block font-label-sm text-label-sm text-tertiary">CLP / cupo</span>
+</div>
+</div>
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span>Grupo completo (3/3)</span>
+</div>
+<div class="p-3.5 rounded-2xl bg-surface-container-low flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-surface-container-lowest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-tertiary block">Próxima liquidación</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">05 de Nov. • Santander ****842</span>
+</div>
+</div>
+</div>
+<div class="mt-6 pt-4 flex items-center gap-2">
+<button class="w-full py-2.5 px-4 rounded-full bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2" type="button">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+<span>Historial de abonos</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Upsell Card: ¿Tienes otra cuenta familiar? -->
+<div class="mt-2 rounded-[28px] bg-gradient-to-r from-surface-container to-surface-container-high/60 p-space-lg shadow-[-4px_-4px_12px_rgba(255,255,255,0.9),6px_6px_16px_rgba(20,20,43,0.04)] flex flex-col md:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-2xl bg-surface-container-lowest shadow-sm flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[32px]">auto_awesome</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">¿Pagas por YouTube Premium, Canva o HBO Max familiar?</h4>
+<p class="font-body-md text-body-md text-tertiary mt-0.5">
+            Compártela en Vakeva de forma 100% segura y ahorra hasta el 80% de tus suscripciones mensuales.
+          </p>
+</div>
+</div>
+<a class="px-space-md py-space-sm rounded-full bg-surface-container-lowest text-primary font-label-lg text-label-lg shadow-sm hover:bg-primary hover:text-on-primary transition-all whitespace-nowrap flex items-center gap-1.5 flex-shrink-0" data-path="create-group" href="#">
+<span>Compartir otra cuenta</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+</div>
+</section>
+<!-- 3. SECCIÓN: Suscripciones en las que participo (Rol Compradora) -->
+<section class="flex flex-col gap-space-md pt-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pb-1">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+<span class="material-symbols-outlined text-[18px]">subscriptions</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface tracking-tight">
+          Mis suscripciones activas
+        </h2>
+<span class="px-3 py-1 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm font-semibold">
+          3 servicios compartidos
+        </span>
+</div>
+<div class="flex items-center gap-1.5 text-tertiary font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-emerald-600" style="font-variation-settings: 'FILL' 1;">shield</span>
+<span>Protegidas por Vakeva Shield de reemplazo inmediato</span>
+</div>
+</div>
+<!-- Lista Horizontal de Tarjetas Elegantes -->
+<div class="flex flex-col gap-space-sm">
+<!-- Subscription 1: HBO Max Platino -->
+<div class="p-space-md lg:p-space-lg rounded-[28px] bg-surface-container-lowest shadow-[-4px_-4px_14px_rgba(255,255,255,0.95),6px_6px_18px_rgba(20,20,43,0.05)] flex flex-col md:flex-row md:items-center justify-between gap-space-md transition-transform hover:-translate-y-0.5">
+<div class="flex items-center gap-4 min-w-0">
+<div class="w-14 h-14 rounded-2xl bg-purple-950 text-white flex items-center justify-center font-extrabold text-xl shadow-sm flex-shrink-0">
+            MAX
+          </div>
+<div class="min-w-0 space-y-0.5">
+<div class="flex items-center gap-2">
+<h3 class="font-title-md text-title-md text-on-surface truncate">Max Platino 4K</h3>
+<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm">Al día</span>
+</div>
+<div class="flex items-center gap-3 text-tertiary font-body-sm text-body-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">person</span>
+                Anfitrión: <strong class="text-on-surface">Tomás R.</strong>
+</span>
+<span class="flex items-center gap-0.5 text-amber-600 font-semibold">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                4.9
+              </span>
+<span class="hidden sm:inline-block text-tertiary">• Tu cupo asignado: <strong>Pantalla 2 (Valeria)</strong></span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between md:justify-end gap-space-lg flex-shrink-0 pt-2 md:pt-0">
+<div class="text-left md:text-right">
+<span class="font-title-md text-title-md text-on-surface font-bold">$3.490</span>
+<span class="block font-label-sm text-label-sm text-tertiary">Débito aut. el día 12</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2.5 rounded-full bg-surface-container text-on-surface hover:text-primary hover:bg-surface-container-high transition-colors" title="Ver credenciales de acceso seguras" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-2.5 rounded-full bg-surface-container text-on-surface hover:text-primary hover:bg-surface-container-high transition-colors" title="Contactar al anfitrión" type="button">
+<span class="material-symbols-outlined text-[20px]">chat</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Subscription 2: Duolingo Super Familiar -->
+<div class="p-space-md lg:p-space-lg rounded-[28px] bg-surface-container-lowest shadow-[-4px_-4px_14px_rgba(255,255,255,0.95),6px_6px_18px_rgba(20,20,43,0.05)] flex flex-col md:flex-row md:items-center justify-between gap-space-md transition-transform hover:-translate-y-0.5">
+<div class="flex items-center gap-4 min-w-0">
+<div class="w-14 h-14 rounded-2xl bg-lime-600 text-white flex items-center justify-center font-extrabold text-xl shadow-sm flex-shrink-0">
+<span class="material-symbols-outlined text-[28px]">school</span>
+</div>
+<div class="min-w-0 space-y-0.5">
+<div class="flex items-center gap-2">
+<h3 class="font-title-md text-title-md text-on-surface truncate">Duolingo Super Familiar</h3>
+<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm">Al día</span>
+</div>
+<div class="flex items-center gap-3 text-tertiary font-body-sm text-body-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">person</span>
+                Anfitriona: <strong class="text-on-surface">Elena G.</strong>
+</span>
+<span class="flex items-center gap-0.5 text-amber-600 font-semibold">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                5.0
+              </span>
+<span class="hidden sm:inline-block text-tertiary">• Cuenta vinculada a tu email</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between md:justify-end gap-space-lg flex-shrink-0 pt-2 md:pt-0">
+<div class="text-left md:text-right">
+<span class="font-title-md text-title-md text-on-surface font-bold">$1.800</span>
+<span class="block font-label-sm text-label-sm text-tertiary">Débito aut. el día 18</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2.5 rounded-full bg-surface-container text-on-surface hover:text-primary hover:bg-surface-container-high transition-colors" title="Ver detalles de suscripción" type="button">
+<span class="material-symbols-outlined text-[20px]">info</span>
+</button>
+<button class="p-2.5 rounded-full bg-surface-container text-on-surface hover:text-primary hover:bg-surface-container-high transition-colors" title="Contactar anfitriona" type="button">
+<span class="material-symbols-outlined text-[20px]">chat</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Subscription 3: YouTube Premium -->
+<div class="p-space-md lg:p-space-lg rounded-[28px] bg-surface-container-lowest shadow-[-4px_-4px_14px_rgba(255,255,255,0.95),6px_6px_18px_rgba(20,20,43,0.05)] flex flex-col md:flex-row md:items-center justify-between gap-space-md transition-transform hover:-translate-y-0.5">
+<div class="flex items-center gap-4 min-w-0">
+<div class="w-14 h-14 rounded-2xl bg-red-600 text-white flex items-center justify-center font-extrabold text-xl shadow-sm flex-shrink-0">
+<span class="material-symbols-outlined text-[28px]">play_arrow</span>
+</div>
+<div class="min-w-0 space-y-0.5">
+<div class="flex items-center gap-2">
+<h3 class="font-title-md text-title-md text-on-surface truncate">YouTube Premium + Music</h3>
+<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm">Al día</span>
+</div>
+<div class="flex items-center gap-3 text-tertiary font-body-sm text-body-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">person</span>
+                Anfitrión: <strong class="text-on-surface">Martín V.</strong>
+</span>
+<span class="flex items-center gap-0.5 text-amber-600 font-semibold">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                4.8
+              </span>
+<span class="hidden sm:inline-block text-tertiary">• Sin anuncios activo</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between md:justify-end gap-space-lg flex-shrink-0 pt-2 md:pt-0">
+<div class="text-left md:text-right">
+<span class="font-title-md text-title-md text-on-surface font-bold">$2.500</span>
+<span class="block font-label-sm text-label-sm text-tertiary">Débito aut. el día 25</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2.5 rounded-full bg-surface-container text-on-surface hover:text-primary hover:bg-surface-container-high transition-colors" title="Ver detalles de suscripción" type="button">
+<span class="material-symbols-outlined text-[20px]">info</span>
+</button>
+<button class="p-2.5 rounded-full bg-surface-container text-on-surface hover:text-primary hover:bg-surface-container-high transition-colors" title="Contactar anfitrión" type="button">
+<span class="material-symbols-outlined text-[20px]">chat</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. BANNER DESTACADO MARKETPLACE -->
+<section class="mt-space-md">
+<div class="rounded-[28px] p-space-lg lg:p-space-xl bg-gradient-to-br from-surface-container-lowest via-secondary-fixed/30 to-surface-container-high shadow-[-4px_-4px_16px_rgba(255,255,255,0.95),8px_8px_24px_rgba(20,20,43,0.06)] relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-space-lg">
+<!-- Left text info -->
+<div class="max-w-xl space-y-2 z-10">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-lowest text-primary font-label-sm text-label-sm shadow-sm">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+<span>Vakeva Shield: Verificación instantánea</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface tracking-tight">
+          ¿Buscando otra plataforma o servicio?
+        </h3>
+<p class="font-body-md text-body-md text-tertiary">
+          Hay más de <strong>140 grupos verificados</strong> con cupos inmediatos disponibles en streaming, IA, productividad y música. Únete en 3 clics y empieza a ahorrar hoy.
+        </p>
+</div>
+<!-- Right action & visual pill -->
+<div class="flex flex-col sm:flex-row items-center gap-space-md z-10 w-full md:w-auto">
+<div class="flex -space-x-3 overflow-hidden py-1">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center font-bold text-xs text-on-primary-fixed ring-2 ring-surface-container-lowest">
+            GPT
+          </div>
+<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-xs text-blue-900 ring-2 ring-surface-container-lowest">
+            PS+
+          </div>
+<div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center font-bold text-xs text-teal-900 ring-2 ring-surface-container-lowest">
+            CAN
+          </div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center font-bold text-xs text-on-surface ring-2 ring-surface-container-lowest">
+            +137
+          </div>
+</div>
+<a class="w-full sm:w-auto px-space-lg py-space-sm rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-[0_8px_24px_rgba(185,0,66,0.3)] hover:scale-[1.03] transition-all flex items-center justify-center gap-2 whitespace-nowrap" data-path="explore-groups" href="#">
+<span>Ver marketplace completo</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+</div>
+<!-- Decorative subtle backdrop shape -->
+<div class="absolute -right-16 -bottom-16 w-64 h-64 rounded-full bg-primary-fixed/20 blur-2xl pointer-events-none"></div>
+</div>
+</section>
+</div>
+<script>
+  // Microinteractions: Smooth clipboard feedback for invite links
+  document.querySelectorAll('button').forEach(btn => {
+    if (btn.innerText.includes('Copiar link') || btn.innerText.includes('Invitar')) {
+      btn.addEventListener('click', function() {
+        const originalContent = this.innerHTML;
+        this.innerHTML = '<span class="material-symbols-outlined text-[16px] text-emerald-600">done</span><span class="text-emerald-700">¡Copiado!</span>';
+        setTimeout(() => {
+          this.innerHTML = originalContent;
+        }, 2200);
+      });
+    }
+  });
+</script></main><footer class="relative z-10 w-full bg-surface-container-low/80 backdrop-blur-md pt-space-xl pb-space-lg mt-space-xl"><div class="max-w-7xl mx-auto px-margin lg:px-margin-desktop"><div class="flex flex-col md:flex-row items-center justify-between gap-space-md pb-space-lg"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs text-secondary font-label-md text-label-md"><span class="material-symbols-outlined text-[20px]">verified_user</span><span>Vakeva Shield: Pagos protegidos y verificación de slots</span></div></div><div class="flex items-center gap-space-xs text-tertiary font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>Todos los sistemas operativos</span></div></div><div class="flex flex-col md:flex-row items-center justify-between gap-space-sm pt-space-md"><p class="font-body-sm text-body-sm text-tertiary">© 2024 Vakeva Technologies Inc. Compartiendo suscripciones con transparencia.</p><div class="flex items-center gap-space-lg"><a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" data-path="help-support" href="#">Centro de Soporte</a><a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" data-path="security-guarantee" href="#">Garantía de Reembolso</a><a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" data-path="terms-privacy" href="#">Términos y Privacidad</a></div></div></div></footer></body></html>
