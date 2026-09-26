@@ -15,7 +15,7 @@ export interface NavLink {
 
 const DEFAULT_LINKS: NavLink[] = [
   { label: 'Cómo funciona', routerLink: '/', fragment: 'como-funciona', active: true, icon: 'home' },
-  { label: 'Explorar', routerLink: '/', fragment: 'plataformas', icon: 'explore' },
+  { label: 'Explorar', routerLink: '/', fragment: 'producto', icon: 'explore' },
   { label: 'Compara tu plan', routerLink: '/', fragment: 'owners', icon: 'group' },
   { label: 'Precios', routerLink: '/', fragment: 'comparativa', icon: 'credit_card' },
 ];

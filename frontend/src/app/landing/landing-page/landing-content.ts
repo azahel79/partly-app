@@ -7,6 +7,7 @@ import { HowItWorks } from '../components/how-it-works/how-it-works';
 import { MetricsBanner } from '../components/metrics-banner/metrics-banner';
 import { Owners } from '../components/owners/owners';
 import { Platforms } from '../components/platforms/platforms';
+import { ProductTour } from '../components/product-tour/product-tour';
 import { Security } from '../components/security/security';
 import { Testimonials } from '../components/testimonials/testimonials';
 import { LandingMotionDirective } from './landing-motion.directive';
@@ -19,6 +20,7 @@ import { LandingMotionDirective } from './landing-motion.directive';
     MetricsBanner,
     HowItWorks,
     Comparison,
+    ProductTour,
     Platforms,
     Security,
     Owners,
