@@ -27,12 +27,12 @@
 .panel-navigation a { min-height: 44px; display: flex; align-items: center; justify-content: center; }
 .panel-header-actions > a, .panel-header-actions > div > button { min-height: 44px; min-width: 44px; }
 @media (max-width: 1023px) {
-  .panel-header-row { height: auto; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 16px; padding-block: 10px; }
+  .panel-header-row { height: auto; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 16px; padding-block: 14px; }
   .panel-header-actions { justify-self: end; }
   .panel-navigation { grid-column: 1 / -1; grid-row: 2; width: 100%; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-radius: 18px; }
   .panel-navigation a { padding-inline: 6px; font-size: 12px; white-space: normal; text-align: center; line-height: 1.35; }
   .panel-content { padding-top: 24px; }
-  .notification-panel { position: fixed; inset: 126px 12px auto; width: auto; max-width: 500px; margin-left: auto; max-height: calc(100dvh - 142px); }
+  .notification-panel { position: fixed; inset: 134px 12px auto; width: auto; max-width: 500px; margin-left: auto; max-height: calc(100dvh - 150px); }
 }
 @media (max-width: 379px) {
   .panel-header-row { padding-inline: 12px; gap: 8px; }
