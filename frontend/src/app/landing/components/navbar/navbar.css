@@ -21,8 +21,8 @@
 .public-header-actions a { white-space: nowrap; }
 #public-mobile-nav { max-height: calc(100dvh - 110px); overflow-y: auto; }
 @media (max-width: 639px) {
-  .public-header-row { height: 72px; padding-inline: 14px; gap: 10px; }
-  .public-header-row > a img { height: 32px; }
+  .public-header-row { height: auto; min-height: 76px; padding: 14px; gap: 10px; }
+  .public-header-row > a img { height: 28px; }
   .public-header-actions { gap: 8px; }
   .public-header-actions > a { padding: 12px; font-size: 12px; }
   .public-header-actions > a > span { display: none; }
