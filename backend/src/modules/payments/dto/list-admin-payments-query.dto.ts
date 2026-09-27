@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
 
 export enum ReceiptFilter {
   UPLOADED = 'UPLOADED',
@@ -23,6 +23,13 @@ export class ListAdminPaymentsQueryDto {
   @IsOptional()
   @IsUUID('4')
   groupId?: string;
+
+  @ApiPropertyOptional({ description: 'Busca por nombre o correo del comprador o del vendedor, o por la plataforma del grupo.' })
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsString()
+  @MaxLength(80)
+  q?: string;
 
   @ApiPropertyOptional({ default: 1, minimum: 1 })
   @IsOptional()

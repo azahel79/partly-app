@@ -8,14 +8,8 @@
   <meta name="theme-color" content="#F6F4EF">
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Modo oscuro del panel y el admin: se pinta antes de que arranque Angular para que no parpadee en claro. -->
-  <script>
-    try {
-      if (localStorage.getItem('partly.theme') === 'dark' && /^\/(panel|admin(?!\/login)|partly-ops-b70ae4(?!\/login))(\/|$)/.test(location.pathname)) {
-        document.documentElement.classList.add('dark');
-      }
-    } catch (e) {}
-  </script>
+  <!-- Modo oscuro del panel y el admin antes de que arranque Angular (archivo aparte: la CSP no permite scripts en línea). -->
+  <script src="theme-init.js"></script>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="256x256" href="partly-icon-square.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">

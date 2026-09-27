@@ -113,7 +113,10 @@ El módulo de mayoreo permite que usuarios autorizados compren cuentas completas
 - Access tokens de corta duración y refresh tokens rotativos/revocables.
 - Credenciales compartidas y CLABE de retiro cifradas con AES-256-GCM.
 - Validación estricta de DTO, rate limiting, Helmet y CORS.
-- Los administradores no pueden leer credenciales de un grupo solo por ser administradores.
+- Los administradores solo pueden leer las credenciales de un grupo mientras las revisan (enviadas y sin aprobar), y cada consulta queda en la bitácora.
+- La cuenta bancaria del vendedor solo la ven él, un administrador y quien le debe un pago; la comisión pactada, solo el vendedor y Partly. Los grupos sin aprobar no son públicos.
+- Los comprobantes se validan por su contenido real (JPG, PNG, WEBP o PDF), no solo por la extensión.
+- La app web se sirve con cabeceras de seguridad (CSP sin scripts en línea, HSTS, protección contra iframes); ver `frontend/nginx/security-headers.conf`.
 - En producción se exige HTTPS, secretos JWT de al menos 32 caracteres y correo real.
 - Swagger se desactiva de forma predeterminada en producción.
 
@@ -122,6 +125,7 @@ La llave `CREDENTIALS_ENCRYPTION_KEY` debe respaldarse en un gestor de secretos.
 ## Documentación
 
 - [API y backend](backend/README.md)
+- [AnalÃ­tica de la landing](docs/ANALYTICS.md)
 - [Modelo de base de datos](backend/DATABASE.md)
 - [Salida a producción](docs/PRODUCTION.md)
 - Swagger local: `/api/docs`

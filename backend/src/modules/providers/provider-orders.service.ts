@@ -6,7 +6,7 @@ import { AuthenticatedUser } from '../auth/types/jwt-payload.interface';
 import { ProviderOrderBuyerInfo } from './dto/provider-order-response.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { decrypt, encrypt } from '../../common/utils/crypto.util';
-import { buildReceiptFilename, deleteReceiptFile, resolveReceiptPath, saveReceiptFile } from '../../common/utils/receipt-storage.util';
+import { buildReceiptFilename, deleteReceiptFile, receiptMatchesType, resolveReceiptPath, saveReceiptFile } from '../../common/utils/receipt-storage.util';
 import { NotificationsService } from '../notifications/notifications.service';
 import { GroupsService } from '../groups/groups.service';
 import { CommissionsService } from '../commissions/commissions.service';
@@ -377,6 +377,9 @@ export class ProviderOrdersService {
     const extension = EXTENSION_BY_MIMETYPE[file.mimetype];
     if (!extension) {
       throw new BadRequestException('Solo se aceptan comprobantes en JPG, PNG, WEBP o PDF.');
+    }
+    if (!receiptMatchesType(file.buffer, file.mimetype)) {
+      throw new BadRequestException('El archivo no parece una imagen o un PDF válido. Sube la captura o el PDF original de tu transferencia.');
     }
     const order = await this.prisma.providerOrder.findUnique({ where: { id: orderId }, include: ORDER_WITH_PARTIES });
     if (!order || order.buyerUserId !== buyerUserId) {

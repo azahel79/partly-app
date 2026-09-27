@@ -25,6 +25,28 @@ export function buildReceiptFilename(userName: string, platformName: string, dat
   return `${sanitizeForFilename(userName)}_${datePart}_${sanitizeForFilename(platformName)}_${uniquePart}${extension}`;
 }
 
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+/**
+ * Revisa que el contenido del archivo corresponda al tipo que declaró el navegador (los primeros bytes de un JPG,
+ * PNG, WEBP o PDF real), para no guardar ni servir archivos disfrazados de comprobante.
+ */
+export function receiptMatchesType(buffer: Buffer, mimetype: string): boolean {
+  switch (mimetype) {
+    case 'image/jpeg':
+      return buffer.length > 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+    case 'image/png':
+      return buffer.length > 8 && buffer.subarray(0, 8).equals(PNG_SIGNATURE);
+    case 'image/webp':
+      return buffer.length > 12 && buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP';
+    case 'application/pdf':
+      // La especificación permite basura antes del encabezado, pero siempre dentro del primer kilobyte.
+      return buffer.subarray(0, 1024).includes('%PDF-');
+    default:
+      return false;
+  }
+}
+
 /** Guarda el buffer bajo <dir>/<filename> (crea el directorio si no existe) y regresa la ruta relativa guardada en DB. */
 export async function saveReceiptFile(dir: string, filename: string, buffer: Buffer): Promise<string> {
   await fs.mkdir(dir, { recursive: true });

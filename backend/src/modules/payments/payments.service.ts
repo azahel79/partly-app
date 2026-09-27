@@ -5,7 +5,7 @@ import { BillingCycleStatus, BillingPeriod, GroupStatus, MembershipStatus, Notif
 import { PrismaService } from '../../prisma/prisma.service';
 import { addBillingPeriod, computeJoinPricing } from '../../common/utils/billing.util';
 import { dayKey } from '../mail/quiet-hours';
-import { buildReceiptFilename, deleteReceiptFile, resolveReceiptPath, saveReceiptFile } from '../../common/utils/receipt-storage.util';
+import { buildReceiptFilename, deleteReceiptFile, receiptMatchesType, resolveReceiptPath, saveReceiptFile } from '../../common/utils/receipt-storage.util';
 import { AuthenticatedUser } from '../auth/types/jwt-payload.interface';
 import { CommissionsService } from '../commissions/commissions.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -58,12 +58,26 @@ export class PaymentsService {
   }
 
   /** Vista global de solo lectura para que staff supervise comprobantes y estados. */
+  /** Búsqueda del monitor de pagos: comprador, vendedor (nombre o correo) o plataforma/plan del grupo. */
+  private adminPaymentSearch(q: string): Prisma.PaymentWhereInput[] {
+    const contains = { contains: q, mode: Prisma.QueryMode.insensitive };
+    return [
+      { membership: { user: { name: contains } } },
+      { membership: { user: { email: contains } } },
+      { membership: { group: { owner: { name: contains } } } },
+      { membership: { group: { owner: { email: contains } } } },
+      { membership: { group: { plan: { tierName: contains } } } },
+      { membership: { group: { plan: { platform: { name: contains } } } } },
+    ];
+  }
+
   async findAllForAdmin(query: ListAdminPaymentsQueryDto) {
     const where: Prisma.PaymentWhereInput = {
       ...(query.status ? { status: query.status } : {}),
       ...(query.receipt === ReceiptFilter.UPLOADED ? { receiptPath: { not: null } } : {}),
       ...(query.receipt === ReceiptFilter.MISSING ? { receiptPath: null } : {}),
       ...(query.groupId ? { membership: { groupId: query.groupId } } : {}),
+      ...(query.q ? { OR: this.adminPaymentSearch(query.q) } : {}),
     };
 
     const [payments, total, missingReceipt, awaitingSeller, approved, failed] = await Promise.all([
@@ -405,6 +419,9 @@ export class PaymentsService {
     const extension = EXTENSION_BY_MIMETYPE[file.mimetype];
     if (!extension) {
       throw new BadRequestException('Solo se aceptan comprobantes en JPG, PNG, WEBP o PDF.');
+    }
+    if (!receiptMatchesType(file.buffer, file.mimetype)) {
+      throw new BadRequestException('El archivo no parece una imagen o un PDF válido. Sube la captura o el PDF original de tu transferencia.');
     }
 
     const { payment, membership } = await this.findOwnPendingPayment(groupId, requesterUserId);

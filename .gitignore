@@ -18,6 +18,9 @@ asset-backups/
 brand-backups/
 *.dump
 
+# Cuentas de prueba locales para las pruebas de extremo a extremo
+backend/scripts/qa/qa-users.json
+
 # Llaves privadas y certificados (p. ej. la llave SSH del servidor): nunca al repositorio
 *.pem
 *.key
@@ -34,8 +37,9 @@ frontend/qa/*.png
 frontend/qa/*.json
 frontend/img-logos/
 
-# Herramientas locales
-.claude/
+# Herramientas locales (las skills del proyecto sí se comparten)
+.claude/*
+!.claude/skills/
 .kombai/
 .vscode/
 .idea/

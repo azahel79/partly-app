@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CommissionChargeStatus, CommissionEntryStatus, GroupStatus, MembershipStatus, NotificationType, PaymentStatus, Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { buildReceiptFilename, deleteReceiptFile, resolveReceiptPath, saveReceiptFile } from '../../common/utils/receipt-storage.util';
+import { buildReceiptFilename, deleteReceiptFile, receiptMatchesType, resolveReceiptPath, saveReceiptFile } from '../../common/utils/receipt-storage.util';
 import { AuthenticatedUser } from '../auth/types/jwt-payload.interface';
 import { NotificationsService } from '../notifications/notifications.service';
 import { dayKey } from '../mail/quiet-hours';
@@ -369,6 +369,9 @@ export class CommissionsService {
     const extension = EXTENSION_BY_MIMETYPE[file.mimetype];
     if (!extension) {
       throw new BadRequestException('Solo se aceptan comprobantes en JPG, PNG, WEBP o PDF.');
+    }
+    if (!receiptMatchesType(file.buffer, file.mimetype)) {
+      throw new BadRequestException('El archivo no parece una imagen o un PDF válido. Sube la captura o el PDF original de tu transferencia.');
     }
 
     const charge = await this.prisma.commissionCharge.findUnique({ where: { id: chargeId }, include: { seller: { select: { name: true } } } });

@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPi
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -55,7 +56,8 @@ export class GroupsController {
   async findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: ListGroupsQueryDto): Promise<PaginatedGroupsResponseDto> {
     const { data, total } = await this.groupsService.findMany(query, user.id);
     return {
-      data: data.map((g) => new GroupResponseDto(g)),
+      // Marketplace: nunca incluye grupos propios, así que nadie ve aquí cuentas bancarias ni comisiones ajenas.
+      data: data.map((g) => new GroupResponseDto(g).restrictTo({ canSeeBankAccount: false, canSeeCommission: false })),
       total,
       page: query.page,
       limit: query.limit,
@@ -88,7 +90,8 @@ export class GroupsController {
   @ApiResponse({ status: 200, type: [GroupResponseDto] })
   async findJoined(@CurrentUser() user: AuthenticatedUser): Promise<GroupResponseDto[]> {
     const groups = await this.groupsService.findJoined(user.id);
-    return groups.map((g) => new GroupResponseDto(g));
+    // Es miembro activo (paga sus renovaciones al vendedor), pero la comisión pactada no le corresponde.
+    return groups.map((g) => new GroupResponseDto(g).restrictTo({ canSeeBankAccount: true, canSeeCommission: g.ownerId === user.id }));
   }
 
   @Get('pending-approval')
@@ -182,12 +185,16 @@ export class GroupsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Detalle de un grupo (público)' })
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({
+    summary: 'Detalle de un grupo (público si está aprobado)',
+    description: 'La cuenta bancaria del vendedor solo se incluye para el vendedor, un ADMIN o quien le debe un pago; la comisión, solo para el vendedor o un ADMIN. Un grupo sin aprobar solo lo ven su vendedor, sus miembros o un ADMIN.',
+  })
   @ApiResponse({ status: 200, type: GroupResponseDto })
-  @ApiResponse({ status: 404, description: 'No existe.' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<GroupResponseDto> {
-    const group = await this.groupsService.findById(id);
-    return new GroupResponseDto(group);
+  @ApiResponse({ status: 404, description: 'No existe (o no está aprobado y no tienes relación con él).' })
+  async findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user?: AuthenticatedUser): Promise<GroupResponseDto> {
+    const { group, viewer } = await this.groupsService.findForViewer(id, user);
+    return new GroupResponseDto(group).restrictTo(viewer);
   }
 
   @Put(':id')

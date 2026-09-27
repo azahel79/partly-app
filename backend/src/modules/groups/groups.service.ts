@@ -636,6 +636,31 @@ export class GroupsService {
     return group;
   }
 
+  /**
+   * Detalle de un grupo según quién mira. Un grupo sin aprobar (en revisión o rechazado) no es público: solo lo
+   * ven su vendedor, quien ya tiene relación con él y un ADMIN. La cuenta bancaria se muestra a quien le tiene
+   * que pagar al vendedor (pago pendiente, activo o suspendido) y la comisión, solo al vendedor y a Partly.
+   */
+  async findForViewer(id: string, viewer?: AuthenticatedUser) {
+    const group = await this.findById(id);
+    const isOwner = viewer?.id === group.ownerId;
+    const isAdmin = viewer?.role === Role.ADMIN;
+    const membership = viewer && !isOwner
+      ? await this.prisma.groupMembership.findFirst({
+          where: { groupId: id, userId: viewer.id, status: { in: LIVE_MEMBERSHIP_STATUSES } },
+          select: { status: true },
+        })
+      : null;
+    if (group.approvalStatus !== GroupApprovalStatus.APPROVED && !isOwner && !isAdmin && !membership) {
+      throw new NotFoundException('Grupo no encontrado.');
+    }
+    const paysSeller = !!membership && membership.status !== MembershipStatus.RESERVED;
+    return {
+      group,
+      viewer: { canSeeBankAccount: isOwner || isAdmin || paysSeller, canSeeCommission: isOwner || isAdmin },
+    };
+  }
+
   async update(id: string, dto: UpdateGroupDto, requester: AuthenticatedUser) {
     const group = await this.prisma.group.findUnique({ where: { id }, include: { plan: true } });
     if (!group) {
@@ -1315,7 +1340,8 @@ export class GroupsService {
     const isOwner = group.ownerId === requester.id;
     if (isOwner || requester.role === Role.ADMIN) {
       const members = await this.prisma.groupMembership.findMany({
-        where: { groupId },
+        // Solo quienes siguen en el grupo (o lo apartaron): los que ya salieron no son miembros.
+        where: { groupId, status: { in: LIVE_MEMBERSHIP_STATUSES } },
         include: {
           user: { select: { id: true, name: true, avatarUrl: true } },
           profile: { select: { id: true, label: true } },
@@ -1501,7 +1527,11 @@ export class GroupsService {
     await this.prisma.groupProfile.delete({ where: { id: profileId } });
   }
 
-  /** Solo el owner o un miembro con membresía ACTIVE pueden ver la credencial descifrada. */
+  /**
+   * Ven la credencial descifrada el owner y los miembros ACTIVE. Un ADMIN solo mientras la revisa (el vendedor la
+   * envió y espera aprobación), y cada consulta queda en la bitácora: ser administrador no da acceso permanente a
+   * las cuentas de los vendedores.
+   */
   async getCredential(groupId: string, requester: AuthenticatedUser): Promise<CredentialResponseDto> {
     const group = await this.prisma.group.findUnique({ where: { id: groupId } });
     if (!group) {
@@ -1509,14 +1539,20 @@ export class GroupsService {
     }
 
     const isOwner = group.ownerId === requester.id;
-    const isAdmin = requester.role === Role.ADMIN;
-    if (!isOwner && !isAdmin) {
-      const activeMembership = await this.prisma.groupMembership.findFirst({
-        where: { groupId, userId: requester.id, status: MembershipStatus.ACTIVE },
+    const activeMembership = isOwner
+      ? null
+      : await this.prisma.groupMembership.findFirst({
+          where: { groupId, userId: requester.id, status: MembershipStatus.ACTIVE },
+          select: { id: true },
+        });
+    const adminReviewing = requester.role === Role.ADMIN && group.credentialReviewStatus === CredentialReviewStatus.SUBMITTED;
+    if (!isOwner && !activeMembership && !adminReviewing) {
+      throw new ForbiddenException('Solo el owner o un miembro activo de este grupo pueden ver la credencial.');
+    }
+    if (!isOwner && !activeMembership && adminReviewing) {
+      await this.prisma.adminActionLog.create({
+        data: { adminUserId: requester.id, actionType: 'CREDENTIAL_VIEWED', targetEntity: 'Group', targetId: groupId, reason: 'Revisión de credenciales enviadas' },
       });
-      if (!activeMembership) {
-        throw new ForbiddenException('Solo el owner o un miembro activo de este grupo pueden ver la credencial.');
-      }
     }
 
     const credential = await this.prisma.credential.findUnique({ where: { groupId } });

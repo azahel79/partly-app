@@ -232,4 +232,14 @@ export class GroupResponseDto {
     this.minEntryDays = group.startedAt ? min : null;
     this.canJoinNow = group.startedAt ? (this.daysUntilRenewal ?? 0) >= min : true;
   }
+
+  /**
+   * La cuenta bancaria del vendedor solo la ven él, Partly y quien le tiene que pagar; la comisión pactada, solo
+   * el vendedor y Partly. Cualquier otra vista (marketplace, visitantes) recibe esos campos vacíos.
+   */
+  restrictTo(viewer: { canSeeBankAccount: boolean; canSeeCommission: boolean }): this {
+    if (!viewer.canSeeBankAccount) this.bankAccountNumber = null;
+    if (!viewer.canSeeCommission) this.commissionPercentage = null;
+    return this;
+  }
 }
