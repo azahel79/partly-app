@@ -18,13 +18,10 @@ interface MyMembership {
   selector: 'app-renewal-toggle',
   template: `
     @if (membership(); as m) {
-      <div class="rt-card flex items-start gap-3 p-4 rounded-2xl bg-white border border-slate-200/70">
-        <span class="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center" [class]="m.autoRenew ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
-          <span class="material-symbols-outlined text-xl">{{ m.autoRenew ? 'autorenew' : 'event_busy' }}</span>
-        </span>
+      <div class="rt-card flex items-center gap-4 px-5 py-4 sm:px-6 rounded-2xl bg-white shadow-neu-raised">
         <div class="min-w-0 flex-1">
-          <p class="text-sm font-extrabold text-ink">Renovación automática</p>
-          <p class="text-xs text-on-surface-variant font-medium mt-0.5 leading-relaxed">
+          <p class="text-base font-bold text-ink">Renovación automática</p>
+          <p class="text-[13px] text-on-surface-variant mt-1 leading-relaxed">
             @if (m.autoRenew) {
               @if (endLabel()) {
                 Tu periodo termina el {{ endLabel() }}. Unos 3 días antes te generaremos el cobro de la renovación para que lo pagues antes de usar el mes siguiente. Si solo quieres probar el grupo, desactívala y no se te cobrará.
@@ -38,21 +35,24 @@ interface MyMembership {
             }
           </p>
           @if (errorMessage()) {
-            <p class="text-[11px] text-red-600 font-semibold mt-1">{{ errorMessage() }}</p>
+            <p class="text-xs text-red-600 font-semibold mt-1">{{ errorMessage() }}</p>
           }
         </div>
-        <button
-          type="button"
-          role="switch"
-          [attr.aria-checked]="m.autoRenew"
-          [attr.aria-label]="m.autoRenew ? 'Desactivar la renovación automática' : 'Activar la renovación automática'"
-          [disabled]="saving()"
-          (click)="toggle()"
-          class="rt-switch relative shrink-0 w-12 h-7 rounded-full transition-colors disabled:opacity-60"
-          [class]="m.autoRenew ? 'bg-emerald-500' : 'bg-slate-300'"
-        >
-          <span class="absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform" [style.transform]="m.autoRenew ? 'translateX(20px)' : 'translateX(0)'"></span>
-        </button>
+        <label class="shrink-0 flex items-center gap-2.5 text-[13px] font-semibold cursor-pointer" [class]="m.autoRenew ? 'text-emerald-700' : 'text-on-surface-variant'">
+          <button
+            type="button"
+            role="switch"
+            [attr.aria-checked]="m.autoRenew"
+            [attr.aria-label]="m.autoRenew ? 'Desactivar la renovación automática' : 'Activar la renovación automática'"
+            [disabled]="saving()"
+            (click)="toggle()"
+            class="rt-switch relative shrink-0 w-12 h-7 rounded-full transition-colors disabled:opacity-60"
+            [class]="m.autoRenew ? 'bg-[#047857]' : 'bg-slate-300'"
+          >
+            <span class="absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform" [style.transform]="m.autoRenew ? 'translateX(20px)' : 'translateX(0)'"></span>
+          </button>
+          <span class="hidden sm:inline">{{ m.autoRenew ? 'Encendida' : 'Apagada' }}</span>
+        </label>
       </div>
     }
   `,

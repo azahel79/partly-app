@@ -31,7 +31,7 @@
         </div>
         <div class="text-right shrink-0">
           <p class="text-2xl font-black text-ink tabular-nums">{{ p.reservedSlots }}<span class="text-base text-on-surface-variant">/{{ p.availableSlots }}</span></p>
-          <p class="text-xs text-on-surface-variant font-bold uppercase tracking-wider">Cupos reservados</p>
+          <p class="text-xs text-on-surface-variant font-bold">Cupos reservados</p>
         </div>
       </div>
 
@@ -48,7 +48,7 @@
     <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div class="p-5 rounded-2xl bg-white shadow-neu-raised border-2 border-pink/30 space-y-3">
         <div class="flex items-center justify-between gap-2">
-          <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Si inicias hoy</h2>
+          <h2 class="text-sm font-extrabold text-ink">Si inicias hoy</h2>
           <span class="px-2.5 py-1 rounded-full bg-pink/10 text-pink text-xs font-bold">{{ p.now.slots }} cupos</span>
         </div>
         <dl class="space-y-2 text-sm">
@@ -57,14 +57,14 @@
           <div class="flex justify-between"><dt class="text-on-surface-variant">Costo de tu cuenta</dt><dd class="font-bold text-ink tabular-nums">− {{ money(p.accountCost) }}</dd></div>
         </dl>
         <div class="pt-3 border-t border-slate-100 flex justify-between items-baseline">
-          <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Tu ganancia</span>
+          <span class="text-xs font-bold text-on-surface-variant">Tu ganancia</span>
           <span class="text-2xl font-black tabular-nums" [class]="(p.now.profit ?? 0) < 0 ? 'text-red-600' : 'text-emerald-700'">{{ money(p.now.profit) }}</span>
         </div>
       </div>
 
       <div class="p-5 rounded-2xl bg-white shadow-neu-raised space-y-3">
         <div class="flex items-center justify-between gap-2">
-          <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Si esperas a llenarlo</h2>
+          <h2 class="text-sm font-extrabold text-ink">Si esperas a llenarlo</h2>
           <span class="px-2.5 py-1 rounded-full bg-slate-100 text-on-surface-variant text-xs font-bold">{{ p.full.slots }} cupos</span>
         </div>
         <dl class="space-y-2 text-sm">
@@ -73,8 +73,8 @@
           <div class="flex justify-between"><dt class="text-on-surface-variant">Costo de tu cuenta</dt><dd class="font-bold text-ink tabular-nums">− {{ money(p.accountCost) }}</dd></div>
         </dl>
         <div class="pt-3 border-t border-slate-100 flex justify-between items-baseline">
-          <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Tu ganancia</span>
-          <span class="text-2xl font-black text-ink tabular-nums">{{ money(p.full.profit) }}</span>
+          <span class="text-xs font-bold text-on-surface-variant">Tu ganancia</span>
+          <span class="text-2xl font-black tabular-nums" [class]="(p.full.profit ?? 0) < 0 ? 'text-red-600' : 'text-ink'">{{ money(p.full.profit) }}</span>
         </div>
       </div>
     </section>
@@ -100,7 +100,7 @@
         type="button"
         [disabled]="!p.canStart || starting()"
         (click)="start()"
-        class="py-2.5 px-6 rounded-lg bg-pink hover:bg-[#047857] active:scale-[0.98] text-white text-sm font-bold transition-all disabled:opacity-50 disabled:hover:bg-pink"
+        class="py-2.5 px-6 rounded-lg bg-pink hover:bg-[#065f46] active:scale-[0.98] text-white text-sm font-bold transition-all disabled:opacity-50 disabled:hover:bg-pink"
       >
         {{ starting() ? 'Iniciando…' : p.startedAt ? 'Este grupo ya inició' : p.canStart ? 'Iniciar grupo ahora' : 'Aún no alcanzas el mínimo' }}
       </button>

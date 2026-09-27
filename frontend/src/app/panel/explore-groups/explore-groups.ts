@@ -6,6 +6,8 @@ import { Group } from '../../shared/groups.models';
 import { Category } from '../../shared/categories.models';
 import { AuthService } from '../../shared/auth.service';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
+import { MoneyPipe } from '../../shared/money';
+import { seatSegments } from '../../shared/seat-bar.util';
 
 const PAGE_SIZE = 6;
 type SortOption = 'recent' | 'price-asc' | 'price-desc';
@@ -21,7 +23,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 export const QUICK_SEARCH_PLATFORMS = ['Netflix', 'Disney+', 'HBO Max', 'Spotify', 'YouTube', 'Microsoft 365'];
 
 @Component({
-  imports: [RouterLink, PlatformLogo],
+  imports: [RouterLink, PlatformLogo, MoneyPipe],
   selector: 'app-explore-groups',
   styleUrl: './explore-groups.css',
   templateUrl: './explore-groups.html',
@@ -53,10 +55,10 @@ export class ExploreGroups implements OnInit {
   ];
 
   protected readonly quickPlatforms = QUICK_SEARCH_PLATFORMS;
+  protected readonly seats = seatSegments;
 
   protected readonly pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
 
-  private readonly memberDotColors = ['bg-violet-400', 'bg-amber-400', 'bg-teal-400'];
 
   constructor() {
     afterNextRender(() => {
@@ -83,10 +85,6 @@ export class ExploreGroups implements OnInit {
   }
 
   /** Círculos anónimos (sin foto ni nombre inventado) que representan cupos ya ocupados, hasta 3. */
-  protected memberDots(occupiedSlots: number): string[] {
-    return this.memberDotColors.slice(0, Math.min(occupiedSlots, 3));
-  }
-
   protected readonly visibleGroups = computed(() => {
     const groups = this.groups();
     if (!groups) {

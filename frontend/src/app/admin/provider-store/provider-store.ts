@@ -8,6 +8,7 @@ import { ProviderOrder } from '../../shared/provider-orders.models';
 import { ConfirmService } from '../../shared/confirm.service';
 import { planFeatures } from '../../shared/plan-features.util';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
+import { MoneyPipe } from '../../shared/money';
 
 /** Sugerencias rápidas para el datalist — las plataformas que más se compran al por mayor. No limita al admin a solo estas: puede escribir cualquier nombre. */
 export const COMMON_PLATFORM_NAMES = [
@@ -15,7 +16,7 @@ export const COMMON_PLATFORM_NAMES = [
 ];
 
 @Component({
-  imports: [RouterLink, PlatformLogo],
+  imports: [RouterLink, PlatformLogo, MoneyPipe],
   selector: 'app-provider-store',
   styleUrl: './provider-store.css',
   templateUrl: './provider-store.html',

@@ -1,342 +1,180 @@
-<div class="space-y-8">
-  <div class="anim-in flex items-center justify-between gap-3 flex-wrap">
-    <div class="grid grid-cols-[auto_1fr] items-center gap-x-3">
-      <span class="material-symbols-outlined title-icon text-pink">groups</span>
-      <h1 class="text-3xl sm:text-[2.7rem] leading-tight font-extrabold text-ink tracking-tight">Mis grupos</h1>
-      <p class="col-start-2 text-sm text-on-surface-variant font-medium mt-0.5">Administra los grupos que has creado o a los que perteneces.</p>
+<div class="space-y-6">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <div>
+      <h1 class="text-ink">Mis grupos</h1>
+      <p class="text-sm text-on-surface-variant mt-1">Administra los grupos que has creado o a los que perteneces.</p>
     </div>
-    <div class="flex items-center gap-6">
-      <p class="hand-note hidden md:block">Juntos,<br />las suscripciones<br />llegan más lejos<i></i></p>
-      <a
-        routerLink="/panel/grupos/nuevo"
-        class="group/btn inline-flex items-center gap-2 px-7 py-4 bg-linear-to-b from-emerald-500 to-pink-deep text-white text-base font-bold rounded-lg active:scale-[0.98] transition-all"
-      >
-        <span class="material-symbols-outlined text-2xl transition-transform duration-300 group-hover/btn:rotate-90">add</span>
-        Crear grupo
-      </a>
-    </div>
+    <a routerLink="/panel/grupos/nuevo" class="ui-btn ui-btn--primary"><span class="material-symbols-outlined">add</span>Crear grupo</a>
   </div>
 
   @if (errorMessage()) {
-    <div class="p-4 rounded-2xl bg-crema-inset shadow-neu-inset text-xs text-red-600 font-semibold">{{ errorMessage() }}</div>
+    <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700 font-semibold">{{ errorMessage() }}</div>
   }
 
-  <!-- Tus grupos (owner) -->
-  <div class="lazy-render-region">
-    <div class="flex items-center gap-4 mb-4">
-      <h2 class="text-base font-extrabold text-ink whitespace-nowrap">
-        Tus grupos @if (ownedGroups(); as og) {({{ og.length }})}
-      </h2>
-      <div class="flex-1 h-px bg-crema-border/70"></div>
-      @if (ownedGroups(); as og) {
-        <span class="text-xs text-on-surface-variant font-medium whitespace-nowrap">{{ og.length }} {{ og.length === 1 ? 'grupo' : 'grupos' }} en total</span>
-      }
+  <!-- Tus grupos (vendedor) -->
+  <section class="lazy-render-region">
+    <div class="flex items-baseline justify-between gap-3 mb-3">
+      <h2 class="text-base font-bold text-ink">Tus grupos @if (ownedGroups(); as og) {<span class="text-on-surface-variant font-semibold">· {{ og.length }}</span>}</h2>
     </div>
 
     @if (ownedGroups() === null) {
-      <div class="p-8 rounded-2xl bg-crema-inset shadow-neu-inset text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (n of [1, 2, 3]; track n) {
+          <div class="ui-skeleton-card"><span class="flex items-center gap-3"><span class="ui-skeleton w-12! h-12! rounded-xl!"></span><span class="flex-1 space-y-2"><span class="ui-skeleton w-24"></span><span class="ui-skeleton w-16"></span></span></span><span class="ui-skeleton h-14! rounded-xl!"></span><span class="ui-skeleton h-2!"></span></div>
+        }
+      </div>
     } @else if (ownedGroups()!.length === 0) {
-      <div class="p-10 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 text-center">
-        <span class="material-symbols-outlined text-3xl text-on-surface-variant/50 mb-2 block">group_off</span>
-        <p class="text-sm font-semibold text-ink mb-1">Todavía no tienes grupos</p>
-        <p class="text-xs text-on-surface-variant mb-4">Crea uno con la plataforma que quieras y empieza a compartir cupos.</p>
-        <a
-          routerLink="/panel/grupos/nuevo"
-          class="hover:bg-[#047857] group/btn inline-flex items-center gap-1.5 px-5 py-2.5 bg-pink text-white text-xs font-bold rounded-lg active:scale-95 transition-all"
-        >
-          Crear mi primer grupo
-          <span class="material-symbols-outlined text-sm transition-transform group-hover/btn:translate-x-0.5">arrow_forward</span>
-        </a>
+      <div class="p-8 rounded-2xl bg-white shadow-neu-raised text-center">
+        <span class="w-12 h-12 mx-auto mb-3 rounded-xl bg-slate-100 text-on-surface-variant flex items-center justify-center"><span class="material-symbols-outlined">group_off</span></span>
+        <p class="text-sm font-bold text-ink mb-1">Todavía no tienes grupos</p>
+        <p class="text-[13px] text-on-surface-variant mb-4">Crea uno con la plataforma que quieras y empieza a compartir lugares.</p>
+        <a routerLink="/panel/grupos/nuevo" class="ui-btn ui-btn--primary ui-btn--sm">Crear mi primer grupo<span class="material-symbols-outlined">arrow_forward</span></a>
       </div>
     } @else {
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
         @for (group of ownedGroups(); track group.id) {
-          <div class="@container anim-in group lg:col-span-2 flex flex-col rounded-3xl bg-white shadow-neu-raised border border-white/70 hover:shadow-neu-raised-lg hover:-translate-y-1 transition-all duration-300">
-            <div class="relative bg-linear-to-br from-ink to-ink-surface px-8 pt-4 pb-9 rounded-t-3xl">
-              <div class="absolute inset-0 rounded-t-3xl overflow-hidden pointer-events-none">
-                <svg class="absolute inset-0 w-full h-full opacity-70" preserveAspectRatio="none" viewBox="0 0 300 150" fill="none">
-                  <path d="M90 -10C130 20 120 60 170 75C220 90 230 130 300 130V160H0V0C30 -15 60 -30 90 -10Z" fill="url(#ownedWave)" />
-                  <defs>
-                    <linearGradient id="ownedWave" x1="0" y1="0" x2="300" y2="150" gradientUnits="userSpaceOnUse">
-                      <stop stop-color="#059669" stop-opacity="0.25" />
-                      <stop offset="1" stop-color="#059669" stop-opacity="0" />
-                    </linearGradient>
-                  </defs>
-                </svg>
+          <div class="p-5 rounded-2xl bg-white shadow-neu-raised flex flex-col gap-4">
+            <div class="flex items-start gap-3">
+              <app-platform-logo class="w-12 h-12 rounded-xl font-black text-lg shrink-0" [name]="group.plan.platform.name" />
+              <div class="min-w-0 flex-1">
+                <p class="text-base font-bold text-ink truncate">{{ group.plan.platform.name }}</p>
+                <p class="text-[13px] text-on-surface-variant truncate">{{ group.plan.tierName }}</p>
               </div>
-
-              <div class="relative flex items-start justify-between gap-2">
-                <div class="flex items-center gap-4 min-w-0">
-                  <app-platform-logo class="w-16 h-16 rounded-2xl font-black text-2xl shrink-0 shadow-[0_8px_18px_rgba(0,0,0,0.3)] group-hover:scale-105 group-hover:rotate-3 transition-transform duration-300" [name]="group.plan.platform.name" />
-                  <div class="min-w-0">
-                    <span class="text-xl font-bold text-white block truncate leading-tight">{{ group.plan.platform.name }}</span>
-                    <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
-                      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-400/20 text-emerald-300">
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5Zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1Z" /></svg>
-                        Tú eres el admin
-                      </span>
-                      @if (group.approvalStatus === 'PENDING') {
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300">En revisión de Partly</span>
-                      } @else if (group.approvalStatus === 'REJECTED') {
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-400/20 text-red-300">Rechazado</span>
-                      } @else if (!group.hasCredentials) {
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300">Falta subir acceso</span>
-                      } @else if (group.status === 'PAUSED') {
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300">Pausado</span>
-                      } @else if (group.status === 'CANCELLED') {
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-white/70">Cancelado</span>
-                      } @else if (group.status === 'FULL') {
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-400/20 text-blue-300">Lleno</span>
-                      } @else if (group.status === 'READY_TO_START') {
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400/20 text-emerald-300">Listo para iniciar</span>
-                      } @else if (!group.startedAt) {
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-white/80">Juntando cupos</span>
-                      }
-                    </div>
-                    @if (group.approvalStatus === 'PENDING') {
-                      <p class="text-[10px] text-white/50 font-medium mt-1">No aparece en el marketplace hasta que Partly lo apruebe.</p>
-                    } @else if (!group.hasCredentials) {
-                      <p class="text-[10px] text-white/50 font-medium mt-1">Sube el correo y contraseña de la cuenta para que aparezca en el marketplace.</p>
+              <div class="relative shrink-0 -mr-2 -mt-1">
+                <button type="button" (click)="toggleMenu(group.id)" class="w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-slate-100 hover:text-ink transition-colors" aria-label="Más acciones">
+                  <span class="material-symbols-outlined text-lg">more_vert</span>
+                </button>
+                @if (openMenuId() === group.id) {
+                  <div class="fixed inset-0 z-10" (click)="closeMenu()"></div>
+                  <div class="absolute right-0 top-10 z-20 w-48 py-1.5 rounded-xl bg-white shadow-neu-raised-lg">
+                    @if (group.status !== 'CANCELLED') {
+                      <button type="button" [disabled]="togglingId() === group.id" (click)="toggleStatus(group)" class="w-full text-left px-4 py-2 text-[13px] font-semibold text-ink hover:bg-crema-inset transition-colors disabled:opacity-60">
+                        {{ group.status === 'PAUSED' ? 'Reactivar grupo' : 'Pausar grupo' }}
+                      </button>
+                      <button type="button" [disabled]="togglingId() === group.id" (click)="cancelGroup(group)" class="w-full text-left px-4 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-50 transition-colors disabled:opacity-60">
+                        Cancelar grupo
+                      </button>
+                    } @else {
+                      <span class="block px-4 py-2 text-[13px] font-semibold text-on-surface-variant">Grupo cancelado</span>
                     }
                   </div>
-                </div>
-
-                <div class="relative shrink-0">
-                  <button
-                    type="button"
-                    (click)="toggleMenu(group.id)"
-                    class="w-7 h-7 rounded-lg flex items-center justify-center text-white/70 hover:bg-white/10 hover:text-white active:scale-95 transition-all"
-                    aria-label="Más acciones"
-                  >
-                    <span class="material-symbols-outlined text-lg">more_vert</span>
-                  </button>
-                  @if (openMenuId() === group.id) {
-                    <div class="fixed inset-0 z-10" (click)="closeMenu()"></div>
-                    <div class="absolute right-0 top-9 z-20 w-48 py-1.5 rounded-2xl bg-white shadow-neu-raised-lg border border-white/70">
-                      @if (group.status !== 'CANCELLED') {
-                        <button
-                          type="button"
-                          [disabled]="togglingId() === group.id"
-                          (click)="toggleStatus(group)"
-                          class="w-full text-left px-4 py-2 text-xs font-semibold text-ink hover:bg-crema-inset transition-colors disabled:opacity-60"
-                        >
-                          {{ group.status === 'PAUSED' ? 'Reactivar grupo' : 'Pausar grupo' }}
-                        </button>
-                        <button
-                          type="button"
-                          [disabled]="togglingId() === group.id"
-                          (click)="cancelGroup(group)"
-                          class="w-full text-left px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors disabled:opacity-60"
-                        >
-                          Cancelar grupo
-                        </button>
-                      } @else {
-                        <span class="block px-4 py-2 text-xs font-semibold text-on-surface-variant">Grupo cancelado</span>
-                      }
-                    </div>
-                  }
-                </div>
+                }
               </div>
             </div>
 
-            <div class="relative -mt-6 flex-1 rounded-3xl bg-white p-6">
-              <div class="grid grid-cols-1 @lg:grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-4 pb-4 border-b border-crema-border/60">
-                <div class="flex items-center gap-3 @lg:pr-4 @lg:border-r border-crema-border/60">
-                  <span class="w-11 h-11 rounded-xl bg-emerald-500/10 text-pink flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                    <span class="material-symbols-outlined text-2xl">groups</span>
-                  </span>
-                  <div>
-                    <p class="text-base font-extrabold text-ink tabular-nums leading-tight">{{ group.startedAt ? group.occupiedSlots : group.reservedSlots }}/{{ group.availableSlots }}</p>
-                    <p class="text-xs text-on-surface-variant font-medium">{{ group.startedAt ? 'Miembros' : 'Apartados' }}</p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-3 @lg:pr-4 @lg:border-r border-crema-border/60">
-                  <span class="w-11 h-11 rounded-xl bg-emerald-500/10 text-pink flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                    <span class="material-symbols-outlined text-2xl">credit_card</span>
-                  </span>
-                  <div>
-                    <p class="text-base font-extrabold text-ink tabular-nums leading-tight">${{ group.pricePerSlot }}<span class="font-medium text-on-surface-variant">/mes</span></p>
-                    <p class="text-xs text-on-surface-variant font-medium">Precio por cupo</p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-emerald-500/10 min-w-0">
-                  <span class="w-9 h-9 rounded-full bg-white/70 text-pink flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5Zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1Z" /></svg>
-                  </span>
-                  <span class="text-xs font-bold text-ink leading-snug min-w-0">{{ group.plan.tierName }}</span>
-                </div>
+            <div class="flex items-center gap-2 flex-wrap -mt-1">
+              <span class="ui-pill" [class]="groupStatus(group).tone">{{ groupStatus(group).label }}</span>
+            </div>
+            @if (group.approvalStatus === 'PENDING') {
+              <p class="text-[13px] text-on-surface-variant -mt-2">No aparece en el marketplace hasta que Partly lo apruebe.</p>
+            } @else if (!group.hasCredentials) {
+              <p class="text-[13px] text-on-surface-variant -mt-2">Sube el correo y la contraseña de la cuenta para que aparezca en el marketplace.</p>
+            }
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="px-3.5 py-3 rounded-xl bg-crema-inset">
+                <p class="text-xs text-on-surface-variant">{{ group.startedAt ? 'Miembros' : 'Apartados' }}</p>
+                <p class="text-base font-bold text-ink tabular-nums">{{ group.startedAt ? group.occupiedSlots : group.reservedSlots }} de {{ group.availableSlots }}</p>
               </div>
+              <div class="px-3.5 py-3 rounded-xl bg-crema-inset">
+                <p class="text-xs text-on-surface-variant">Precio por lugar</p>
+                <p class="text-base font-bold text-ink tabular-nums">{{ group.pricePerSlot | money }}<span class="text-xs font-medium text-on-surface-variant"> /mes</span></p>
+              </div>
+            </div>
+            <div class="ui-seats" aria-hidden="true">
+              @for (seat of seats(group); track $index) { <span [class]="seat"></span> }
+            </div>
 
-              @if (group.status === 'READY_TO_START') {
-                <a
-                  [routerLink]="['/panel/grupos', group.id, 'iniciar']"
-                  class="mt-4 flex items-center gap-2.5 p-3 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-900 hover:bg-emerald-100 transition-colors"
-                >
-                  <span class="material-symbols-outlined">rocket_launch</span>
-                  <span class="flex-1 min-w-0">
-                    <strong class="block text-sm font-bold">Ya puedes iniciar tu grupo</strong>
-                    <span class="text-xs">Mira cuánto ganarías y decide.</span>
-                  </span>
-                  <span class="material-symbols-outlined text-lg">chevron_right</span>
-                </a>
-              }
-
-              <a
-                [routerLink]="['/panel/grupos', group.id, 'gestion']"
-                class="group/btn mt-4 w-full py-3 rounded-2xl bg-white border border-crema-border/70 shadow-[0_4px_14px_rgba(20,20,43,0.06)] text-sm font-bold text-ink hover:shadow-[0_6px_18px_rgba(5,150,105,0.18)] hover:border-pink/40 hover:scale-[1.02] active:scale-100 transition-all flex items-center justify-center gap-2.5"
-              >
-                <span class="material-symbols-outlined text-xl transition-transform group-hover/btn:rotate-45">settings</span>
-                Gestionar grupo
-                <span class="material-symbols-outlined text-xl transition-transform group-hover/btn:translate-x-1">arrow_forward</span>
+            @if (group.status === 'READY_TO_START') {
+              <a [routerLink]="['/panel/grupos', group.id, 'iniciar']" class="flex items-center gap-2.5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 hover:bg-emerald-100 transition-colors">
+                <span class="material-symbols-outlined">rocket_launch</span>
+                <span class="flex-1 min-w-0">
+                  <strong class="block text-sm font-bold">Ya puedes iniciar tu grupo</strong>
+                  <span class="text-[13px]">Mira cuánto ganarías y decide.</span>
+                </span>
+                <span class="material-symbols-outlined text-lg">chevron_right</span>
               </a>
-            </div>
+            }
+
+            <a [routerLink]="['/panel/grupos', group.id, 'gestion']" class="ui-btn ui-btn--secondary w-full mt-auto">Gestionar grupo<span class="material-symbols-outlined">arrow_forward</span></a>
           </div>
         }
 
-        <a
-          routerLink="/panel/grupos/nuevo"
-          class="group anim-in flex flex-col items-center justify-center gap-1 min-h-56 p-6 text-center rounded-3xl border border-dashed border-crema-border bg-white/40 hover:bg-white/70 hover:border-pink/50 hover:-translate-y-1 hover:shadow-neu-raised-sm transition-all duration-300"
-        >
-          <span class="w-14 h-14 mb-3 rounded-full bg-crema-dim flex items-center justify-center text-ink group-hover:bg-pink group-hover:text-white group-hover:rotate-90 group-hover:scale-110 transition-all duration-300">
-            <span class="material-symbols-outlined text-3xl">add</span>
-          </span>
+        <a routerLink="/panel/grupos/nuevo" class="flex flex-col items-center justify-center gap-1 min-h-56 p-6 text-center rounded-2xl border border-dashed border-slate-300 hover:border-emerald-600 hover:bg-white transition-colors">
+          <span class="w-12 h-12 mb-2 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center"><span class="material-symbols-outlined">add</span></span>
           <span class="text-base font-bold text-ink">Crear otro grupo</span>
-          <span class="text-sm text-on-surface-variant max-w-52">Comparte más suscripciones y ahorra juntos.</span>
+          <span class="text-[13px] text-on-surface-variant max-w-52">Comparte más suscripciones y ahorra juntos.</span>
         </a>
       </div>
     }
-  </div>
+  </section>
 
-  <!-- Grupos en los que perteneces (member) -->
-  <div class="lazy-render-region">
-    <div class="flex items-center gap-4 mb-4">
-      <h2 class="text-base font-extrabold text-ink whitespace-nowrap">
-        Grupos en los que perteneces @if (joinedGroups(); as jg) {({{ jg.length }})}
-      </h2>
-      <div class="flex-1 h-px bg-crema-border/70"></div>
+  <!-- Grupos a los que perteneces (comprador) -->
+  <section class="lazy-render-region">
+    <div class="flex items-baseline justify-between gap-3 mb-3">
+      <h2 class="text-base font-bold text-ink">Grupos a los que perteneces @if (joinedGroups(); as jg) {<span class="text-on-surface-variant font-semibold">· {{ jg.length }}</span>}</h2>
     </div>
 
     @if (joinedGroups() === null) {
-      <div class="p-8 rounded-2xl bg-crema-inset shadow-neu-inset text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+      <div class="ui-skeleton-card"><span class="ui-skeleton w-1/3"></span><span class="ui-skeleton w-2/3"></span></div>
     } @else if (joinedGroups()!.length === 0) {
-      <div class="relative flex flex-col md:flex-row items-center gap-8 md:gap-12 px-6 py-5 md:px-10 rounded-3xl bg-white/80 shadow-neu-raised border border-white/70">
-        <div class="empty-art" aria-hidden="true">
-          <span class="empty-blob"></span>
-          <span class="empty-chip empty-chip-game"><span class="material-symbols-outlined">sports_esports</span></span>
-          <span class="empty-chip empty-chip-music"><span class="material-symbols-outlined">music_note</span></span>
-          <span class="empty-chip empty-chip-tv"><span class="material-symbols-outlined">desktop_windows</span></span>
-          <span class="empty-spark empty-spark-a material-symbols-outlined">auto_awesome</span>
-          <span class="empty-spark empty-spark-b material-symbols-outlined">auto_awesome</span>
-          <span class="empty-person empty-person-left material-symbols-outlined">person</span>
-          <span class="empty-person empty-person-right material-symbols-outlined">person</span>
-          <span class="empty-person empty-person-front material-symbols-outlined">person</span>
-          <span class="empty-plus"><span class="material-symbols-outlined">add</span></span>
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 rounded-2xl bg-white shadow-neu-raised">
+        <span class="w-12 h-12 rounded-xl bg-slate-100 text-on-surface-variant flex items-center justify-center shrink-0"><span class="material-symbols-outlined">travel_explore</span></span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-ink">Aún no perteneces a ningún grupo</p>
+          <p class="text-[13px] text-on-surface-variant mt-0.5">Explora el marketplace y únete a uno con lugares disponibles.</p>
         </div>
-
-        <div class="text-center md:text-left">
-          <p class="text-xl font-extrabold text-ink tracking-tight mb-1">Aún no perteneces a ningún grupo</p>
-          <p class="text-sm text-on-surface-variant font-medium mb-4">Explora el marketplace y únete a uno con cupos disponibles.</p>
-          <a
-            routerLink="/panel/explorar"
-            class="group/btn inline-flex items-center gap-2.5 px-6 py-3 bg-ink text-white text-sm font-bold rounded-lg hover:bg-[#20203D] active:scale-95 transition-all"
-          >
-            Explorar grupos
-            <span class="material-symbols-outlined text-xl transition-transform group-hover/btn:translate-x-1">arrow_forward</span>
-          </a>
-        </div>
-
-        <p class="hand-note hand-note-empty hidden lg:block md:ml-auto">Más<br />entretenimiento,<br />menos gastos<i></i></p>
+        <a routerLink="/panel/explorar" class="ui-btn ui-btn--secondary ui-btn--sm shrink-0">Explorar grupos<span class="material-symbols-outlined">arrow_forward</span></a>
       </div>
     } @else {
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         @for (group of joinedGroups(); track group.id) {
-          <div class="anim-in group rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 overflow-hidden hover:shadow-neu-raised-lg hover:-translate-y-1 transition-all duration-300">
-            <div class="p-4">
-              <div class="flex items-start justify-between gap-2 mb-3">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <app-platform-logo class="w-10 h-10 rounded-xl font-black text-sm shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300" [name]="group.plan.platform.name" />
-                  <div class="min-w-0">
-                    <span class="text-sm font-bold text-ink block truncate">{{ group.plan.platform.name }}</span>
-                    <span class="inline-flex items-center mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-crema-inset text-on-surface-variant">
-                      Miembro
-                    </span>
+          <div class="p-5 rounded-2xl bg-white shadow-neu-raised flex flex-col gap-4">
+            <div class="flex items-start gap-3">
+              <app-platform-logo class="w-11 h-11 rounded-xl font-black text-sm shrink-0" [name]="group.plan.platform.name" />
+              <div class="min-w-0 flex-1">
+                <p class="text-[15px] font-bold text-ink truncate">{{ group.plan.platform.name }}</p>
+                <p class="text-[13px] text-on-surface-variant truncate">{{ group.plan.tierName }}</p>
+              </div>
+              <div class="relative shrink-0 -mr-2 -mt-1">
+                <button type="button" (click)="toggleMenu(group.id)" class="w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-slate-100 hover:text-ink transition-colors" aria-label="Más acciones">
+                  <span class="material-symbols-outlined text-lg">more_vert</span>
+                </button>
+                @if (openMenuId() === group.id) {
+                  <div class="fixed inset-0 z-10" (click)="closeMenu()"></div>
+                  <div class="absolute right-0 top-10 z-20 w-44 py-1.5 rounded-xl bg-white shadow-neu-raised-lg">
+                    <button type="button" [disabled]="leavingId() === group.id" (click)="leaveGroup(group)" class="w-full text-left px-4 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-50 transition-colors disabled:opacity-60">
+                      {{ leavingId() === group.id ? 'Saliendo…' : 'Salir del grupo' }}
+                    </button>
                   </div>
-                </div>
-
-                <div class="relative shrink-0">
-                  <button
-                    type="button"
-                    (click)="toggleMenu(group.id)"
-                    class="w-7 h-7 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-slate-100 hover:text-ink active:scale-95 transition-all"
-                    aria-label="Más acciones"
-                  >
-                    <span class="material-symbols-outlined text-lg">more_vert</span>
-                  </button>
-                  @if (openMenuId() === group.id) {
-                    <div class="fixed inset-0 z-10" (click)="closeMenu()"></div>
-                    <div class="absolute right-0 top-9 z-20 w-44 py-1.5 rounded-2xl bg-white shadow-neu-raised-lg border border-white/70">
-                      <button
-                        type="button"
-                        [disabled]="leavingId() === group.id"
-                        (click)="leaveGroup(group)"
-                        class="w-full text-left px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors disabled:opacity-60"
-                      >
-                        {{ leavingId() === group.id ? 'Saliendo…' : 'Salir del grupo' }}
-                      </button>
-                    </div>
-                  }
-                </div>
+                }
               </div>
-
-              <div class="grid grid-cols-3 gap-2 mb-3">
-                <div>
-                  <p class="text-sm font-black text-ink tabular-nums">{{ group.occupiedSlots }}/{{ group.availableSlots }}</p>
-                  <p class="text-[10px] text-on-surface-variant font-medium">Miembros</p>
-                </div>
-                <div>
-                  <p class="text-sm font-black text-ink tabular-nums">${{ group.pricePerSlot }}<span class="font-medium text-on-surface-variant">/mes</span></p>
-                  <p class="text-[10px] text-on-surface-variant font-medium">Precio por cupo</p>
-                </div>
-                <div>
-                  <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-pink/10 text-ink text-[10px] font-bold">
-                    <span class="material-symbols-outlined text-pink text-xs">workspace_premium</span>
-                    {{ group.plan.tierName }}
-                  </span>
-                </div>
-              </div>
-
-              <div class="h-1.5 rounded-full bg-crema-inset overflow-hidden mb-3">
-                <div class="h-full bg-gradient-to-r from-emerald-400 to-pink rounded-full" [style.width.%]="group.availableSlots === 0 ? 0 : (group.occupiedSlots / group.availableSlots) * 100"></div>
-              </div>
-
-              <a
-                [routerLink]="['/panel/grupos', group.id]"
-                class="w-full py-2.5 rounded-lg bg-slate-100 text-xs font-bold text-ink hover:bg-pink hover:text-white active:scale-95 transition-all flex items-center justify-center gap-1.5"
-              >
-                <span class="material-symbols-outlined text-sm">description</span>
-                Ver detalles
-              </a>
             </div>
+
+            <div class="flex items-baseline justify-between gap-3">
+              <p class="text-ink"><span class="text-lg font-extrabold tabular-nums">{{ group.pricePerSlot | money }}</span><span class="text-xs text-on-surface-variant"> /mes</span></p>
+              <span class="ui-pill ui-pill--ok">Miembro</span>
+            </div>
+            <div>
+              <div class="ui-seats" aria-hidden="true">
+                @for (seat of seats(group); track $index) { <span [class]="seat"></span> }
+              </div>
+              <p class="text-xs text-on-surface-variant mt-2">{{ group.occupiedSlots }} de {{ group.availableSlots }} lugares ocupados</p>
+            </div>
+
+            <a [routerLink]="['/panel/grupos', group.id]" class="ui-btn ui-btn--secondary ui-btn--sm w-full mt-auto">Ver detalles<span class="material-symbols-outlined">arrow_forward</span></a>
           </div>
         }
       </div>
     }
-  </div>
+  </section>
 
   <!-- Banner de confianza -->
-  <div class="anim-in group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-6 py-5 rounded-3xl bg-linear-to-r from-white via-emerald-50/80 to-emerald-100/70 shadow-neu-raised border border-white/70 hover:shadow-neu-raised-lg transition-shadow duration-300">
-    <div class="flex items-center gap-4">
-      <div class="w-14 h-14 rounded-2xl bg-white shadow-[0_6px_16px_rgba(5,150,105,0.15)] flex items-center justify-center text-emerald-600 shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
-        <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1">verified_user</span>
-      </div>
-      <div>
-        <p class="text-sm font-bold text-ink">Protegemos tus suscripciones</p>
-        <p class="text-xs text-on-surface-variant">Todos los pagos y miembros están verificados para que compartas con confianza.</p>
-      </div>
+  <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 rounded-2xl bg-white shadow-neu-raised">
+    <span class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700 shrink-0"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">verified_user</span></span>
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-bold text-ink flex items-center flex-wrap gap-2">Protegemos tus suscripciones <span class="ui-pill ui-pill--ok no-dot">Verificado</span></p>
+      <p class="text-[13px] text-on-surface-variant mt-0.5">Todos los pagos y miembros están verificados para que compartas con confianza.</p>
     </div>
-    <span class="text-xs font-bold px-4 py-2 rounded-full bg-emerald-100 text-emerald-900 shrink-0 flex items-center gap-2">
-      <span class="material-symbols-outlined text-2xl text-emerald-600">check_circle</span>
-      100% seguro
-    </span>
   </div>
 </div>

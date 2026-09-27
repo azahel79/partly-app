@@ -4,7 +4,7 @@
       <h1 class="text-2xl font-extrabold text-ink tracking-tight">Correos</h1>
       <p class="text-sm text-on-surface-variant font-medium mt-1">Todo lo que la app le manda a las personas por correo: recordatorios de pago, avisos de comisión, vencimientos del mayoreo y más.</p>
     </div>
-    <button type="button" (click)="sendTest()" [disabled]="testing()" class="py-2.5 px-5 rounded-lg bg-pink hover:bg-[#047857] active:scale-[0.98] text-white text-sm font-bold transition-all disabled:opacity-60 flex items-center gap-2">
+    <button type="button" (click)="sendTest()" [disabled]="testing()" class="py-2.5 px-5 rounded-lg bg-pink hover:bg-[#065f46] active:scale-[0.98] text-white text-sm font-bold transition-all disabled:opacity-60 flex items-center gap-2">
       <span class="material-symbols-outlined text-lg">send</span>{{ testing() ? 'Enviando…' : 'Enviar correo de prueba' }}
     </button>
   </div>
@@ -36,9 +36,9 @@
           </div>
         </div>
         <dl class="grid grid-cols-3 gap-5 text-center shrink-0">
-          <div><dt class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Últimas 24 h</dt><dd class="text-xl font-black text-ink tabular-nums">{{ s.counts.sentLast24h }}</dd></div>
-          <div><dt class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">En cola</dt><dd class="text-xl font-black tabular-nums" [class]="s.counts.queued ? 'text-amber-700' : 'text-ink'">{{ s.counts.queued }}</dd></div>
-          <div><dt class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Fallidos</dt><dd class="text-xl font-black tabular-nums" [class]="s.counts.failed ? 'text-red-600' : 'text-ink'">{{ s.counts.failed }}</dd></div>
+          <div><dt class="text-xs font-bold text-on-surface-variant">Últimas 24 h</dt><dd class="text-xl font-black text-ink tabular-nums">{{ s.counts.sentLast24h }}</dd></div>
+          <div><dt class="text-xs font-bold text-on-surface-variant">En cola</dt><dd class="text-xl font-black tabular-nums" [class]="s.counts.queued ? 'text-amber-700' : 'text-ink'">{{ s.counts.queued }}</dd></div>
+          <div><dt class="text-xs font-bold text-on-surface-variant">Fallidos</dt><dd class="text-xl font-black tabular-nums" [class]="s.counts.failed ? 'text-red-600' : 'text-ink'">{{ s.counts.failed }}</dd></div>
         </dl>
       </div>
 
@@ -64,9 +64,9 @@
               </div>
               <div class="relative">
                 <pre class="p-4 rounded-xl bg-ink text-emerald-100 text-xs leading-relaxed overflow-x-auto"><code>{{ snippet() }}</code></pre>
-                <button type="button" (click)="copySnippet()" class="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold">{{ snippetCopied() ? 'Copiado' : 'Copiar' }}</button>
+                <button type="button" (click)="copySnippet()" class="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white text-xs font-bold">{{ snippetCopied() ? 'Copiado' : 'Copiar' }}</button>
               </div>
-              <p class="text-[11px] text-on-surface-variant mt-2">El remitente (MAIL_FROM_ADDRESS) debe ser una dirección de tu dominio verificado.</p>
+              <p class="text-xs text-on-surface-variant mt-2">El remitente (MAIL_FROM_ADDRESS) debe ser una dirección de tu dominio verificado.</p>
             </div>
           </div>
         }
@@ -105,18 +105,18 @@
               <p class="text-sm font-bold text-ink truncate">{{ m.subject }}</p>
             </div>
             <p class="text-xs text-on-surface-variant mt-0.5 truncate">Para {{ m.toEmail }} · {{ templateLabel(m.template) }}</p>
-            <p class="text-[11px] text-on-surface-variant mt-0.5">
+            <p class="text-xs text-on-surface-variant mt-0.5">
               Creado {{ formatDate(m.createdAt) }}
               @if (m.status === 'SENT' && m.sentAt) { · {{ m.provider === 'log' ? 'simulado' : 'enviado' }} {{ formatDate(m.sentAt) }}{{ m.provider && m.provider !== 'log' ? ' por ' + m.provider : '' }} }
               @if (m.status === 'QUEUED' && m.sendAfter) { · sale a partir del {{ formatDate(m.sendAfter) }} }
               @if (m.attempts > 1 || (m.attempts > 0 && m.status !== 'SENT')) { · {{ m.attempts }} intento{{ m.attempts === 1 ? '' : 's' }} }
             </p>
-            @if (m.error) { <p class="text-[11px] text-red-600 font-semibold mt-0.5 break-words">{{ m.error }}</p> }
+            @if (m.error) { <p class="text-xs text-red-600 font-semibold mt-0.5 break-words">{{ m.error }}</p> }
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <button type="button" (click)="openPreview(m)" [disabled]="loadingPreviewId() === m.id" class="py-2 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-ink text-xs font-bold flex items-center gap-1 disabled:opacity-60"><span class="material-symbols-outlined text-sm">visibility</span>Ver correo</button>
             @if (m.status === 'FAILED' || m.status === 'SKIPPED') {
-              <button type="button" (click)="retry(m)" [disabled]="retryingId() === m.id" class="py-2 px-3.5 rounded-lg bg-pink hover:bg-[#047857] text-white text-xs font-bold disabled:opacity-60">{{ retryingId() === m.id ? 'Reintentando…' : 'Reintentar' }}</button>
+              <button type="button" (click)="retry(m)" [disabled]="retryingId() === m.id" class="py-2 px-3.5 rounded-lg bg-pink hover:bg-[#065f46] text-white text-xs font-bold disabled:opacity-60">{{ retryingId() === m.id ? 'Reintentando…' : 'Reintentar' }}</button>
             }
           </div>
         </article>

@@ -9,6 +9,7 @@ import { MyWholesaleAccess } from '../../shared/wholesale-access.models';
 import { ConfirmService } from '../../shared/confirm.service';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
 import { AuthService } from '../../shared/auth.service';
+import { MoneyPipe } from '../../shared/money';
 
 const EXPIRY_SOON_DAYS = 7;
 
@@ -18,7 +19,7 @@ export interface ExpiryInfo {
 }
 
 @Component({
-  imports: [RouterLink, PlatformLogo],
+  imports: [RouterLink, PlatformLogo, MoneyPipe],
   selector: 'app-buy-accounts',
   styleUrl: './buy-accounts.css',
   templateUrl: './buy-accounts.html',

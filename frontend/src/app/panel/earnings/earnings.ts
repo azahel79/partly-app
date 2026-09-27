@@ -1,12 +1,14 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommissionsService } from '../../shared/commissions.service';
 import { EarningEntry, EarningStatus, EarningsSummary } from '../../shared/commissions.models';
+import { formatMoney } from '../../shared/money';
+import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
 
 const STATUS_LABEL: Record<EarningStatus, { label: string; tone: string }> = {
-  ACCRUED: { label: 'Comisión por generar cobro', tone: 'bg-slate-100 text-slate-600' },
-  BILLED: { label: 'Comisión por pagar', tone: 'bg-amber-50 text-amber-700' },
-  SETTLED: { label: 'Comisión pagada', tone: 'bg-emerald-50 text-emerald-700' },
+  ACCRUED: { label: 'Comisión por generar cobro', tone: '' },
+  BILLED: { label: 'Comisión por pagar', tone: 'ui-pill--warn' },
+  SETTLED: { label: 'Comisión pagada', tone: 'ui-pill--ok' },
 };
 
 const PAGE_SIZE = 10;
@@ -16,7 +18,7 @@ const PAGE_SIZE = 10;
  * aquí solo se lleva la cuenta (cobrado, comisión de Partly y lo que le queda). Nada se retira.
  */
 @Component({
-  imports: [RouterLink],
+  imports: [RouterLink, PlatformLogo],
   selector: 'app-earnings',
   styleUrl: './earnings.css',
   templateUrl: './earnings.html',
@@ -26,13 +28,26 @@ export class EarningsPage implements OnInit {
 
   protected readonly statusLabel = STATUS_LABEL;
   protected readonly summary = signal<EarningsSummary | null>(null);
+  /** Fila de total de "Ganancia por grupo". */
+  protected readonly totals = computed(() => {
+    const groups = this.summary()?.byGroup ?? [];
+    if (groups.length < 2) return null;
+    return groups.reduce(
+      (acc, g) => ({
+        gross: acc.gross + g.gross,
+        commission: acc.commission + g.commission,
+        net: acc.net + g.net,
+        cost: acc.cost + g.accountCost * g.cyclesBilled,
+        profit: acc.profit + g.profit,
+      }),
+      { gross: 0, commission: 0, net: 0, cost: 0, profit: 0 },
+    );
+  });
   protected readonly entries = signal<EarningEntry[] | null>(null);
   protected readonly totalEntries = signal(0);
   protected readonly loadingMore = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   private page = 1;
-
-  private readonly money$ = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 
   ngOnInit(): void {
     this.commissionsService.getEarningsSummary().subscribe({
@@ -66,7 +81,7 @@ export class EarningsPage implements OnInit {
   }
 
   protected money(value: number): string {
-    return this.money$.format(value);
+    return formatMoney(value);
   }
 
   protected formatDate(iso: string): string {

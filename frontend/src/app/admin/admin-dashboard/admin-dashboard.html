@@ -1,12 +1,12 @@
 <section class="dashboard">
   <div class="dashboard-heading">
-    <div><p class="eyebrow">Panel de administración</p><h1>Resumen</h1><span>Lo que necesita tu atención ahora mismo.</span></div>
+    <div><h1>Resumen</h1><span>Lo que necesita tu atención ahora mismo.</span></div>
     <div class="date-card"><span class="material-symbols-outlined">calendar_today</span><div><strong>Hoy</strong><small>{{ formattedToday }}</small></div></div>
   </div>
 
   @if (errorMessage()) { <div class="error-box">{{ errorMessage() }}</div> }
   @if (loading()) {
-    <div class="loading-box">Cargando información real del panel…</div>
+    <div class="metric-grid">@for (n of [1, 2, 3, 4]; track n) { <div class="ui-skeleton-card"><span class="ui-skeleton w-10! h-10! rounded-xl!"></span><span class="ui-skeleton w-24"></span></div> }</div>
   } @else if (data(); as dashboardData) {
     <div class="metric-grid">
       @for (card of cards(); track card.label) {
@@ -14,7 +14,6 @@
           <span class="metric-icon material-symbols-outlined">{{ card.icon }}</span>
           <div><strong>{{ card.value }}</strong><p>{{ card.label }}</p></div>
           <small>{{ card.value === 0 ? 'Sin pendientes' : 'Requiere revisión' }}</small>
-          <i></i><i></i><i></i><i></i>
         </a>
       }
     </div>

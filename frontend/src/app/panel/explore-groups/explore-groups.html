@@ -1,117 +1,60 @@
-<div class="space-y-8">
-  <!-- Hero + buscador -->
-  <div class="eg-hero relative">
-    <p class="hand-note hand-note-hero hidden lg:block" aria-hidden="true">
-      Más entretenimiento<br />por menos
-      <svg class="hand-note-arrow" viewBox="0 0 40 34" fill="none" aria-hidden="true"><path d="M35 3C30 14 20 22 6 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" /><path d="M13 27 L5 25 L8 32" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-    </p>
-
-    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
-      <div class="text-left max-w-lg">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 shadow-neu-raised-sm border border-white/60 text-[11px] font-bold text-pink uppercase tracking-wider mb-4">
-          <span class="material-symbols-outlined text-sm">shield</span>
-          Marketplace protegido · Partly Shield
-        </span>
-        <h1 class="text-4xl sm:text-5xl font-extrabold text-ink tracking-tight leading-[1.05] mb-3">
-          Explora grupos con<br />
-          <span class="bg-linear-to-r from-pink via-pink-deep to-pink-dark bg-clip-text text-transparent">cupos libres</span>
-        </h1>
-        <p class="text-sm text-on-surface-variant font-medium leading-relaxed mb-4">
-          Únete con garantía Partly Shield: acceso verificado o te devolvemos tu pago, sin trámites engorrosos.
-        </p>
-        <div class="flex flex-wrap items-center gap-3 sm:gap-5 text-xs font-semibold text-on-surface-variant">
-          <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-pink text-base">verified_user</span> Grupos con garantía blindada</span>
-          <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-pink text-base">savings</span> Comparte y ahorra cada mes</span>
-        </div>
-      </div>
-
-      <div class="eg-search-card w-full lg:w-lg lg:mt-14 shrink-0 rounded-3xl bg-white shadow-neu-raised-lg border border-white/70 p-4">
-        <div class="flex items-center gap-2.5">
-          <div class="flex-1 min-w-0 flex items-center gap-2.5 pl-5 pr-1.5 py-2 rounded-full bg-crema-inset shadow-neu-inset-sm">
-            <span class="material-symbols-outlined text-on-surface-variant text-lg">search</span>
-            <input
-              type="text"
-              [value]="searchTerm()"
-              (input)="searchTerm.set($any($event.target).value)"
-              placeholder="Buscar plataforma (ej. Netflix, Spotify, Disney...)"
-              class="min-w-0 w-full flex-1 bg-transparent border-0 text-sm text-ink placeholder-on-surface-variant/60 focus:outline-none py-1.5"
-            />
-          </div>
-          <button type="button" class="group/btn shrink-0 inline-flex items-center gap-1.5 px-5 py-3 bg-ink text-white text-xs font-bold rounded-lg hover:bg-ink-surface active:scale-95 transition-all">
-            Buscar
-            <span class="material-symbols-outlined text-sm transition-transform group-hover/btn:translate-x-0.5">arrow_forward</span>
-          </button>
-        </div>
-        <div class="flex flex-wrap gap-2 mt-3.5">
-          @for (platform of quickPlatforms; track platform) {
-            <button
-              type="button"
-              (click)="searchTerm.set(platform)"
-              class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95"
-              [class]="searchTerm() === platform ? 'bg-pink text-white' : 'bg-slate-100 text-on-surface-variant hover:text-ink hover:bg-crema-dim'"
-            >
-              {{ platform }}
-            </button>
-          }
-        </div>
-      </div>
+<div class="space-y-5">
+  <!-- Encabezado + buscador -->
+  <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+    <div>
+      <h1 class="text-ink">Explorar grupos</h1>
+      <p class="text-sm text-on-surface-variant mt-1">Partly revisa que el acceso de cada grupo funcione antes de publicarlo.</p>
     </div>
+    <label class="relative w-full lg:w-96 shrink-0">
+      <span class="material-symbols-outlined text-on-surface-variant text-xl absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">search</span>
+      <input
+        type="search"
+        [value]="searchTerm()"
+        (input)="searchTerm.set($any($event.target).value)"
+        placeholder="Buscar plataforma (Netflix, Spotify, Disney+…)"
+        aria-label="Buscar plataforma"
+        class="ui-input pl-10!"
+      />
+    </label>
   </div>
 
-  <!-- Etapa del grupo -->
-  <div class="anim-in flex flex-wrap items-center gap-2" style="animation-delay: 100ms" role="tablist" aria-label="Etapa del grupo">
-    @for (s of stages; track s.value) {
-      <button
-        type="button"
-        role="tab"
-        [attr.aria-selected]="stage() === s.value"
-        [attr.title]="s.hint"
-        (click)="setStage(s.value)"
-        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all active:scale-95 border"
-        [class]="stage() === s.value ? 'bg-ink text-white border-transparent' : 'bg-white/90 text-on-surface-variant hover:text-ink border-slate-200'"
-      >
-        <span class="material-symbols-outlined text-base">{{ s.icon }}</span>{{ s.label }}
-      </button>
+  <div class="ui-chip-row flex flex-wrap items-center gap-2" aria-label="Búsquedas rápidas">
+    @for (platform of quickPlatforms; track platform) {
+      <button type="button" class="ui-chip" [class.is-active]="searchTerm() === platform" (click)="searchTerm.set(searchTerm() === platform ? '' : platform)">{{ platform }}</button>
     }
   </div>
 
-  <!-- Filtros -->
-  <div class="anim-in flex flex-wrap items-center justify-between gap-3" style="animation-delay: 120ms">
-    <div class="flex flex-wrap items-center gap-2">
-      <button
-        type="button"
-        (click)="selectCategory(null)"
-        class="hover:bg-[#047857] inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-bold transition-all active:scale-95"
-        [class]="selectedCategoryId() === null ? 'bg-pink text-white' : 'bg-white/90 text-on-surface-variant hover:text-ink'"
-      >
-        <span class="material-symbols-outlined text-base">grid_view</span>
-        Todos ({{ total() }})
-      </button>
-      @for (category of categories(); track category.id) {
-        <button
-          type="button"
-          (click)="selectCategory(category.id)"
-          class="hover:bg-[#047857] inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-bold transition-all active:scale-95"
-          [class]="selectedCategoryId() === category.id ? 'bg-pink text-white' : 'bg-white/90 text-on-surface-variant hover:text-ink'"
-        >
-          <span class="material-symbols-outlined text-base">{{ categoryIcon(category.name) }}</span>
-          {{ category.name }}
+  <!-- Etapa del grupo + categoría + orden -->
+  <div class="flex flex-col gap-3 pt-1">
+    <div class="ui-chip-row flex flex-wrap items-center gap-2" role="tablist" aria-label="Etapa del grupo">
+      @for (s of stages; track s.value) {
+        <button type="button" role="tab" class="ui-chip" [class.is-active]="stage() === s.value" [attr.aria-selected]="stage() === s.value" [attr.title]="s.hint" (click)="setStage(s.value)">
+          <span class="material-symbols-outlined">{{ s.icon }}</span>{{ s.label }}
         </button>
       }
     </div>
 
-    <div class="relative shrink-0">
-      <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg pointer-events-none">sort</span>
-      <select
-        [value]="sortBy()"
-        (change)="setSort($any($event.target).value)"
-        class="appearance-none pl-10 pr-9 py-2.5 rounded-full bg-white/90 shadow-neu-raised-sm border border-white/70 text-xs font-bold text-ink focus:outline-none focus:ring-2 focus:ring-pink/40 cursor-pointer"
-      >
-        <option value="recent">Ordenar por: Recientes</option>
-        <option value="price-asc">Ordenar por: Menor precio</option>
-        <option value="price-desc">Ordenar por: Mayor precio</option>
-      </select>
-      <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg pointer-events-none">expand_more</span>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="ui-chip-row flex flex-wrap items-center gap-2 max-sm:w-full">
+        <button type="button" class="ui-chip" [class.is-active]="selectedCategoryId() === null" (click)="selectCategory(null)">
+          <span class="material-symbols-outlined">grid_view</span>Todas las categorías ({{ total() }})
+        </button>
+        @for (category of categories(); track category.id) {
+          <button type="button" class="ui-chip" [class.is-active]="selectedCategoryId() === category.id" (click)="selectCategory(category.id)">
+            <span class="material-symbols-outlined">{{ categoryIcon(category.name) }}</span>{{ category.name }}
+          </button>
+        }
+      </div>
+
+      <label class="relative shrink-0">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg pointer-events-none">sort</span>
+        <select [value]="sortBy()" (change)="setSort($any($event.target).value)" aria-label="Ordenar" class="ui-input appearance-none min-h-9! h-9 pl-9! pr-9! text-[13px]! font-semibold cursor-pointer">
+          <option value="recent">Más recientes</option>
+          <option value="price-asc">Menor precio</option>
+          <option value="price-desc">Mayor precio</option>
+        </select>
+        <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg pointer-events-none">expand_more</span>
+      </label>
     </div>
   </div>
 
@@ -119,109 +62,71 @@
   @if (errorMessage()) {
     <div class="p-4 rounded-2xl bg-crema-inset shadow-neu-inset text-xs text-red-600 font-semibold">{{ errorMessage() }}</div>
   } @else if (visibleGroups() === null) {
-    <div class="p-8 rounded-2xl bg-white/90 shadow-neu-raised text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (n of [1, 2, 3]; track n) {
+        <div class="ui-skeleton-card"><span class="flex items-center gap-3"><span class="ui-skeleton w-11! h-11! rounded-xl!"></span><span class="flex-1 space-y-2"><span class="ui-skeleton w-24"></span><span class="ui-skeleton w-16"></span></span></span><span class="ui-skeleton w-20 h-6!"></span><span class="ui-skeleton h-2!"></span><span class="ui-skeleton w-3/4"></span></div>
+      }
+    </div>
   } @else if (visibleGroups()!.length === 0) {
-    <div class="p-8 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 text-center">
+    <div class="p-8 rounded-2xl bg-white shadow-neu-raised text-center">
       <span class="material-symbols-outlined text-3xl text-on-surface-variant/50 mb-2 block">search_off</span>
       <p class="text-sm font-semibold text-ink">No hay grupos que coincidan con tu búsqueda.</p>
     </div>
   } @else {
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       @for (group of visibleGroups(); track group.id) {
-        <div class="group/card p-5 rounded-3xl bg-white shadow-neu-raised border border-white/70 flex flex-col hover:shadow-neu-raised-lg hover:-translate-y-1 transition-all duration-300">
-          <div class="flex items-start justify-between gap-2 mb-3">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <app-platform-logo class="w-10 h-10 rounded-xl font-black text-sm shrink-0 group-hover/card:scale-110 group-hover/card:rotate-3 transition-transform duration-300" [name]="group.plan.platform.name" />
-              <div class="min-w-0">
-                <span class="text-sm font-bold text-ink block truncate">{{ group.plan.platform.name }}</span>
-                <span class="text-[11px] text-on-surface-variant truncate block">{{ group.plan.platform.categoryName ?? group.plan.tierName }}</span>
-              </div>
+        <div class="p-5 rounded-2xl bg-white shadow-neu-raised hover:shadow-neu-raised-lg transition-shadow flex flex-col gap-4">
+          <div class="flex items-center gap-3">
+            <app-platform-logo class="w-11 h-11 rounded-xl font-black text-sm shrink-0" [name]="group.plan.platform.name" />
+            <div class="min-w-0 flex-1">
+              <p class="text-[15px] font-bold text-ink truncate">{{ group.plan.platform.name }}</p>
+              <p class="text-[13px] text-on-surface-variant truncate">{{ group.plan.tierName }}</p>
             </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-              <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
-                {{ group.freeSlots }} libre{{ group.freeSlots === 1 ? '' : 's' }}
-              </span>
-              <span class="material-symbols-outlined text-on-surface-variant/60 text-lg" aria-hidden="true">more_vert</span>
+            @if (group.freeSlots > 0) {
+              <span class="ui-pill ui-pill--ok no-dot shrink-0">{{ group.freeSlots }} libre{{ group.freeSlots === 1 ? '' : 's' }}</span>
+            } @else if (group.freeingSlots > 0) {
+              <span class="ui-pill ui-pill--violet no-dot shrink-0">Por liberarse</span>
+            }
+          </div>
+
+          <div>
+            <div class="flex items-baseline justify-between gap-3">
+              <p class="text-ink"><span class="text-xl font-extrabold tabular-nums">{{ group.pricePerSlot | money }}</span><span class="text-xs text-on-surface-variant"> / {{ group.plan.billingPeriod === 'MONTHLY' ? 'mes' : group.plan.billingPeriod === 'QUARTERLY' ? 'trimestre' : group.plan.billingPeriod === 'SEMIANNUAL' ? 'semestre' : 'año' }}</span></p>
+              <span class="text-xs text-on-surface-variant shrink-0">{{ group.occupiedSlots + group.heldSlots }} de {{ group.availableSlots }} lugares</span>
+            </div>
+            <div class="ui-seats mt-2.5" aria-hidden="true">
+              @for (seat of seats(group); track $index) { <span [class]="seat"></span> }
             </div>
           </div>
 
-          <div class="flex items-center gap-2 mb-3 pb-3 border-b border-crema-border/60">
-            <div class="flex items-center -space-x-2 shrink-0">
-              @if (group.owner.avatarUrl) {
-                <img [src]="group.owner.avatarUrl" alt="" width="28" height="28" loading="lazy" decoding="async" class="w-7 h-7 rounded-full object-cover ring-2 ring-white relative" />
-              } @else {
-                <span class="w-7 h-7 rounded-full bg-pink/15 text-pink text-[11px] font-black flex items-center justify-center ring-2 ring-white relative">
-                  {{ group.owner.name.charAt(0).toUpperCase() }}
-                </span>
-              }
-              @for (dot of memberDots(group.occupiedSlots); track $index) {
-                <span class="w-7 h-7 rounded-full ring-2 ring-white flex items-center justify-center relative" [class]="dot">
-                  <span class="material-symbols-outlined text-white text-sm">person</span>
-                </span>
-              }
-              @if (group.occupiedSlots > 3) {
-                <span class="w-7 h-7 rounded-full bg-crema-inset text-on-surface-variant text-[10px] font-black flex items-center justify-center ring-2 ring-white relative">
-                  +{{ group.occupiedSlots - 3 }}
-                </span>
-              }
-            </div>
-            <span class="text-xs text-on-surface-variant font-medium truncate">
-              {{ group.owner.name }}{{ group.occupiedSlots > 0 ? ' y ' + group.occupiedSlots + ' más' : '' }}
-            </span>
-            <span class="flex items-center gap-0.5 text-amber-500 font-bold text-xs shrink-0 ml-auto">
-              <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1">star</span>
-              {{ group.owner.ratingAvg }}
-            </span>
-          </div>
-
-          <div class="flex-1"></div>
-
-          <div class="flex items-center justify-between mb-1">
-            <div>
-              <span class="text-xl font-black text-ink tabular-nums">${{ group.pricePerSlot }}</span>
-              <span class="text-[11px] text-on-surface-variant font-semibold">/ {{ group.plan.billingPeriod === 'MONTHLY' ? 'mes' : group.plan.billingPeriod === 'QUARTERLY' ? 'trimestre' : group.plan.billingPeriod === 'SEMIANNUAL' ? 'semestre' : 'año' }}</span>
-            </div>
-            <span class="flex items-center gap-1.5 text-on-surface-variant">
-              <span class="material-symbols-outlined text-lg">group</span>
-              <span class="leading-tight">
-                <span class="block text-sm font-bold text-ink tabular-nums">{{ group.occupiedSlots }}/{{ group.availableSlots }}</span>
-                <span class="block text-[10px] font-medium">activos{{ group.heldSlots > 0 ? ' · ' + group.heldSlots + (group.heldSlots === 1 ? ' apartado' : ' apartados') : '' }}</span>
-              </span>
-            </span>
-          </div>
-
-          <span class="block text-xs text-on-surface-variant font-medium mb-2">
-            {{ group.plan.tierName }}
-          </span>
-          @if (group.startedAt && group.freeingSlots > 0 && (group.freeSlots === 0 || !group.canJoinNow)) {
-            <span class="flex items-start gap-1.5 text-[11px] font-semibold text-violet-800 bg-violet-50 rounded-lg px-2.5 py-1.5 mb-4">
-              <span class="material-symbols-outlined text-sm shrink-0">event_upcoming</span>
+          <p class="flex items-start gap-1.5 text-[13px] text-on-surface-variant">
+            @if (group.startedAt && group.freeingSlots > 0 && (group.freeSlots === 0 || !group.canJoinNow)) {
+              <span class="material-symbols-outlined text-base text-violet-600 shrink-0">event_upcoming</span>
               <span>{{ group.freeingSlots === 1 ? 'Se libera un lugar' : 'Se liberan ' + group.freeingSlots + ' lugares' }} el {{ calendarDateLabel(group.freeingDate!) }} · apártalo sin pagar todavía</span>
-            </span>
-          } @else if (group.startedAt && !group.canJoinNow) {
-            <span class="flex items-start gap-1.5 text-[11px] font-semibold text-amber-800 bg-amber-50 rounded-lg px-2.5 py-1.5 mb-4">
-              <span class="material-symbols-outlined text-sm shrink-0">schedule</span>
+            } @else if (group.startedAt && !group.canJoinNow) {
+              <span class="material-symbols-outlined text-base text-amber-600 shrink-0">schedule</span>
               <span>Renueva en {{ group.daysUntilRenewal }} {{ group.daysUntilRenewal === 1 ? 'día' : 'días' }} · podrás entrar cuando empiece su nuevo ciclo</span>
-            </span>
-          } @else if (group.startedAt) {
-            <span class="flex items-start gap-1.5 text-[11px] font-semibold text-emerald-800 bg-emerald-50 rounded-lg px-2.5 py-1.5 mb-4">
-              <span class="material-symbols-outlined text-sm shrink-0">bolt</span>
+            } @else if (group.startedAt) {
+              <span class="material-symbols-outlined text-base text-emerald-600 shrink-0">bolt</span>
               <span>Activo {{ daysRunning(group.startedAt) === 0 ? 'desde hoy' : 'desde hace ' + daysRunning(group.startedAt) + (daysRunning(group.startedAt) === 1 ? ' día' : ' días') }} · pagas solo los días que faltan</span>
-            </span>
-          } @else {
-            <span class="flex items-start gap-1.5 text-[11px] font-semibold text-on-surface-variant bg-slate-50 rounded-lg px-2.5 py-1.5 mb-4">
-              <span class="material-symbols-outlined text-sm shrink-0">hourglass_top</span>
-              <span>Juntando cupos · {{ group.reservedSlots }} de {{ group.availableSlots }} apartados · no pagas hasta que inicie</span>
-            </span>
-          }
+            } @else {
+              <span class="material-symbols-outlined text-base shrink-0">hourglass_top</span>
+              <span>Juntando lugares · {{ group.reservedSlots }} de {{ group.availableSlots }} apartados · no pagas hasta que inicie</span>
+            }
+          </p>
 
-          <a
-            [routerLink]="['/panel/grupos', group.id]"
-            class="group w-full py-3 rounded-lg bg-ink text-white text-sm font-bold flex items-center justify-center gap-1.5 transition-all duration-300 hover:bg-ink-surface.5 active:translate-y-0 active:scale-[0.98]"
-          >
-            Ver grupo
-            <span class="material-symbols-outlined text-lg transition-transform duration-300 group-hover:translate-x-1">arrow_forward</span>
-          </a>
+          <div class="mt-auto pt-3 border-t border-crema-border flex items-center justify-between gap-3">
+            <span class="flex items-center gap-2 min-w-0 text-[13px] text-on-surface-variant">
+              @if (group.owner.avatarUrl) {
+                <img [src]="group.owner.avatarUrl" alt="" width="24" height="24" loading="lazy" decoding="async" class="w-6 h-6 rounded-full object-cover shrink-0" />
+              } @else {
+                <span class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold flex items-center justify-center shrink-0">{{ group.owner.name.charAt(0).toUpperCase() }}</span>
+              }
+              <span class="truncate">{{ group.owner.name }}</span>
+              <span class="flex items-center gap-0.5 shrink-0"><span class="material-symbols-outlined text-sm text-amber-500" style="font-variation-settings: 'FILL' 1">star</span>{{ group.owner.ratingAvg }}</span>
+            </span>
+            <a [routerLink]="['/panel/grupos', group.id]" class="ui-btn ui-btn--secondary ui-btn--sm shrink-0">Ver grupo<span class="material-symbols-outlined">arrow_forward</span></a>
+          </div>
         </div>
       }
     </div>
@@ -242,7 +147,7 @@
             <button
               type="button"
               (click)="goToPage(p)"
-              class="hover:bg-[#047857] w-8 h-8 rounded-lg text-xs font-bold transition-all active:scale-95"
+              class="hover:bg-[#065f46] w-8 h-8 rounded-lg text-xs font-bold transition-all active:scale-95"
               [class]="page() === p ? 'bg-pink text-white' : 'bg-white/90 text-on-surface-variant hover:text-pink'"
             >
               {{ p }}
@@ -257,41 +162,19 @@
             <span class="material-symbols-outlined text-base">chevron_right</span>
           </button>
         </div>
-        <p class="text-[11px] text-on-surface-variant font-medium">
+        <p class="text-xs text-on-surface-variant font-medium">
           Mostrando {{ (page() - 1) * 6 + 1 }}–{{ (page() - 1) * 6 + visibleGroups()!.length }} de {{ total() }} grupos disponibles
         </p>
       </div>
     }
   }
 
-  <p class="hand-note hand-note-cta hidden lg:block ml-auto" aria-hidden="true">
-    Miles de personas<br />ya comparten<br />y ahorran con Partly
-    <svg class="hand-note-arrow" viewBox="0 0 40 34" fill="none" aria-hidden="true"><path d="M35 3C30 14 20 22 6 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" /><path d="M13 27 L5 25 L8 32" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-  </p>
-
   <!-- Banner Partly Shield -->
-  <div class="anim-in group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 px-6 py-6 rounded-3xl bg-linear-to-r from-white via-emerald-50/80 to-emerald-100/70 shadow-neu-raised border border-white/70 hover:shadow-neu-raised-lg transition-shadow duration-300">
-    <div class="flex items-center gap-4">
-      <div class="w-14 h-14 rounded-2xl bg-white shadow-[0_6px_16px_rgba(5,150,105,0.15)] flex items-center justify-center text-emerald-600 shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
-        <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1">shield</span>
-      </div>
-      <div>
-        <p class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-0.5">Tu compra siempre protegida</p>
-        <p class="text-base font-bold text-ink flex items-center flex-wrap gap-2">
-          Protección Partly Shield activa
-          <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">100% seguro</span>
-        </p>
-        <p class="text-xs text-on-surface-variant mt-0.5">El anfitrión no recibe el pago hasta que confirmas que tu cupo funciona correctamente.</p>
-      </div>
-    </div>
-
-    <div class="hidden sm:block shrink-0 text-right text-lg font-extrabold text-ink leading-tight">
-      <p>Compra.</p>
-      <p>Comparte.</p>
-      <p class="relative inline-block">
-        Disfruta tranquilo.
-        <span class="absolute left-0 -bottom-1.5 w-full h-0.75 rounded-full bg-pink"></span>
-      </p>
+  <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 rounded-2xl bg-white shadow-neu-raised">
+    <span class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700 shrink-0"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">shield</span></span>
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-bold text-ink flex items-center flex-wrap gap-2">Protección Partly Shield activa <span class="ui-pill ui-pill--ok no-dot">Grupos verificados</span></p>
+      <p class="text-[13px] text-on-surface-variant mt-0.5">Partly revisa el acceso de cada grupo antes de publicarlo. Si algo deja de funcionar, repórtalo en Soporte y te ayudamos con el vendedor.</p>
     </div>
   </div>
 </div>

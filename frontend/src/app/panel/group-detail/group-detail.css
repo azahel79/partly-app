@@ -1,0 +1,49 @@
+/* Línea de datos bajo el nombre del grupo: "Premium · 4 de 4 lugares · Cada mes" */
+.gd-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 0; margin-top: 4px; color: #5b6478; font-size: 13px; }
+.gd-meta > span:not(:last-child)::after { content: '•'; margin: 0 10px; color: #c3c8d2; }
+
+/* Estado junto al precio cuando no hay botón (vendedor, apartado, sin lugares…) */
+.gd-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 12px; border: 1px solid #e6e8ee; border-radius: 10px; background: #f6f7f9; color: #3f4658; font-size: 13px; font-weight: 600; }
+.gd-chip .material-symbols-outlined { font-size: 17px; }
+.gd-chip--info { border-color: #b2ddff; background: #eff8ff; color: #175cd3; }
+.gd-chip--ok { border-color: #abefc6; background: #ecfdf3; color: #067647; }
+.gd-chip--warn { border-color: #fedf89; background: #fffaeb; color: #b54708; }
+
+/* Aviso de renovación bajo el encabezado */
+.gd-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 16px 20px; border: 1px solid; border-radius: 14px; }
+.gd-banner-icon { width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border-radius: 10px; }
+.gd-banner-icon .material-symbols-outlined { font-size: 20px; }
+.gd-banner-title { font-size: 15px; font-weight: 700; }
+.gd-banner-text { margin-top: 2px; font-size: 13px; }
+.gd-banner--warn { border-color: #fedf89; background: #fffaeb; }
+.gd-banner--warn .gd-banner-icon { background: #fef0c7; color: #b54708; }
+.gd-banner--warn .gd-banner-title { color: #7a2e0e; }
+.gd-banner--warn .gd-banner-text { color: #93370d; }
+.gd-banner--info { border-color: #b2ddff; background: #eff8ff; }
+.gd-banner--info .gd-banner-icon { background: #d1e9ff; color: #175cd3; }
+.gd-banner--info .gd-banner-title { color: #194185; }
+.gd-banner--info .gd-banner-text { color: #1849a9; }
+
+/* La tarjeta de detalles se oculta si no le toca mostrar nada, y su primer bloque no lleva línea arriba. */
+.gd-details:not(:has(*)) { display: none; }
+.gd-details > :first-child { margin-top: 0 !important; padding-top: 0 !important; border-top: 0 !important; }
+
+@media (max-width: 767px) {
+  .gd-meta > span:not(:last-child)::after { margin: 0 7px; }
+}
+
+/* ---------- Modo oscuro ---------- */
+:host-context(html.dark) .gd-meta { color: #8fa9a1; }
+:host-context(html.dark) .gd-meta > span:not(:last-child)::after { color: #3d5a52; }
+:host-context(html.dark) .gd-chip { border-color: rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.04); color: #c3d7d0; }
+:host-context(html.dark) .gd-chip--info { border-color: rgba(96, 165, 250, 0.35); background: rgba(96, 165, 250, 0.12); color: #93c5fd; }
+:host-context(html.dark) .gd-chip--ok { border-color: rgba(52, 211, 153, 0.35); background: rgba(16, 185, 129, 0.14); color: #6ee7b7; }
+:host-context(html.dark) .gd-chip--warn { border-color: rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.12); color: #fcd34d; }
+:host-context(html.dark) .gd-banner--warn { border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.08); }
+:host-context(html.dark) .gd-banner--warn .gd-banner-icon { background: rgba(251, 191, 36, 0.16); color: #fcd34d; }
+:host-context(html.dark) .gd-banner--warn .gd-banner-title { color: #fde68a; }
+:host-context(html.dark) .gd-banner--warn .gd-banner-text { color: #fcd34d; }
+:host-context(html.dark) .gd-banner--info { border-color: rgba(96, 165, 250, 0.3); background: rgba(96, 165, 250, 0.08); }
+:host-context(html.dark) .gd-banner--info .gd-banner-icon { background: rgba(96, 165, 250, 0.16); color: #93c5fd; }
+:host-context(html.dark) .gd-banner--info .gd-banner-title { color: #bfdbfe; }
+:host-context(html.dark) .gd-banner--info .gd-banner-text { color: #93c5fd; }

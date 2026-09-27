@@ -10,6 +10,7 @@ import { AdminPayment } from '../../shared/payments.models';
 import { Membership } from '../../shared/memberships.models';
 import { platformLogoSrc } from '../../shared/platform-logo.util';
 import { PlanFeature, planFeatures } from '../../shared/plan-features.util';
+import { MoneyPipe } from '../../shared/money';
 
 /** Rango de comisión que la app permite fijar por grupo (debe coincidir con el backend). */
 const COMMISSION_MIN_PCT = 10;
@@ -69,7 +70,7 @@ const KNOWN_BRANDS: Record<string, Omit<PlatformBrand, 'logoUrl'> & { slug: stri
 };
 
 @Component({
-  imports: [RouterLink],
+  imports: [RouterLink, MoneyPipe],
   selector: 'app-admin-group-detail',
   styleUrl: './group-detail.css',
   templateUrl: './group-detail.html',

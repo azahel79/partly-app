@@ -8,12 +8,14 @@ import { Membership } from '../../shared/memberships.models';
 import { EarningsSummary } from '../../shared/commissions.models';
 import { planFeatures } from '../../shared/plan-features.util';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
+import { MoneyPipe } from '../../shared/money';
+import { ownerGroupStatus } from '../../shared/status-tag.util';
 
 const PREVIEW_LIMIT = 3;
 const OCCUPYING_STATUSES = new Set(['ACTIVE', 'SUSPENDED']);
 
 @Component({
-  imports: [RouterLink, PlatformLogo],
+  imports: [RouterLink, PlatformLogo, MoneyPipe],
   selector: 'app-panel-home',
   styleUrl: './panel-home.css',
   templateUrl: './panel-home.html',
@@ -34,6 +36,7 @@ export class PanelHome implements OnInit {
   protected readonly togglingId = signal<string | null>(null);
 
   protected readonly planFeatures = planFeatures;
+  protected readonly groupStatus = ownerGroupStatus;
 
   protected readonly previewGroups = computed(() => this.myGroups()?.slice(0, PREVIEW_LIMIT) ?? []);
   protected readonly hiddenGroupsCount = computed(() => Math.max(0, (this.myGroups()?.length ?? 0) - PREVIEW_LIMIT));

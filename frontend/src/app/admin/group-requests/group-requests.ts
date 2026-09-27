@@ -4,13 +4,14 @@ import { Router } from '@angular/router';
 import { GroupsService } from '../../shared/groups.service';
 import { Group, GroupApprovalStatus } from '../../shared/groups.models';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
+import { MoneyPipe } from '../../shared/money';
 
 type SortOption = 'recent' | 'oldest' | 'price_desc' | 'price_asc' | 'name_asc';
 
 const PAGE_SIZE = 10;
 
 @Component({
-  imports: [DatePipe, PlatformLogo],
+  imports: [DatePipe, PlatformLogo, MoneyPipe],
   selector: 'app-group-requests',
   styleUrl: './group-requests.css',
   templateUrl: './group-requests.html',

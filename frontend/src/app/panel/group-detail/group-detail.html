@@ -1,151 +1,136 @@
-<div class="max-w-6xl mx-auto space-y-6">
-  <a routerLink="/panel/explorar" class="inline-flex items-center gap-1 text-xs font-bold text-on-surface-variant hover:text-ink transition-colors">
-    <span class="material-symbols-outlined text-sm">arrow_back</span>
-    Volver a explorar
+<div class="max-w-6xl mx-auto space-y-5">
+  <a [routerLink]="isOwner() || joined() || reserved() ? '/panel/grupos' : '/panel/explorar'" class="inline-flex items-center gap-1.5 min-h-8 text-[13px] font-semibold text-on-surface-variant hover:text-ink transition-colors">
+    <span class="material-symbols-outlined text-base">arrow_back</span>
+    {{ isOwner() || joined() || reserved() ? 'Mis grupos' : 'Explorar' }}
   </a>
 
   @if (notFound()) {
-    <div class="p-8 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 text-center">
+    <div class="p-8 rounded-2xl bg-white shadow-neu-raised text-center">
       <span class="material-symbols-outlined text-3xl text-on-surface-variant/50 mb-2 block">search_off</span>
       <p class="text-sm font-semibold text-ink">Este grupo ya no existe o no está disponible.</p>
     </div>
   } @else if (group(); as g) {
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Columna izquierda -->
-      <div class="lg:col-span-2 space-y-6">
-        <!-- Hero oscuro -->
-        <div class="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-ink to-ink-surface p-6 sm:p-7">
-          <svg class="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 600 300" fill="none">
-            <path d="M180 -20C260 40 240 120 340 150C440 180 460 260 600 260V320H0V0C60 -30 120 -60 180 -20Z" fill="url(#heroWaveA)" />
-            <path d="M320 -30C400 10 380 90 480 130C540 155 570 210 600 230V320H150C120 250 180 200 250 170C200 130 260 60 320 -30Z" fill="url(#heroWaveB)" />
-            <defs>
-              <linearGradient id="heroWaveA" x1="0" y1="0" x2="600" y2="300" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#059669" stop-opacity="0.16" />
-                <stop offset="1" stop-color="#059669" stop-opacity="0" />
-              </linearGradient>
-              <linearGradient id="heroWaveB" x1="600" y1="0" x2="150" y2="320" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#FFFFFF" stop-opacity="0.08" />
-                <stop offset="1" stop-color="#FFFFFF" stop-opacity="0" />
-              </linearGradient>
-            </defs>
-          </svg>
-
-          <div class="relative flex items-start justify-between gap-4 mb-5">
-            <div class="flex items-center gap-3 min-w-0">
-              <app-platform-logo class="w-14 h-14 rounded-2xl font-black text-xl shrink-0" [name]="g.plan.platform.name" />
-              <div class="min-w-0">
-                <h1 class="text-xl font-extrabold text-white truncate">{{ g.plan.platform.name }}</h1>
-                <p class="text-xs text-white/60 font-medium truncate">{{ g.plan.tierName }}</p>
-              </div>
-            </div>
+    <!-- Encabezado del grupo -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-4 min-w-0">
+        <app-platform-logo class="w-14 h-14 rounded-[14px] font-black text-xl shrink-0" [name]="g.plan.platform.name" />
+        <div class="min-w-0">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <h1 class="text-ink">{{ g.plan.platform.name }}</h1>
             @if (heroStatusBadge(); as badge) {
-              <span class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white shadow-neu-raised-sm" [class]="badge.text">
-                <span class="w-1.5 h-1.5 rounded-full" [class]="badge.dot"></span>
-                {{ badge.label }}
-              </span>
+              <span class="ui-pill" [class]="badge.tone">{{ badge.label }}</span>
             }
           </div>
+          <p class="gd-meta">
+            <span>{{ g.plan.tierName }}</span>
+            <span>{{ g.occupiedSlots }} de {{ g.availableSlots }} lugares</span>
+            <span>Cada {{ periodNoun(g.plan.billingPeriod) }}</span>
+            @if (joined() && !isOwner() && g.startedAt) { <span>Tu periodo termina el {{ calendarDateLabel(g.nextRenewalDate) }}</span> }
+          </p>
+        </div>
+      </div>
+      <div class="flex flex-col md:items-end gap-3 shrink-0">
+        <div class="md:text-right">
+          <p class="text-[26px] font-extrabold text-ink tabular-nums leading-tight tracking-tight">{{ g.pricePerSlot | money }}</p>
+          <p class="text-xs text-on-surface-variant">por {{ periodNoun(g.plan.billingPeriod) }}</p>
+        </div>
+        @if (isOwner() && group()?.status === 'READY_TO_START') {
+          <a
+            [routerLink]="['/panel/grupos', g.id, 'iniciar']"
+            class="ui-btn ui-btn--primary"
+          >
+            <span class="material-symbols-outlined">rocket_launch</span>
+            Iniciar grupo
+          </a>
+        } @else if (isOwner()) {
+          <div class="gd-chip">
+            <svg class="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5Zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1Z" /></svg>
+            Eres el administrador de este grupo
+          </div>
+        } @else if (reserved()) {
+          <div class="gd-chip gd-chip--info">
+            <span class="material-symbols-outlined">bookmark</span>
+            @if (g.startedAt) {
+              Lugar apartado · se libera el {{ g.freeingDate ? calendarDateLabel(g.freeingDate) : 'próximo corte' }}
+            } @else {
+              Cupo reservado · esperando que inicie
+            }
+          </div>
+        } @else if (joined()) {
+          <!-- miembro: la etiqueta del encabezado ya lo dice -->
+        } @else if (hasPendingPayment()) {
+          <a
+            [routerLink]="['/panel/grupos', g.id, 'pago']"
+            class="ui-btn ui-btn--primary"
+          >
+            <span class="material-symbols-outlined">pending_actions</span>
+            Continuar pago pendiente
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </a>
+        } @else if (g.approvalStatus !== 'APPROVED') {
+          <div class="gd-chip">
+            Grupo no disponible todavía
+          </div>
+        } @else if (g.availableSlots - g.occupiedSlots <= 0 && !(joinPreview()?.reserveFreeingSeat)) {
+          <div class="gd-chip">
+            Sin cupos disponibles
+          </div>
+        } @else if (joinPreview() && !joinPreview()!.canJoinNow && !joinPreview()!.reserveFreeingSeat) {
+          <div class="gd-chip gd-chip--warn">
+            <span class="material-symbols-outlined">schedule</span>
+            Podrás entrar el {{ calendarDateLabel(joinPreview()!.firstRenewalDate!) }}
+          </div>
+        } @else if (joinPreview()?.unavailableReason) {
+          <div class="gd-chip">
+            Sin recibir miembros por ahora
+          </div>
+        } @else {
+          <button
+            type="button"
+            [disabled]="joining()"
+            (click)="join()"
+            class="ui-btn ui-btn--primary"
+          >
+            {{ joining() ? 'Uniendo…' : joinPreview()?.reserveFreeingSeat ? 'Apartar este lugar' : 'Elegir cupo' }}
+            @if (!joining()) {
+              <span class="material-symbols-outlined">arrow_forward</span>
+            }
+          </button>
+        }
+      </div>
+    </div>
 
-          <div class="relative flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-white/70 font-semibold">
-            <span class="flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-sm">smart_display</span>
-              {{ g.plan.tierName }}
-            </span>
-            <span class="flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-sm">group</span>
-              {{ g.occupiedSlots }}/{{ g.availableSlots }} cupos ocupados
-            </span>
-            <span class="flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-sm">calendar_month</span>
-              Se cobra cada {{ g.plan.billingPeriod === 'MONTHLY' ? 'mes' : g.plan.billingPeriod === 'QUARTERLY' ? 'trimestre' : g.plan.billingPeriod === 'SEMIANNUAL' ? 'semestre' : 'año' }}
-            </span>
+    @if (!isOwner() && joined() && ownPayment(); as pay) {
+      @if (pay.receiptUploadedAt) {
+        <div class="gd-banner gd-banner--info">
+          <span class="gd-banner-icon"><span class="material-symbols-outlined">hourglass_top</span></span>
+          <div class="flex-1 min-w-0">
+            <p class="gd-banner-title">Enviaste el comprobante de tu renovación ({{ pay.amount | money }})</p>
+            <p class="gd-banner-text">Falta que el vendedor lo apruebe para asegurar tu lugar el mes siguiente.</p>
           </div>
         </div>
-
-        <!-- Precio + estado -->
-        <div class="p-5 sm:p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <p class="text-[11px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">Precio por cupo</p>
-              <p class="text-3xl font-black text-ink tabular-nums">
-                ${{ g.pricePerSlot }}
-                <span class="text-sm font-semibold text-on-surface-variant">/ {{ g.plan.billingPeriod === 'MONTHLY' ? 'mes' : g.plan.billingPeriod === 'QUARTERLY' ? 'trimestre' : g.plan.billingPeriod === 'SEMIANNUAL' ? 'semestre' : 'año' }}</span>
-              </p>
-            </div>
-
-            @if (isOwner() && group()?.status === 'READY_TO_START') {
-              <a
-                [routerLink]="['/panel/grupos', g.id, 'iniciar']"
-                class="shrink-0 py-3 px-6 rounded-lg bg-pink hover:bg-[#047857] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <span class="material-symbols-outlined text-sm">rocket_launch</span>
-                Iniciar grupo
-              </a>
-            } @else if (isOwner()) {
-              <div class="shrink-0 py-3 px-6 rounded-full bg-crema-inset text-ink text-xs font-bold flex items-center justify-center gap-1.5">
-                <svg class="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5Zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1Z" /></svg>
-                Eres el administrador de este grupo
-              </div>
-            } @else if (reserved()) {
-              <div class="shrink-0 py-3 px-6 rounded-full bg-blue-50 text-blue-800 text-xs font-bold flex items-center justify-center gap-1.5">
-                <span class="material-symbols-outlined text-sm">bookmark</span>
-                @if (g.startedAt) {
-                  Lugar apartado · se libera el {{ g.freeingDate ? calendarDateLabel(g.freeingDate) : 'próximo corte' }}
-                } @else {
-                  Cupo reservado · esperando que inicie
-                }
-              </div>
-            } @else if (joined()) {
-              <div class="shrink-0 py-3 px-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center gap-1.5">
-                <span class="material-symbols-outlined text-sm">check_circle</span>
-                Ya eres miembro
-              </div>
-            } @else if (hasPendingPayment()) {
-              <a
-                [routerLink]="['/panel/grupos', g.id, 'pago']"
-                class="active:scale-[0.98] transition-colors shrink-0 py-3 px-6 rounded-lg bg-amber-100 text-amber-900 text-xs font-bold flex items-center justify-center gap-1.5"
-              >
-                <span class="material-symbols-outlined text-sm">pending_actions</span>
-                Continuar pago pendiente
-                <span class="material-symbols-outlined text-sm">arrow_forward</span>
-              </a>
-            } @else if (g.approvalStatus !== 'APPROVED') {
-              <div class="shrink-0 py-3 px-6 rounded-full bg-crema-inset text-on-surface-variant text-xs font-bold">
-                Grupo no disponible todavía
-              </div>
-            } @else if (g.availableSlots - g.occupiedSlots <= 0 && !(joinPreview()?.reserveFreeingSeat)) {
-              <div class="shrink-0 py-3 px-6 rounded-full bg-crema-inset text-on-surface-variant text-xs font-bold">
-                Sin cupos disponibles
-              </div>
-            } @else if (joinPreview() && !joinPreview()!.canJoinNow && !joinPreview()!.reserveFreeingSeat) {
-              <div class="shrink-0 py-3 px-6 rounded-full bg-amber-50 text-amber-800 text-xs font-bold flex items-center justify-center gap-1.5">
-                <span class="material-symbols-outlined text-sm">schedule</span>
-                Podrás entrar el {{ calendarDateLabel(joinPreview()!.firstRenewalDate!) }}
-              </div>
-            } @else if (joinPreview()?.unavailableReason) {
-              <div class="shrink-0 py-3 px-6 rounded-full bg-crema-inset text-on-surface-variant text-xs font-bold">
-                Sin recibir miembros por ahora
-              </div>
-            } @else {
-              <button
-                type="button"
-                [disabled]="joining()"
-                (click)="join()"
-                class="hover:bg-[#047857] shrink-0 py-3 px-6 rounded-lg bg-pink text-white text-xs font-bold active:scale-[0.98] transition-all disabled:opacity-60 flex items-center gap-1.5"
-              >
-                {{ joining() ? 'Uniendo…' : joinPreview()?.reserveFreeingSeat ? 'Apartar este lugar' : 'Elegir cupo' }}
-                @if (!joining()) {
-                  <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                }
-              </button>
-            }
+      } @else {
+        <div class="gd-banner gd-banner--warn">
+          <span class="gd-banner-icon"><span class="material-symbols-outlined">schedule</span></span>
+          <div class="flex-1 min-w-0">
+            <p class="gd-banner-title">Tu renovación de {{ pay.amount | money }} ya está lista para pagar</p>
+            <p class="gd-banner-text">Págala a más tardar el {{ pay.graceUntil ? calendarDateLabel(pay.graceUntil) : 'corte' }} para conservar tu lugar el mes siguiente.</p>
           </div>
+          <a [routerLink]="['/panel/grupos', g.id, 'pago']" class="ui-btn ui-btn--primary w-full sm:w-auto">Pagar renovación<span class="material-symbols-outlined">arrow_forward</span></a>
+        </div>
+      }
+    }
 
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <!-- Columna izquierda -->
+      <div class="lg:col-span-2 space-y-5">
+        <!-- Características, comisión y condiciones para entrar (se oculta si no hay nada) -->
+        <div class="gd-details p-5 sm:px-6 rounded-2xl bg-white shadow-neu-raised">
           @if (planFeatures(g.plan.tierName); as features) {
             @if (features.length > 0) {
               <div class="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-crema-border/60">
                 @for (feature of features; track feature.label) {
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-pink/10 text-ink text-[11px] font-semibold">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-pink/10 text-ink text-xs font-semibold">
                     <span class="material-symbols-outlined text-pink text-sm">{{ feature.icon }}</span>
                     {{ feature.label }}
                   </span>
@@ -155,45 +140,23 @@
           }
           @if (isOwner() && g.commissionPercentage) {
             <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-crema-border/60">
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-crema-inset text-on-surface-variant text-[11px] font-semibold">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-crema-inset text-on-surface-variant text-xs font-semibold">
                 <span class="material-symbols-outlined text-sm">percent</span>
                 {{ g.approvalStatus === 'APPROVED' ? 'Comisión de Partly' : 'Comisión propuesta por Partly' }}: {{ g.commissionPercentage }}%
               </span>
-              <span class="text-[11px] text-on-surface-variant font-medium">
-                Recibes ~${{ ((+g.pricePerSlot) * (1 - (+g.commissionPercentage) / 100)).toFixed(2) }} por cupo después de comisión.
+              <span class="text-xs text-on-surface-variant font-medium">
+                Recibes ~{{ ((+g.pricePerSlot) * (1 - (+g.commissionPercentage) / 100)) | money }} por cupo después de comisión.
               </span>
             </div>
           }
           @if (joinError()) {
-            <p class="text-[11px] text-red-600 font-semibold mt-2">{{ joinError() }}</p>
-          }
-          @if (!isOwner() && joined() && ownPayment(); as pay) {
-            <div class="mt-4 rounded-2xl bg-amber-50 border border-amber-200 p-4 flex flex-wrap items-center gap-3 text-xs text-amber-900 font-medium">
-              <span class="material-symbols-outlined text-xl shrink-0">{{ pay.receiptUploadedAt ? 'hourglass_top' : 'event_repeat' }}</span>
-              <p class="flex-1 min-w-[220px]">
-                @if (pay.receiptUploadedAt) {
-                  <strong>Enviaste el comprobante de tu renovación (${{ pay.amount }}).</strong> Falta que el vendedor lo apruebe para asegurar tu lugar el mes siguiente.
-                } @else {
-                  <strong>Tu renovación de ${{ pay.amount }} ya está lista para pagar.</strong>
-                  Págala a más tardar el {{ pay.graceUntil ? calendarDateLabel(pay.graceUntil) : 'corte' }} para conservar tu lugar el mes siguiente.
-                }
-              </p>
-              @if (!pay.receiptUploadedAt) {
-                <a [routerLink]="['/panel/grupos', g.id, 'pago']" class="active:scale-[0.98] shrink-0 py-2.5 px-5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
-                  Pagar renovación
-                  <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                </a>
-              }
-            </div>
-          }
-          @if (!isOwner() && (joined() || (reserved() && !g.startedAt) || hasPendingPayment())) {
-            <div class="mt-4"><app-renewal-toggle [groupId]="g.id" /></div>
+            <p class="text-xs text-red-600 font-semibold mt-2">{{ joinError() }}</p>
           }
           @if (!isOwner() && reserved()) {
             <div class="mt-4 pt-4 border-t border-crema-border/60 flex items-start gap-2.5 text-xs text-on-surface-variant font-medium">
               <span class="material-symbols-outlined text-base text-pink shrink-0">bookmark</span>
               @if (g.startedAt) {
-                <p>Apartaste el lugar que se libera el <strong class="text-ink">{{ g.freeingDate ? calendarDateLabel(g.freeingDate) : 'próximo corte' }}</strong> y <strong class="text-ink">todavía no pagas nada</strong>. Cuando quede libre te avisamos y tendrás 48 horas para transferir ${{ g.pricePerSlot }} y subir tu comprobante. Si el miembro decide renovar, tu reserva se cancela sin costo.</p>
+                <p>Apartaste el lugar que se libera el <strong class="text-ink">{{ g.freeingDate ? calendarDateLabel(g.freeingDate) : 'próximo corte' }}</strong> y <strong class="text-ink">todavía no pagas nada</strong>. Cuando quede libre te avisamos y tendrás 48 horas para transferir {{ g.pricePerSlot | money }} y subir tu comprobante. Si el miembro decide renovar, tu reserva se cancela sin costo.</p>
               } @else {
                 <p>Tu cupo está reservado y <strong class="text-ink">todavía no pagas nada</strong>. Cuando el vendedor inicie el grupo te avisamos y tendrás 48 horas para transferir y subir tu comprobante.</p>
               }
@@ -207,7 +170,7 @@
                     <span class="material-symbols-outlined text-base shrink-0">event_upcoming</span>
                     <p>
                       <strong>Se libera un lugar el {{ calendarDateLabel(jp.freeingDate!) }}.</strong>
-                      Un miembro decidió no renovar. Puedes apartarlo ahora <strong>sin pagar nada</strong>: cuando el lugar quede libre te avisamos y tendrás 48 horas para transferir ${{ jp.fullPrice }} por el ciclo completo. Si esa persona cambia de opinión y renueva, tu reserva se cancela sin costo.
+                      Un miembro decidió no renovar. Puedes apartarlo ahora <strong>sin pagar nada</strong>: cuando el lugar quede libre te avisamos y tendrás 48 horas para transferir {{ jp.fullPrice | money }} por el ciclo completo. Si esa persona cambia de opinión y renueva, tu reserva se cancela sin costo.
                     </p>
                   </div>
                 } @else if (!jp.canJoinNow) {
@@ -226,18 +189,18 @@
                 } @else if (!jp.payNow) {
                   <div class="flex items-start gap-2.5 text-xs text-on-surface-variant font-medium">
                     <span class="material-symbols-outlined text-base text-pink shrink-0">bookmark</span>
-                    <p>Al elegir cupo solo <strong class="text-ink">lo reservas, no pagas nada todavía</strong>. Cuando el vendedor inicie el grupo tendrás 48 horas para transferir ${{ jp.fullPrice }}.</p>
+                    <p>Al elegir cupo solo <strong class="text-ink">lo reservas, no pagas nada todavía</strong>. Cuando el vendedor inicie el grupo tendrás 48 horas para transferir {{ jp.fullPrice | money }}.</p>
                   </div>
                 } @else if (jp.isProrated) {
                   <div class="rounded-2xl bg-amber-50 border border-amber-200 p-4">
-                    <p class="text-xs font-extrabold text-amber-900 uppercase tracking-wide flex items-center gap-1.5">
+                    <p class="text-xs font-extrabold text-amber-900 flex items-center gap-1.5">
                       <span class="material-symbols-outlined text-base">event_available</span>
                       El grupo ya inició — pagas solo los días que faltan
                     </p>
                     <dl class="mt-3 space-y-1.5 text-xs">
                       <div class="flex items-center justify-between gap-3">
                         <dt class="text-on-surface-variant font-medium">Precio del ciclo completo</dt>
-                        <dd class="font-bold text-ink tabular-nums">${{ jp.fullPrice }}</dd>
+                        <dd class="font-bold text-ink tabular-nums">{{ jp.fullPrice | money }}</dd>
                       </div>
                       <div class="flex items-center justify-between gap-3">
                         <dt class="text-on-surface-variant font-medium">Días restantes del ciclo</dt>
@@ -245,21 +208,21 @@
                       </div>
                       <div class="flex items-center justify-between gap-3">
                         <dt class="text-on-surface-variant font-medium">Proporcional a {{ jp.remainingDays }} días</dt>
-                        <dd class="font-bold text-ink tabular-nums">${{ jp.prorationAmount }}</dd>
+                        <dd class="font-bold text-ink tabular-nums">{{ jp.prorationAmount | money }}</dd>
                       </div>
                     </dl>
                     <div class="mt-3 pt-3 border-t border-amber-200 flex items-center justify-between gap-3">
                       <span class="text-xs font-extrabold text-ink">Pagas hoy</span>
-                      <span class="text-xl font-black text-ink tabular-nums">${{ jp.amountToPay }}</span>
+                      <span class="text-xl font-black text-ink tabular-nums">{{ jp.amountToPay | money }}</span>
                     </div>
-                    <p class="mt-2 text-[11px] text-on-surface-variant font-medium">
+                    <p class="mt-2 text-xs text-on-surface-variant font-medium">
                       Tu primera renovación es el {{ calendarDateLabel(jp.firstRenewalDate!) }}, igual que el resto del grupo, y es opcional: si solo quieres probar, después de entrar puedes desactivar la renovación y no se te cobrará el mes siguiente. Tienes 48 horas para transferir.
                     </p>
                   </div>
                 } @else {
                   <div class="flex items-start gap-2.5 text-xs text-on-surface-variant font-medium">
                     <span class="material-symbols-outlined text-base text-pink shrink-0">payments</span>
-                    <p>Pagas el ciclo completo: <strong class="text-ink">${{ jp.amountToPay }}</strong>. Tienes 48 horas para transferir y tu renovación es el {{ calendarDateLabel(jp.firstRenewalDate!) }}.</p>
+                    <p>Pagas el ciclo completo: <strong class="text-ink">{{ jp.amountToPay | money }}</strong>. Tienes 48 horas para transferir y tu renovación es el {{ calendarDateLabel(jp.firstRenewalDate!) }}.</p>
                   </div>
                 }
               </div>
@@ -267,15 +230,19 @@
           }
         </div>
 
+        @if (!isOwner() && (joined() || (reserved() && !g.startedAt) || hasPendingPayment())) {
+          <app-renewal-toggle class="block" [groupId]="g.id" />
+        }
+
         <!-- Aviso de aprobación pendiente/rechazada (solo owner) -->
         @if (isOwner() && g.approvalStatus === 'PENDING') {
           @if (g.credentialReviewStatus === 'SUBMITTED') {
-            <div class="p-5 rounded-[28px] bg-blue-50 border border-blue-200 flex items-start gap-3">
+            <div class="p-5 rounded-2xl bg-blue-50 border border-blue-200 flex items-start gap-3">
               <span class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-lg">fact_check</span></span>
               <div><p class="text-sm font-extrabold text-ink">Credenciales enviadas al administrador</p><p class="text-xs text-on-surface-variant font-medium mt-0.5">Partly las está revisando. El grupo seguirá oculto hasta que se confirme que el acceso funciona.</p></div>
             </div>
           } @else {
-            <div class="p-5 rounded-[28px] bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div class="p-5 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center gap-3">
               <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-lg">key</span></span>
               <div class="flex-1">
                 <p class="text-sm font-extrabold text-ink">{{ g.credentialReviewStatus === 'REQUESTED' ? 'Partly solicitó las credenciales' : 'Este grupo está en revisión de Partly' }}</p>
@@ -294,14 +261,14 @@
                 [disabled]="g.credentialReviewStatus !== 'REQUESTED'"
                 [attr.title]="g.credentialReviewStatus !== 'REQUESTED' ? 'Se habilita cuando Partly te pida las credenciales' : null"
                 (click)="scrollToCredentials(); openCredentialForm()"
-                class="active:scale-[0.98] transition-colors hover:bg-[#047857] shrink-0 py-2.5 px-5 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:bg-pink disabled:active:scale-100"
+                class="active:scale-[0.98] transition-colors hover:bg-[#065f46] shrink-0 py-2.5 px-5 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:bg-pink disabled:active:scale-100"
               >
                 {{ g.credentialReviewStatus === 'REQUESTED' ? 'Enviar credenciales al administrador' : 'Esperando la solicitud de Partly' }}
               </button>
             </div>
           }
         } @else if (isOwner() && g.approvalStatus === 'REJECTED') {
-          <div class="p-5 rounded-[28px] bg-red-50 border border-red-200 flex items-start gap-3">
+          <div class="p-5 rounded-2xl bg-red-50 border border-red-200 flex items-start gap-3">
             <span class="w-9 h-9 rounded-xl bg-red-100 text-red-700 flex items-center justify-center shrink-0">
               <span class="material-symbols-outlined text-lg">block</span>
             </span>
@@ -317,19 +284,19 @@
 
         <!-- Pagos pendientes de revisión (solo owner) -->
         @if (isOwner() && pendingPayments() && pendingPayments()!.length > 0) {
-          <div class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-amber-200">
+          <div class="p-6 rounded-2xl bg-white shadow-neu-raised border border-amber-200">
             <div class="flex items-start gap-2.5 mb-4">
               <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-lg">receipt_long</span>
               </span>
               <div>
-                <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Pagos por revisar ({{ pendingPayments()!.length }})</h2>
+                <h2 class="text-base font-bold text-ink">Pagos por revisar ({{ pendingPayments()!.length }})</h2>
                 <p class="text-xs text-on-surface-variant font-medium">Confirma que el dinero te llegó antes de darles acceso a la cuenta.</p>
               </div>
             </div>
 
             @if (errorMessageForOwnerReview()) {
-              <p class="text-[11px] text-red-600 font-semibold mb-3">{{ errorMessageForOwnerReview() }}</p>
+              <p class="text-xs text-red-600 font-semibold mb-3">{{ errorMessageForOwnerReview() }}</p>
             }
 
             <div class="space-y-3">
@@ -347,11 +314,11 @@
                       <div class="min-w-0">
                         <p class="text-sm font-bold text-ink truncate">{{ payment.member.name }}</p>
                         <p class="text-xs text-on-surface-variant">
-                          ${{ payment.amount }}
+                          {{ payment.amount | money }}
                           @if (payment.includesNextCycle) {
-                            <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">{{ payment.proratedDays }} días + ciclo siguiente</span>
+                            <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-xs font-bold">{{ payment.proratedDays }} días + ciclo siguiente</span>
                           } @else if (payment.proratedDays) {
-                            <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">Paga solo {{ payment.proratedDays }} días</span>
+                            <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-xs font-bold">Paga solo {{ payment.proratedDays }} días</span>
                           }
                           @if (payment.receiptUploadedAt) {
                             · comprobante subido el {{ memberSinceLabel(payment.receiptUploadedAt) }}
@@ -392,13 +359,13 @@
                         </button>
                       </div>
                     } @else {
-                      <span class="text-[11px] font-semibold text-on-surface-variant shrink-0">Esperando su comprobante</span>
+                      <span class="text-xs font-semibold text-on-surface-variant shrink-0">Esperando su comprobante</span>
                     }
                   </div>
 
                   @if (payment.receiptUploadedAt && payment.membershipStatus === 'PENDING_PAYMENT') {
                     <div class="mt-3 pt-3 border-t border-crema-border/60">
-                      <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Perfil que le vas a asignar</label>
+                      <label class="block text-xs font-bold text-on-surface-variant mb-1.5">Perfil que le vas a asignar</label>
                       @if (availableProfiles().length > 0) {
                         <div class="relative w-full sm:w-64">
                           <span class="material-symbols-outlined text-on-surface-variant/50 text-lg absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">person</span>
@@ -415,7 +382,7 @@
                           <span class="material-symbols-outlined text-on-surface-variant/60 text-lg absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
                         </div>
                       } @else {
-                        <p class="text-[11px] text-amber-700 font-semibold">No te queda ningún perfil libre — agrega uno en "Perfiles de la cuenta" antes de aprobar.</p>
+                        <p class="text-xs text-amber-700 font-semibold">No te queda ningún perfil libre — agrega uno en "Perfiles de la cuenta" antes de aprobar.</p>
                       }
                     </div>
                   }
@@ -434,11 +401,11 @@
                           type="button"
                           [disabled]="reviewingId() === payment.id"
                           (click)="confirmReject(payment)"
-                          class="active:scale-[0.98] transition-colors hover:bg-red-700 py-1.5 px-4 rounded-lg bg-red-600 text-white text-[11px] font-bold disabled:opacity-60"
+                          class="active:scale-[0.98] transition-colors hover:bg-red-700 py-1.5 px-4 rounded-lg bg-red-600 text-white text-xs font-bold disabled:opacity-60"
                         >
                           Confirmar rechazo
                         </button>
-                        <button type="button" (click)="cancelReject()" class="active:scale-[0.98] transition-colors hover:bg-slate-50 py-1.5 px-4 rounded-lg bg-white border border-crema-border text-ink text-[11px] font-bold">
+                        <button type="button" (click)="cancelReject()" class="active:scale-[0.98] transition-colors hover:bg-slate-50 py-1.5 px-4 rounded-lg bg-white border border-crema-border text-ink text-xs font-bold">
                           Cancelar
                         </button>
                       </div>
@@ -450,55 +417,12 @@
           </div>
         }
 
-        <!-- Detalles del plan -->
-        <div class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70">
-          <div class="flex items-center justify-between gap-3 mb-4">
-            <div class="flex items-center gap-2.5">
-              <span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-pink flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-lg">group</span>
-              </span>
-              <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Detalles del plan</h2>
-            </div>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="p-4 rounded-2xl bg-crema-inset shadow-neu-inset-sm">
-              <span class="w-9 h-9 rounded-full bg-white shadow-neu-raised-sm text-pink flex items-center justify-center mb-2.5">
-                <span class="material-symbols-outlined text-base">group</span>
-              </span>
-              <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Cupos totales</p>
-              <p class="text-lg font-black text-ink">{{ g.availableSlots }}</p>
-              <p class="text-[10px] text-on-surface-variant font-medium">{{ g.availableSlots - g.occupiedSlots }} disponible{{ g.availableSlots - g.occupiedSlots === 1 ? '' : 's' }}</p>
-            </div>
-            <div class="p-4 rounded-2xl bg-crema-inset shadow-neu-inset-sm">
-              <span class="w-9 h-9 rounded-full bg-white shadow-neu-raised-sm text-pink flex items-center justify-center mb-2.5">
-                <span class="material-symbols-outlined text-base">calendar_month</span>
-              </span>
-              <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Renovación</p>
-              <p class="text-lg font-black text-ink">{{ g.plan.billingPeriod === 'MONTHLY' ? 'Mensual' : g.plan.billingPeriod === 'QUARTERLY' ? 'Trimestral' : g.plan.billingPeriod === 'SEMIANNUAL' ? 'Semestral' : 'Anual' }}</p>
-              <p class="text-[10px] text-on-surface-variant font-medium">Se cobra automático</p>
-            </div>
-            <div class="p-4 rounded-2xl bg-crema-inset shadow-neu-inset-sm">
-              <span class="w-9 h-9 rounded-full bg-white shadow-neu-raised-sm text-pink flex items-center justify-center mb-2.5">
-                <span class="material-symbols-outlined text-base">shield</span>
-              </span>
-              <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Tipo de cuenta</p>
-              <p class="text-lg font-black text-ink leading-snug">{{ g.plan.tierName }}</p>
-              <p class="text-[10px] text-on-surface-variant font-medium">{{ g.plan.platform.categoryName ?? g.plan.platform.name }}</p>
-            </div>
-          </div>
-        </div>
-
         <!-- Credenciales de la cuenta compartida -->
         @if (isOwner() || joined()) {
-          <div id="credenciales" class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70 scroll-mt-24">
-            <div class="flex items-start gap-2.5 mb-4">
-              <span class="w-9 h-9 rounded-xl bg-ink text-white flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-lg">lock</span>
-              </span>
-              <div>
-                <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Credenciales de la cuenta</h2>
-                <p class="text-xs text-on-surface-variant font-medium">Cifradas y protegidas durante todo el proceso de revisión.</p>
-              </div>
+          <div id="credenciales" class="p-6 rounded-2xl bg-white shadow-neu-raised scroll-mt-24">
+            <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
+              <h2 class="text-base font-bold text-ink flex items-center gap-2"><span class="material-symbols-outlined text-lg text-emerald-700">lock</span>Acceso a la cuenta</h2>
+              @if (credential(); as cred) { <span class="text-xs text-on-surface-variant">Actualizado el {{ paymentDateLabel(cred.updatedAt) }}</span> }
             </div>
 
             @if (credentialSent()) {
@@ -510,7 +434,7 @@
             @if (credentialFormOpen()) {
               <div class="space-y-3">
                 <div>
-                  <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Usuario o correo</label>
+                  <label class="block text-xs font-bold text-on-surface-variant mb-1.5">Usuario o correo</label>
                   <input
                     type="text"
                     [value]="credUsername()"
@@ -520,7 +444,7 @@
                   />
                 </div>
                 <div>
-                  <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Contraseña</label>
+                  <label class="block text-xs font-bold text-on-surface-variant mb-1.5">Contraseña</label>
                   <input
                     type="text"
                     [value]="credPassword()"
@@ -530,7 +454,7 @@
                   />
                 </div>
                 <div>
-                  <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Perfil e instrucciones de uso (opcional)</label>
+                  <label class="block text-xs font-bold text-on-surface-variant mb-1.5">Perfil e instrucciones de uso (opcional)</label>
                   <textarea
                     [value]="credNotes()"
                     (input)="credNotes.set($any($event.target).value)"
@@ -540,14 +464,14 @@
                   ></textarea>
                 </div>
                 @if (credentialSaveError()) {
-                  <p class="text-[11px] text-red-600 font-semibold">{{ credentialSaveError() }}</p>
+                  <p class="text-xs text-red-600 font-semibold">{{ credentialSaveError() }}</p>
                 }
                 <div class="flex items-center gap-2 pt-1">
                   <button
                     type="button"
                     [disabled]="savingCredential() || !credUsername().trim() || !credPassword()"
                     (click)="saveCredential()"
-                    class="active:scale-[0.98] hover:bg-[#047857] py-2.5 px-5 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-60 transition-all"
+                    class="active:scale-[0.98] hover:bg-[#065f46] py-2.5 px-5 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-60 transition-all"
                   >
                     {{ savingCredential() ? 'Enviando…' : g.approvalStatus === 'PENDING' ? 'Enviar al administrador' : 'Guardar credenciales' }}
                   </button>
@@ -557,13 +481,13 @@
                 </div>
               </div>
             } @else if (credential() === undefined) {
-              <p class="text-xs text-on-surface-variant font-medium">Cargando…</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><span class="ui-skeleton h-14! rounded-xl!"></span><span class="ui-skeleton h-14! rounded-xl!"></span></div>
             } @else if (credential() === null) {
               @if (isOwner()) {
                 <div class="flex items-center justify-between gap-4 p-4 rounded-2xl bg-amber-50 border border-amber-100">
                   <div>
                     <p class="text-xs font-bold text-ink">Credenciales pendientes de envío</p>
-                    <p class="text-[11px] text-on-surface-variant">
+                    <p class="text-xs text-on-surface-variant">
                       @if (g.approvalStatus === 'PENDING' && g.credentialReviewStatus !== 'REQUESTED') {
                         Podrás enviarlas cuando Partly las solicite, después de que conozcas tu comisión.
                       } @else {
@@ -571,7 +495,7 @@
                       }
                     </p>
                   </div>
-                  <button type="button" [disabled]="g.approvalStatus === 'PENDING' && g.credentialReviewStatus !== 'REQUESTED'" (click)="openCredentialForm()" class="active:scale-[0.98] transition-colors hover:bg-[#047857] shrink-0 py-2 px-4 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:bg-pink disabled:active:scale-100">{{ g.approvalStatus === 'PENDING' ? 'Enviar credenciales al administrador' : 'Agregar' }}</button>
+                  <button type="button" [disabled]="g.approvalStatus === 'PENDING' && g.credentialReviewStatus !== 'REQUESTED'" (click)="openCredentialForm()" class="active:scale-[0.98] transition-colors hover:bg-[#065f46] shrink-0 py-2 px-4 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:bg-pink disabled:active:scale-100">{{ g.approvalStatus === 'PENDING' ? 'Enviar credenciales al administrador' : 'Agregar' }}</button>
                 </div>
               } @else {
                 <p class="text-xs text-on-surface-variant font-medium">El vendedor todavía no ha configurado el acceso a la cuenta. Vuelve pronto.</p>
@@ -580,18 +504,18 @@
               @if (credential(); as cred) {
                 <div class="space-y-3">
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="flex items-center justify-between gap-2 p-3.5 rounded-2xl bg-crema-inset shadow-neu-inset-sm">
+                    <div class="flex items-center justify-between gap-2 px-3.5 py-3 rounded-xl bg-crema-inset">
                       <div class="min-w-0">
-                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Usuario</p>
+                        <p class="text-xs font-bold text-on-surface-variant">Usuario</p>
                         <p class="text-sm font-bold text-ink truncate">{{ cred.username }}</p>
                       </div>
                       <button type="button" (click)="copyToClipboard(cred.username, 'username')" class="active:scale-[0.98] shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
                         <span class="material-symbols-outlined text-base">{{ copiedField() === 'username' ? 'check' : 'content_copy' }}</span>
                       </button>
                     </div>
-                    <div class="flex items-center justify-between gap-2 p-3.5 rounded-2xl bg-crema-inset shadow-neu-inset-sm">
+                    <div class="flex items-center justify-between gap-2 px-3.5 py-3 rounded-xl bg-crema-inset">
                       <div class="min-w-0">
-                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Contraseña</p>
+                        <p class="text-xs font-bold text-on-surface-variant">Contraseña</p>
                         <p class="text-sm font-bold text-ink truncate font-mono">{{ showCredentialPassword() ? cred.password : '••••••••••' }}</p>
                       </div>
                       <div class="flex items-center gap-1 shrink-0">
@@ -611,12 +535,11 @@
                     </div>
                   }
                   @if (isOwner() && g.approvalStatus === 'PENDING' && g.credentialReviewStatus === 'SUBMITTED') {
-                    <div class="p-3 rounded-2xl bg-blue-50 border border-blue-100 flex items-center gap-2 text-blue-800"><span class="material-symbols-outlined text-base">schedule</span><p class="text-[11px] font-semibold">Enviadas al administrador y pendientes de revisión.</p></div>
+                    <div class="p-3 rounded-2xl bg-blue-50 border border-blue-100 flex items-center gap-2 text-blue-800"><span class="material-symbols-outlined text-base">schedule</span><p class="text-xs font-semibold">Enviadas al administrador y pendientes de revisión.</p></div>
                   }
-                  <div class="flex items-center justify-between gap-3 flex-wrap">
-                    <p class="text-[10px] text-on-surface-variant font-medium">Última actualización: {{ memberSinceLabel(cred.updatedAt) }}</p>
+                  <div class="flex items-center justify-end gap-3 flex-wrap">
                     @if (isOwner()) {
-                      <button type="button" (click)="openCredentialForm()" class="inline-flex items-center gap-1 text-[11px] font-bold text-pink">
+                      <button type="button" (click)="openCredentialForm()" class="inline-flex items-center gap-1 text-xs font-bold text-pink">
                         <span class="material-symbols-outlined text-sm">edit</span>
                         {{ g.approvalStatus === 'PENDING' ? 'Corregir y volver a enviar' : 'Editar credenciales' }}
                       </button>
@@ -630,8 +553,8 @@
 
         <!-- Otros grupos del vendedor -->
         @if (otherGroups() && otherGroups()!.length > 0) {
-          <div class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70">
-            <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide mb-4">Otros grupos de {{ g.owner.name }}</h2>
+          <div class="p-6 rounded-2xl bg-white shadow-neu-raised">
+            <h2 class="text-base font-bold text-ink mb-4">Otros grupos de {{ g.owner.name }}</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               @for (other of otherGroups(); track other.id) {
                 <a
@@ -641,7 +564,7 @@
                   <app-platform-logo class="w-10 h-10 rounded-xl font-black text-sm shrink-0" [name]="other.plan.platform.name" />
                   <div class="min-w-0 flex-1">
                     <p class="text-xs font-bold text-ink truncate">{{ other.plan.platform.name }}</p>
-                    <p class="text-[11px] text-on-surface-variant truncate">${{ other.pricePerSlot }} / {{ other.plan.billingPeriod === 'MONTHLY' ? 'mes' : 'periodo' }}</p>
+                    <p class="text-xs text-on-surface-variant truncate">{{ other.pricePerSlot | money }} / {{ other.plan.billingPeriod === 'MONTHLY' ? 'mes' : 'periodo' }}</p>
                   </div>
                   <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">chevron_right</span>
                 </a>
@@ -652,95 +575,68 @@
       </div>
 
       <!-- Columna derecha -->
-      <div class="space-y-6">
-        <div class="p-5 rounded-2xl bg-white shadow-neu-raised border border-white/70 flex items-start gap-3">
-          <span class="w-10 h-10 rounded-xl bg-emerald-500/10 text-pink flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-lg">shield</span>
-          </span>
-          <div>
-            <p class="text-xs font-bold text-ink">Tu seguridad primero</p>
-            <p class="text-[11px] text-on-surface-variant leading-relaxed">Todas las suscripciones están protegidas con Partly Shield.</p>
+      <div class="space-y-5">
+        <div class="p-5 rounded-2xl bg-white shadow-neu-raised">
+          <h2 class="text-base font-bold text-ink mb-3">Lugares del grupo</h2>
+          <div class="ui-seats" [attr.aria-label]="g.occupiedSlots + ' de ' + g.availableSlots + ' lugares ocupados'">
+            @for (seat of seatBar(); track $index) { <span [class]="seat"></span> }
+          </div>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs text-on-surface-variant">
+            <span class="inline-flex items-center gap-1.5"><i class="w-2 h-2 rounded-full bg-[#17b26a]"></i>{{ g.occupiedSlots - g.freeingSlots }} ocupado{{ g.occupiedSlots - g.freeingSlots === 1 ? '' : 's' }}</span>
+            @if (g.freeingSlots > 0) { <span class="inline-flex items-center gap-1.5"><i class="w-2 h-2 rounded-full bg-[#7a5af8]"></i>{{ g.freeingSlots }} por liberarse</span> }
+            @if (g.heldSlots > 0) { <span class="inline-flex items-center gap-1.5"><i class="w-2 h-2 rounded-full bg-[#abefc6]"></i>{{ g.heldSlots }} apartado{{ g.heldSlots === 1 ? '' : 's' }}</span> }
+            <span class="inline-flex items-center gap-1.5"><i class="w-2 h-2 rounded-full bg-[#e6e8ee]"></i>{{ g.availableSlots - g.occupiedSlots - g.heldSlots }} libre{{ g.availableSlots - g.occupiedSlots - g.heldSlots === 1 ? '' : 's' }}</span>
           </div>
         </div>
 
-        <div class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70">
-          <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide mb-4">Sobre el vendedor</h2>
+        <div class="p-5 rounded-2xl bg-white shadow-neu-raised">
+          <h2 class="text-base font-bold text-ink mb-3">Vendedor</h2>
           <div class="flex items-center gap-3 mb-4">
-            @if (g.owner.avatarUrl) {
-              <img [src]="g.owner.avatarUrl" alt="" class="w-14 h-14 rounded-full object-cover shrink-0" />
+            @if (g.owner.avatarUrl && !brokenAvatars().has(g.owner.avatarUrl)) {
+              <img [src]="g.owner.avatarUrl" alt="" referrerpolicy="no-referrer" (error)="markAvatarBroken(g.owner.avatarUrl)" class="w-11 h-11 rounded-full object-cover shrink-0" />
             } @else {
-              <span class="w-14 h-14 rounded-full bg-pink/10 text-pink text-lg font-black flex items-center justify-center shrink-0">
+              <span class="w-11 h-11 rounded-full bg-emerald-50 text-emerald-700 text-base font-extrabold flex items-center justify-center shrink-0">
                 {{ g.owner.name.charAt(0).toUpperCase() }}
               </span>
             }
             <div class="min-w-0">
-              <p class="text-sm font-bold text-ink truncate">{{ g.owner.name }}</p>
-              <div class="flex items-center gap-1 text-xs text-amber-500 font-bold">
-                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
-                {{ g.owner.ratingAvg }}
-                <span class="text-on-surface-variant font-medium">({{ reviewsTotal() }} reseña{{ reviewsTotal() === 1 ? '' : 's' }})</span>
+              <p class="text-[15px] font-bold text-ink truncate">{{ g.owner.name }}</p>
+              <div class="flex items-center gap-1 text-[13px] text-on-surface-variant">
+                <span class="material-symbols-outlined text-sm text-amber-500" style="font-variation-settings: 'FILL' 1">star</span>
+                {{ g.owner.ratingAvg }} · {{ reviewsTotal() }} reseña{{ reviewsTotal() === 1 ? '' : 's' }}
               </div>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-3 mb-4">
-            <div class="p-3 rounded-2xl bg-crema-inset shadow-neu-inset-sm">
-              <span class="flex items-center gap-1 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                <span class="material-symbols-outlined text-xs">calendar_month</span>
-                Miembro desde
-              </span>
-              <p class="text-sm font-black text-ink">{{ memberSinceLabel(g.owner.memberSince) }}</p>
-            </div>
-            <div class="p-3 rounded-2xl bg-crema-inset shadow-neu-inset-sm">
-              <span class="flex items-center gap-1 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                <span class="material-symbols-outlined text-xs">groups</span>
-                Grupos activos
-              </span>
-              <p class="text-sm font-black text-ink">{{ activeGroupsCount() }}</p>
-            </div>
-          </div>
-
+          <dl class="space-y-2 text-[13px]">
+            <div class="flex justify-between gap-3"><dt class="text-on-surface-variant">Miembro desde</dt><dd class="font-semibold text-ink">{{ memberSinceLabel(g.owner.memberSince) }}</dd></div>
+            <div class="flex justify-between gap-3"><dt class="text-on-surface-variant">Grupos activos</dt><dd class="font-semibold text-ink">{{ activeGroupsCount() }}</dd></div>
+          </dl>
           @if (g.owner.emailVerified) {
-            <div class="flex items-center gap-2.5 p-3 rounded-2xl bg-blue-50 border border-blue-100">
-              <span class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-base">verified</span>
-              </span>
-              <div>
-                <p class="text-xs font-bold text-ink">Vendedor confiable</p>
-                <p class="text-[10px] text-on-surface-variant">Cuenta verificada por Partly</p>
-              </div>
-            </div>
+            <span class="ui-pill ui-pill--info no-dot mt-4"><span class="material-symbols-outlined text-sm">check</span>Cuenta verificada</span>
           }
         </div>
 
-        <!-- Bloque promocional -->
-        <div class="relative overflow-hidden p-6 rounded-[28px] bg-gradient-to-br from-emerald-50 via-emerald-50/70 to-white border border-emerald-100">
-          <svg class="absolute -right-8 -bottom-10 w-40 h-40 text-emerald-200/60" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5Zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1Z" />
-          </svg>
-          <p class="relative text-lg font-extrabold text-ink leading-snug mb-2">Disfruta más<br />en compañía</p>
-          <p class="relative text-xs text-on-surface-variant font-medium max-w-[14rem]">Las mejores suscripciones compartidas, más accesibles para todos.</p>
-        </div>
       </div>
     </div>
 
     <!-- Perfiles de la cuenta compartida (solo owner) -->
     @if (isOwner() && profiles() !== null) {
-      <div class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70">
+      <div class="p-6 rounded-2xl bg-white shadow-neu-raised">
         <div class="flex items-start justify-between gap-3 mb-4 flex-wrap">
           <div class="flex items-start gap-2.5">
             <span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-pink flex items-center justify-center shrink-0">
               <span class="material-symbols-outlined text-lg">lock</span>
             </span>
             <div>
-              <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Perfiles de la cuenta ({{ profiles()!.length }})</h2>
+              <h2 class="text-base font-bold text-ink">Perfiles de la cuenta ({{ profiles()!.length }})</h2>
               <p class="text-xs text-on-surface-variant font-medium">Los perfiles que existen dentro de la cuenta — cada comprador aprobado recibirá uno.</p>
             </div>
           </div>
           <button
             type="button"
             (click)="profileError.set(null); newProfileInput.focus()"
-            class="hover:bg-[#047857] shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-pink text-white text-xs font-bold active:scale-95 transition-all"
+            class="hover:bg-[#065f46] shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-pink text-white text-xs font-bold active:scale-95 transition-all"
           >
             <span class="material-symbols-outlined text-sm">add</span>
             Agregar perfil
@@ -748,7 +644,7 @@
         </div>
 
         @if (profileError()) {
-          <p class="text-[11px] text-red-600 font-semibold mb-3">{{ profileError() }}</p>
+          <p class="text-xs text-red-600 font-semibold mb-3">{{ profileError() }}</p>
         }
 
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-4">
@@ -766,7 +662,7 @@
                   class="w-full bg-white rounded-full py-1 px-2.5 text-xs font-bold text-ink text-center border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink mb-2"
                 />
                 <div class="flex items-center justify-center gap-1.5">
-                  <button type="button" [disabled]="savingProfile()" (click)="saveRenameProfile(profile)" class="active:scale-[0.98] transition-colors hover:bg-[#047857] w-7 h-7 rounded-lg bg-pink text-white flex items-center justify-center disabled:opacity-60">
+                  <button type="button" [disabled]="savingProfile()" (click)="saveRenameProfile(profile)" class="active:scale-[0.98] transition-colors hover:bg-[#065f46] w-7 h-7 rounded-lg bg-pink text-white flex items-center justify-center disabled:opacity-60">
                     <span class="material-symbols-outlined text-sm">check</span>
                   </button>
                   <button type="button" (click)="cancelRenameProfile()" class="active:scale-[0.98] transition-colors hover:bg-slate-50 w-7 h-7 rounded-lg bg-white border border-crema-border text-ink flex items-center justify-center">
@@ -776,10 +672,10 @@
               } @else {
                 <p class="text-xs font-bold text-ink truncate mb-1">{{ profile.label }}</p>
                 @if (profile.assignedTo) {
-                  <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 mb-2">Asignado</span>
-                  <p class="text-[10px] text-on-surface-variant truncate mb-1">En uso por {{ profile.assignedTo.userName }}</p>
+                  <span class="inline-block text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 mb-2">Asignado</span>
+                  <p class="text-xs text-on-surface-variant truncate mb-1">En uso por {{ profile.assignedTo.userName }}</p>
                 } @else {
-                  <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-crema-dim text-on-surface-variant mb-2">Libre</span>
+                  <span class="inline-block text-xs font-bold px-2 py-0.5 rounded-full bg-crema-dim text-on-surface-variant mb-2">Libre</span>
                 }
 
                 <div class="relative flex items-center justify-center mt-1">
@@ -793,7 +689,7 @@
                   </button>
                   @if (openProfileMenuId() === profile.id) {
                     <div class="fixed inset-0 z-10" (click)="closeProfileMenu()"></div>
-                    <div class="absolute left-1/2 -translate-x-1/2 top-8 z-20 w-36 py-1.5 rounded-2xl bg-white shadow-neu-raised-lg border border-white/70 text-left">
+                    <div class="absolute left-1/2 -translate-x-1/2 top-8 z-20 w-36 py-1.5 rounded-2xl bg-white shadow-neu-raised-lg text-left">
                       <button type="button" (click)="startRenameProfile(profile); closeProfileMenu()" class="w-full text-left px-3.5 py-2 text-xs font-semibold text-ink hover:bg-crema-inset transition-colors flex items-center gap-1.5">
                         <span class="material-symbols-outlined text-sm">edit</span>
                         Renombrar
@@ -824,13 +720,13 @@
               (input)="newProfileLabel.set($any($event.target).value)"
               (keydown.enter)="addProfile()"
               placeholder="Ej. Perfil Kids"
-              class="w-full bg-white rounded-full py-1.5 px-2.5 text-[11px] font-medium text-ink text-center placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink"
+              class="w-full bg-white rounded-full py-1.5 px-2.5 text-xs font-medium text-ink text-center placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink"
             />
             <button
               type="button"
               [disabled]="savingProfile() || !newProfileLabel().trim()"
               (click)="addProfile()"
-              class="active:scale-[0.98] hover:bg-[#047857] w-7 h-7 rounded-lg bg-pink text-white flex items-center justify-center disabled:opacity-40 transition-all"
+              class="active:scale-[0.98] hover:bg-[#065f46] w-7 h-7 rounded-lg bg-pink text-white flex items-center justify-center disabled:opacity-40 transition-all"
               aria-label="Agregar perfil"
             >
               <span class="material-symbols-outlined text-sm">{{ savingProfile() ? 'hourglass_top' : 'add' }}</span>
@@ -842,14 +738,14 @@
 
     <!-- Miembros del grupo -->
     @if (groupMembers() && groupMembers()!.length > 0) {
-      <div class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70">
+      <div class="p-6 rounded-2xl bg-white shadow-neu-raised">
         <div class="flex items-start justify-between gap-3 mb-4 flex-wrap">
           <div class="flex items-start gap-2.5">
             <span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-pink flex items-center justify-center shrink-0">
               <span class="material-symbols-outlined text-lg">groups</span>
             </span>
             <div>
-              <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Miembros del grupo ({{ groupMembers()!.length }})</h2>
+              <h2 class="text-base font-bold text-ink">Miembros del grupo ({{ groupMembers()!.length }})</h2>
               <p class="text-xs text-on-surface-variant font-medium">Consulta quiénes forman parte de este grupo y la información de su acceso.</p>
             </div>
           </div>
@@ -882,13 +778,13 @@
         }
 
         @if (memberActionError()) {
-          <p class="text-[11px] text-red-600 font-semibold mb-3">{{ memberActionError() }}</p>
+          <p class="text-xs text-red-600 font-semibold mb-3">{{ memberActionError() }}</p>
         }
 
         <div class="overflow-x-auto -mx-2 px-2">
           <table class="w-full text-left border-collapse min-w-[560px]">
             <thead>
-              <tr class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
+              <tr class="text-xs font-bold text-on-surface-variant">
                 <th class="pb-2.5 pr-3 font-bold">Usuario</th>
                 <th class="pb-2.5 px-3 font-bold">Perfil asignado</th>
                 <th class="pb-2.5 px-3 font-bold">Fecha de unión</th>
@@ -903,8 +799,8 @@
                 <tr class="border-t border-crema-border/60">
                   <td class="py-3 pr-3">
                     <div class="flex items-center gap-2.5 min-w-0">
-                      @if (member.user.avatarUrl) {
-                        <img [src]="member.user.avatarUrl" alt="" class="w-9 h-9 rounded-full object-cover shrink-0" />
+                      @if (member.user.avatarUrl && !brokenAvatars().has(member.user.avatarUrl)) {
+                        <img [src]="member.user.avatarUrl" alt="" referrerpolicy="no-referrer" (error)="markAvatarBroken(member.user.avatarUrl)" class="w-9 h-9 rounded-full object-cover shrink-0" />
                       } @else {
                         <span class="w-9 h-9 rounded-full bg-pink/15 text-pink text-xs font-black flex items-center justify-center shrink-0">
                           {{ member.user.name.charAt(0).toUpperCase() }}
@@ -918,36 +814,36 @@
                           }
                         </p>
                         @if (isOwner() && member.renewalStatus === 'NOT_RENEWING') {
-                          <p class="text-[10px] text-amber-600 font-semibold">No renovará · su lugar se libera el {{ calendarDateLabel(member.currentPeriodEnd) }}</p>
+                          <p class="text-xs text-amber-600 font-semibold">No renovará · su lugar se libera el {{ calendarDateLabel(member.currentPeriodEnd) }}</p>
                         } @else if (isOwner() && member.renewalStatus === 'RENEWED') {
-                          <p class="text-[10px] text-emerald-600 font-semibold">Renovó · ya pagó el siguiente ciclo</p>
+                          <p class="text-xs text-emerald-600 font-semibold">Renovó · ya pagó el siguiente ciclo</p>
                         } @else if (isOwner() && member.renewalStatus === 'IN_REVIEW') {
-                          <p class="text-[10px] text-blue-600 font-semibold">Subió su renovación · falta que la apruebes</p>
+                          <p class="text-xs text-blue-600 font-semibold">Subió su renovación · falta que la apruebes</p>
                         } @else if (isOwner() && member.renewalStatus === 'PENDING') {
-                          <p class="text-[10px] text-amber-600 font-semibold">Renovación pendiente de pago</p>
+                          <p class="text-xs text-amber-600 font-semibold">Renovación pendiente de pago</p>
                         } @else if (isOwner() && member.renewalStatus === 'RESERVED_NEXT') {
-                          <p class="text-[10px] text-violet-600 font-semibold">Apartó un lugar que se libera</p>
+                          <p class="text-xs text-violet-600 font-semibold">Apartó un lugar que se libera</p>
                         }
                         @if (isOwner() && member.status === 'PENDING_PAYMENT') {
-                          <p class="text-[10px] text-amber-600 font-semibold">Esperando pago</p>
+                          <p class="text-xs text-amber-600 font-semibold">Esperando pago</p>
                         }
                       </div>
                     </div>
                   </td>
                   <td class="py-3 px-3">
                     @if (member.profile) {
-                      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-crema-inset text-ink text-[11px] font-bold">
+                      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-crema-inset text-ink text-xs font-bold">
                         <span class="material-symbols-outlined text-xs">smart_display</span>
                         {{ member.profile.label }}
                       </span>
                     } @else {
-                      <span class="text-[11px] text-on-surface-variant">—</span>
+                      <span class="text-xs text-on-surface-variant">—</span>
                     }
                   </td>
                   <td class="py-3 px-3">
                     <span class="text-xs text-on-surface-variant font-medium">{{ memberSinceLabel(member.joinedAt) }}</span>
                     @if (isOwner() && member.status !== 'PENDING_PAYMENT' && member.status !== 'RESERVED') {
-                      <span class="block text-[10px] text-on-surface-variant/70">próximo pago {{ calendarDateLabel(member.currentPeriodEnd) }}</span>
+                      <span class="block text-xs text-on-surface-variant/70">próximo pago {{ calendarDateLabel(member.currentPeriodEnd) }}</span>
                     }
                   </td>
                   <td class="py-3 px-3">
@@ -981,7 +877,7 @@
                         </button>
                         @if (openMemberMenuId() === member.id) {
                           <div class="fixed inset-0 z-10" (click)="closeMemberMenu()"></div>
-                          <div class="absolute right-0 top-9 z-20 w-44 py-1.5 rounded-2xl bg-white shadow-neu-raised-lg border border-white/70 text-left">
+                          <div class="absolute right-0 top-9 z-20 w-44 py-1.5 rounded-2xl bg-white shadow-neu-raised-lg text-left">
                             <button
                               type="button"
                               [disabled]="removingMemberId() === member.id"
@@ -1005,7 +901,7 @@
           <div class="mt-4 pt-4 border-t border-crema-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <p class="text-xs font-bold text-ink">Hay {{ g.availableSlots - g.occupiedSlots }} cupo{{ g.availableSlots - g.occupiedSlots === 1 ? '' : 's' }} disponible{{ g.availableSlots - g.occupiedSlots === 1 ? '' : 's' }}</p>
-              <p class="text-[11px] text-on-surface-variant">Comparte el enlace de este grupo para invitar a más personas.</p>
+              <p class="text-xs text-on-surface-variant">Comparte el enlace de este grupo para invitar a más personas.</p>
             </div>
             <button
               type="button"
@@ -1021,14 +917,14 @@
     }
 
     <!-- Reseñas: ancho completo -->
-    <div class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70">
+    <div class="p-6 rounded-2xl bg-white shadow-neu-raised">
       <div class="flex items-start justify-between gap-4 mb-5 flex-wrap">
         <div class="flex items-start gap-2.5">
           <span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-pink flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-lg">forum</span>
           </span>
           <div>
-            <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Reseñas de este grupo</h2>
+            <h2 class="text-base font-bold text-ink">Reseñas de este grupo</h2>
             <p class="text-xs text-on-surface-variant font-medium">Conoce la experiencia de otros miembros.</p>
           </div>
         </div>
@@ -1051,14 +947,14 @@
             <button
               type="button"
               (click)="openReviewForm()"
-              class="hover:bg-[#047857] shrink-0 inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-pink text-white text-xs font-bold active:scale-95 transition-all"
+              class="hover:bg-[#065f46] shrink-0 inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-pink text-white text-xs font-bold active:scale-95 transition-all"
             >
               <span class="material-symbols-outlined text-sm">{{ myReview() ? 'edit' : 'rate_review' }}</span>
               {{ myReview() ? 'Editar tu reseña' : 'Escribir una reseña' }}
             </button>
           }
           @if (joined() && !isOwner() && reviewsTotal() > 0 && !myReview() && reviewEligibility() && !reviewEligibility()!.canReview) {
-            <span class="max-w-xs text-[11px] text-on-surface-variant font-medium">{{ reviewEligibility()!.reason }}</span>
+            <span class="max-w-xs text-xs text-on-surface-variant font-medium">{{ reviewEligibility()!.reason }}</span>
           }
           @if (reviews() && reviews()!.length > reviewsPerPage) {
             <button
@@ -1074,7 +970,7 @@
       </div>
 
       @if (reviews() === null) {
-        <p class="text-xs text-on-surface-variant font-medium">Cargando…</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4"><span class="ui-skeleton h-24! rounded-xl!"></span><span class="ui-skeleton h-24! rounded-xl!"></span><span class="ui-skeleton h-24! rounded-xl!"></span></div>
       } @else if (reviews()!.length === 0) {
         <div class="flex flex-col items-center text-center gap-3 py-6">
           <span class="w-14 h-14 rounded-2xl bg-crema-inset flex items-center justify-center text-on-surface-variant/60">
@@ -1096,7 +992,7 @@
             <button
               type="button"
               (click)="openReviewForm()"
-              class="hover:bg-[#047857] inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-pink text-white text-xs font-bold active:scale-95 transition-all"
+              class="hover:bg-[#065f46] inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-pink text-white text-xs font-bold active:scale-95 transition-all"
             >
               <span class="material-symbols-outlined text-sm">rate_review</span>
               Escribir una reseña
@@ -1171,8 +1067,8 @@
       <div class="p-5 rounded-2xl bg-crema-inset shadow-neu-inset-sm flex flex-col min-h-50">
         <div class="flex items-center justify-between gap-2 mb-3">
           <div class="flex items-center gap-2.5 min-w-0">
-            @if (review.author.avatarUrl) {
-              <img [src]="review.author.avatarUrl" alt="" class="w-9 h-9 rounded-full object-cover shrink-0" />
+            @if (review.author.avatarUrl && !brokenAvatars().has(review.author.avatarUrl)) {
+              <img [src]="review.author.avatarUrl" alt="" referrerpolicy="no-referrer" (error)="markAvatarBroken(review.author.avatarUrl)" class="w-9 h-9 rounded-full object-cover shrink-0" />
             } @else {
               <span class="w-9 h-9 rounded-full text-xs font-black flex items-center justify-center shrink-0" [class]="avatarColor(i).bg + ' ' + avatarColor(i).text">
                 {{ review.author.name.charAt(0).toUpperCase() }}
@@ -1185,7 +1081,7 @@
                   <span class="material-symbols-outlined text-sm" [style.font-variation-settings]="star <= review.rating ? &quot;'FILL' 1&quot; : &quot;'FILL' 0&quot;">star</span>
                 }
               </div>
-              <span class="text-[10px] text-on-surface-variant font-medium block">{{ relativeTime(review.createdAt) }}</span>
+              <span class="text-xs text-on-surface-variant font-medium block">{{ relativeTime(review.createdAt) }}</span>
             </div>
           </div>
           @if (myReview() && myReview()!.id === review.id) {
@@ -1199,7 +1095,7 @@
         }
         @if (review.sellerReply && replyingId() !== review.id) {
           <div class="mt-3 rounded-xl bg-white/70 border border-crema-border/60 px-3 py-2.5">
-            <p class="text-[10px] font-bold text-pink uppercase tracking-wide mb-0.5">Respuesta del vendedor</p>
+            <p class="text-xs font-bold text-pink mb-0.5">Respuesta del vendedor</p>
             <p class="text-xs text-on-surface-variant leading-relaxed">{{ review.sellerReply }}</p>
           </div>
         }
@@ -1215,22 +1111,22 @@
                 class="w-full rounded-xl bg-white border border-crema-border px-3 py-2 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-pink/30"
               ></textarea>
               @if (replyError()) {
-                <p class="text-[11px] text-red-600 font-semibold mt-1">{{ replyError() }}</p>
+                <p class="text-xs text-red-600 font-semibold mt-1">{{ replyError() }}</p>
               }
               <div class="flex items-center gap-2 mt-2">
-                <button type="button" (click)="submitReply(review)" [disabled]="savingReply() || replyDraft().trim().length < 2" class="hover:bg-[#047857] px-4 py-2 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-60 active:scale-95 transition-all">
+                <button type="button" (click)="submitReply(review)" [disabled]="savingReply() || replyDraft().trim().length < 2" class="hover:bg-[#065f46] px-4 py-2 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-60 active:scale-95 transition-all">
                   {{ savingReply() ? 'Guardando…' : 'Publicar respuesta' }}
                 </button>
                 <button type="button" (click)="replyingId.set(null)" class="px-3 py-2 rounded-lg text-xs font-bold text-on-surface-variant hover:bg-white">Cancelar</button>
               </div>
             </div>
           } @else {
-            <button type="button" (click)="openReply(review)" class="mt-3 self-start inline-flex items-center gap-1 text-[11px] font-bold text-pink hover:underline">
+            <button type="button" (click)="openReply(review)" class="mt-3 self-start inline-flex items-center gap-1 text-xs font-bold text-pink hover:underline">
               <span class="material-symbols-outlined text-sm">reply</span>{{ review.sellerReply ? 'Editar respuesta' : 'Responder' }}
             </button>
           }
         }
-        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 mt-3">
+        <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 mt-3">
           <span class="material-symbols-outlined text-xs">check_circle</span>
           Compra verificada
         </span>
@@ -1238,7 +1134,7 @@
     </ng-template>
 
     <!-- Banner Partly Shield -->
-    <div class="anim-in flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white shadow-neu-raised">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 shrink-0">
           <span class="material-symbols-outlined text-xl">shield</span>
@@ -1246,7 +1142,7 @@
         <div>
           <p class="text-sm font-bold text-ink flex items-center gap-2">
             Protección Partly Shield activa
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">100% seguro</span>
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Grupo verificado</span>
           </p>
           <p class="text-xs text-on-surface-variant">Si algo no funciona como se espera, te ayudamos a resolverlo. Tu compra está protegida con Partly Shield.</p>
         </div>
@@ -1257,15 +1153,14 @@
       </a>
     </div>
   } @else {
-    <div class="p-8 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 text-center text-sm text-on-surface-variant font-medium">
-      Cargando…
-    </div>
+    <div class="flex items-center gap-4"><span class="ui-skeleton w-14! h-14! rounded-[14px]!"></span><span class="flex-1 space-y-2"><span class="ui-skeleton w-40 h-6!"></span><span class="ui-skeleton w-72"></span></span></div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5"><div class="ui-skeleton-card lg:col-span-2"><span class="ui-skeleton w-1/3"></span><span class="ui-skeleton w-2/3"></span><span class="ui-skeleton w-1/2"></span></div><div class="ui-skeleton-card"><span class="ui-skeleton w-1/2"></span><span class="ui-skeleton"></span></div></div>
   }
 
   <!-- Vista previa del comprobante de pago -->
   @if (receiptPreviewUrl(); as url) {
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/70 backdrop-blur-sm" (click)="closeReceiptPreview()">
-      <div class="relative w-full max-w-2xl max-h-[85vh] bg-white rounded-[28px] shadow-neu-raised-lg overflow-hidden flex flex-col" (click)="$event.stopPropagation()">
+      <div class="relative w-full max-w-2xl max-h-[85vh] bg-white rounded-2xl shadow-neu-raised-lg overflow-hidden flex flex-col" (click)="$event.stopPropagation()">
         <div class="flex items-center justify-between gap-3 p-4 border-b border-crema-border">
           <p class="text-sm font-extrabold text-ink">Comprobante de pago</p>
           <button type="button" (click)="closeReceiptPreview()" class="active:scale-[0.98] w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-slate-100 transition-colors">
@@ -1286,7 +1181,7 @@
   <!-- Escribir / editar reseña -->
   @if (reviewFormOpen() && group(); as rg) {
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-md" (click)="closeReviewForm()">
-      <div class="review-modal relative w-full max-w-[560px] max-h-[94vh] overflow-y-auto bg-white rounded-[28px] shadow-neu-raised-lg p-6 sm:p-8" (click)="$event.stopPropagation()">
+      <div class="review-modal relative w-full max-w-[560px] max-h-[94vh] overflow-y-auto bg-white rounded-2xl shadow-neu-raised-lg p-6 sm:p-8" (click)="$event.stopPropagation()">
         <div class="flex items-center gap-4 pb-5 border-b border-crema-border">
           <app-platform-logo class="w-14 h-14 rounded-2xl font-black text-xl shrink-0" [name]="rg.plan.platform.name" [logoUrl]="rg.plan.platform.logoUrl" />
           <div class="min-w-0 flex-1">
@@ -1368,7 +1263,7 @@
               type="button"
               [disabled]="savingReview()"
               (click)="submitReview()"
-              class="active:scale-[0.98] hover:bg-[#047857] py-3.5 rounded-xl bg-pink text-white text-base font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_24px_rgba(5,150,105,0.28)] disabled:opacity-60 transition-all"
+              class="active:scale-[0.98] hover:bg-[#065f46] py-3.5 rounded-xl bg-pink text-white text-base font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_24px_rgba(5,150,105,0.28)] disabled:opacity-60 transition-all"
             >
               <span class="material-symbols-outlined text-xl">send</span>
               {{ savingReview() ? 'Guardando…' : myReview() ? 'Guardar cambios' : 'Publicar reseña' }}

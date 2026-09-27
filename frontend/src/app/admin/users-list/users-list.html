@@ -192,7 +192,7 @@
       @if (walletError()) {
         <p class="text-xs text-red-600 font-semibold">{{ walletError() }}</p>
       } @else if (wallet(); as w) {
-        <p class="text-2xl font-black text-ink tabular-nums">${{ w.balance }} <span class="text-sm font-semibold text-on-surface-variant">{{ w.currency }}</span></p>
+        <p class="text-2xl font-black text-ink tabular-nums">{{ w.balance | money }}</p>
       } @else {
         <p class="text-xs text-on-surface-variant font-medium">Cargando…</p>
       }

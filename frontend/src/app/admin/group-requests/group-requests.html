@@ -147,7 +147,7 @@
                     <p class="text-xs text-on-surface-variant font-medium">{{ group.plan.tierName }}</p>
                   </td>
                   <td>
-                    <p class="text-sm font-bold text-ink">${{ group.pricePerSlot }}/mes</p>
+                    <p class="text-sm font-bold text-ink">{{ group.pricePerSlot | money }}/mes</p>
                     <p class="text-xs text-on-surface-variant font-medium">{{ group.availableSlots }} cupos</p>
                   </td>
                   <td>
@@ -157,7 +157,7 @@
                       </div>
                       <div class="min-w-0">
                         <p class="text-sm font-bold text-ink truncate">{{ group.owner.name }}</p>
-                        <span class="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-slate-100 text-[11px] font-semibold text-on-surface-variant">Vendedor</span>
+                        <span class="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-slate-100 text-xs font-semibold text-on-surface-variant">Vendedor</span>
                       </div>
                     </div>
                   </td>

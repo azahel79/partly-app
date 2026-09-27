@@ -17,9 +17,11 @@ import { avatarColor as pastelColor } from '../../shared/avatar-color.util';
 import { ConfirmService } from '../../shared/confirm.service';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
 import { RenewalToggle } from '../../shared/renewal-toggle/renewal-toggle';
+import { MoneyPipe } from '../../shared/money';
+import { seatSegments } from '../../shared/seat-bar.util';
 
 @Component({
-  imports: [RouterLink, NgTemplateOutlet, PlatformLogo, RenewalToggle],
+  imports: [RouterLink, NgTemplateOutlet, PlatformLogo, RenewalToggle, MoneyPipe],
   selector: 'app-group-detail',
   styleUrl: './group-detail.css',
   templateUrl: './group-detail.html',
@@ -146,37 +148,59 @@ export class GroupDetail implements OnInit {
   });
 
   /** Insignia de estado del hero — refleja el mismo criterio y colores que la lista "Mis grupos". */
+  /** Etiqueta del encabezado. Verde = en orden, ámbar = falta algo, azul = esperando, rojo = rechazado. */
   protected readonly heroStatusBadge = computed(() => {
     const g = this.group();
     if (!g) {
       return null;
     }
     if (g.approvalStatus === 'PENDING') {
-      return { label: 'En revisión', dot: 'bg-amber-500', text: 'text-amber-700' };
+      return { label: 'En revisión', tone: 'ui-pill--info' };
+    }
+    // Para el comprador importa su lugar, no si el grupo está lleno.
+    if (this.joined() && !this.isOwner()) {
+      const pay = this.ownPayment();
+      if (pay?.receiptUploadedAt) {
+        return { label: 'Renovación por revisar', tone: 'ui-pill--info' };
+      }
+      if (pay) {
+        return { label: 'Renovación por pagar', tone: 'ui-pill--warn' };
+      }
+      return { label: 'Activo', tone: 'ui-pill--ok' };
     }
     if (g.approvalStatus === 'REJECTED') {
-      return { label: 'Rechazado', dot: 'bg-red-500', text: 'text-red-700' };
+      return { label: 'Rechazado', tone: 'ui-pill--danger' };
     }
     if (g.status === 'PAUSED') {
-      return { label: 'Pausado', dot: 'bg-amber-500', text: 'text-amber-700' };
+      return { label: 'Pausado', tone: '' };
     }
     if (g.status === 'CANCELLED') {
-      return { label: 'Cancelado', dot: 'bg-on-surface-variant', text: 'text-on-surface-variant' };
+      return { label: 'Cancelado', tone: '' };
     }
     if (g.status === 'FULL') {
-      return { label: 'Lleno', dot: 'bg-blue-500', text: 'text-blue-700' };
+      return { label: 'Lleno', tone: 'ui-pill--ok' };
     }
     if (g.status === 'READY_TO_START') {
-      return { label: 'Listo para iniciar', dot: 'bg-emerald-500', text: 'text-emerald-700' };
+      return { label: 'Listo para iniciar', tone: 'ui-pill--ok' };
     }
     if (!g.startedAt) {
-      return { label: 'Juntando cupos', dot: 'bg-slate-400', text: 'text-on-surface-variant' };
+      return { label: 'Juntando lugares', tone: 'ui-pill--info' };
     }
     if (g.heldSlots > 0) {
-      return { label: 'Iniciado · esperando pagos', dot: 'bg-amber-500', text: 'text-amber-700' };
+      return { label: 'Iniciado · esperando pagos', tone: 'ui-pill--warn' };
     }
-    return { label: 'Activo', dot: 'bg-emerald-500', text: 'text-emerald-700' };
+    return { label: 'Activo', tone: 'ui-pill--ok' };
   });
+
+  /** Un segmento por lugar: ocupado, por liberarse (no renueva), apartado o libre. */
+  protected readonly seatBar = computed(() => {
+    const g = this.group();
+    return g ? seatSegments(g) : [];
+  });
+
+  protected periodNoun(period: string): string {
+    return period === 'MONTHLY' ? 'mes' : period === 'QUARTERLY' ? 'trimestre' : period === 'SEMIANNUAL' ? 'semestre' : 'año';
+  }
 
   protected round(value: string): number {
     return Math.round(parseFloat(value));
@@ -704,6 +728,13 @@ export class GroupDetail implements OnInit {
       this.linkCopied.set(true);
       setTimeout(() => this.linkCopied.set(false), 2000);
     });
+  }
+
+  /** Fotos de perfil que no cargaron (p. ej. de Google): se muestra la inicial en su lugar. */
+  protected readonly brokenAvatars = signal<ReadonlySet<string>>(new Set());
+
+  protected markAvatarBroken(url: string): void {
+    this.brokenAvatars.update((set) => new Set(set).add(url));
   }
 
   protected readonly emojiOpen = signal(false);

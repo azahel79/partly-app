@@ -5,11 +5,12 @@ import { WalletService } from '../../shared/wallet.service';
 import { AdminUser, Role } from '../../shared/users.models';
 import { Wallet } from '../../shared/wallet.models';
 import { avatarColor, initials } from '../../shared/avatar-color.util';
+import { MoneyPipe } from '../../shared/money';
 
 type SortOption = 'recent' | 'oldest' | 'name_asc';
 
 @Component({
-  imports: [],
+  imports: [MoneyPipe, MoneyPipe],
   selector: 'app-users-list',
   styleUrl: './users-list.css',
   templateUrl: './users-list.html',

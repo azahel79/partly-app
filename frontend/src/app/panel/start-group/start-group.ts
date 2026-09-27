@@ -4,6 +4,7 @@ import { GroupsService } from '../../shared/groups.service';
 import { GroupStartPreview } from '../../shared/groups.models';
 import { ConfirmService } from '../../shared/confirm.service';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
+import { formatMoney } from '../../shared/money';
 
 @Component({
   imports: [RouterLink, PlatformLogo],
@@ -55,7 +56,7 @@ export class StartGroup implements OnInit {
   }
 
   protected money(value: number | null): string {
-    return value === null ? '—' : `$${value.toFixed(2)}`;
+    return value === null ? '—' : formatMoney(value);
   }
 
   protected async start(): Promise<void> {

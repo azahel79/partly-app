@@ -245,9 +245,6 @@ html.dark .swal2-html-container { color: var(--dm-muted); }
 /* Botones con hover propio definido en styles.css */
 html.dark app-profile .secondary-button:not(:disabled):hover,
 html.dark app-profile .data-export button:hover { background: rgba(255, 255, 255, 0.08); }
-html.dark app-payments-monitor .filter-tabs button:hover,
-html.dark app-payments-monitor .refresh-button:hover { background: rgba(255, 255, 255, 0.09); }
-html.dark app-payments-monitor .receipt-button:hover { background: rgba(16, 185, 129, 0.24); }
 html.dark app-admin-group-detail .ghost-button:hover,
 html.dark app-admin-group-detail .outline-button:hover { background: rgba(255, 255, 255, 0.08); }
 html.dark app-admin-group-detail .reject-button:hover { background: rgba(248, 113, 113, 0.2); }

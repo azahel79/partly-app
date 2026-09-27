@@ -6,6 +6,7 @@ import { ConfirmService } from '../../shared/confirm.service';
 import { ProviderOrder, ProviderOrderKind } from '../../shared/provider-orders.models';
 import { PlatformBankAccount } from '../../shared/commissions.models';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
+import { formatMoney } from '../../shared/money';
 
 const MAX_RECEIPT_BYTES = 8 * 1024 * 1024;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
@@ -67,8 +68,6 @@ export class OrderPayment implements OnInit, OnDestroy {
     return { expired: false, label: hours >= 1 ? `${hours} h ${minutes} min` : `${minutes} min` };
   });
 
-  private readonly money$ = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
-
   private get orderId(): string {
     return this.route.snapshot.paramMap.get('id')!;
   }
@@ -94,7 +93,7 @@ export class OrderPayment implements OnInit, OnDestroy {
   }
 
   protected money(value: string | number): string {
-    return this.money$.format(Number(value));
+    return formatMoney(value);
   }
 
   /** Monto con dos decimales, sin símbolo (para copiarlo tal cual a la transferencia). */

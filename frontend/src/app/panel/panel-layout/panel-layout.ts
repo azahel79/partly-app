@@ -27,6 +27,24 @@ export class PanelLayout implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly commissionsService = inject(CommissionsService);
 
+  /** Menú del encabezado (escritorio). */
+  protected readonly navItems = [
+    { route: '/panel', label: 'Inicio', exact: true },
+    { route: '/panel/explorar', label: 'Explorar', exact: false },
+    { route: '/panel/grupos', label: 'Mis grupos', exact: false },
+    { route: '/panel/mayoreo', label: 'Mayoreo', exact: false },
+    { route: '/panel/soporte', label: 'Soporte', exact: false },
+  ];
+
+  /** Barra de pestañas de abajo (celular y tableta); Soporte queda en el menú de la cuenta. */
+  protected readonly tabItems = [
+    { route: '/panel', label: 'Inicio', icon: 'home', exact: true },
+    { route: '/panel/explorar', label: 'Explorar', icon: 'explore', exact: false },
+    { route: '/panel/grupos', label: 'Mis grupos', icon: 'group', exact: false },
+    { route: '/panel/mayoreo', label: 'Mayoreo', icon: 'storefront', exact: false },
+    { route: '/panel/perfil', label: 'Perfil', icon: 'person', exact: false },
+  ];
+
   protected readonly notifications = signal<Notification[] | null>(null);
   protected readonly unreadCount = signal(0);
   protected readonly notifPanelOpen = signal(false);

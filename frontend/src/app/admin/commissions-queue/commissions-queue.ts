@@ -8,6 +8,7 @@ import {
   CommissionChargeStatus,
   PlatformBankAccount,
 } from '../../shared/commissions.models';
+import { formatMoney } from '../../shared/money';
 
 type QueueFilter = 'REVIEW' | 'PENDING' | 'OVERDUE' | 'PAID' | 'ALL';
 
@@ -57,8 +58,6 @@ export class CommissionsQueue implements OnInit {
   protected readonly clabeInfo = computed(() => inspectClabe(this.bankClabe()));
   protected readonly canSaveBank = computed(() => this.bankHolder().trim().length >= 3 && this.clabeInfo().isValid && !!this.clabeInfo().bankName);
 
-  private readonly money$ = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
-
   ngOnInit(): void {
     this.loadSummary();
     this.loadCharges();
@@ -95,7 +94,7 @@ export class CommissionsQueue implements OnInit {
   }
 
   protected money(value: number): string {
-    return this.money$.format(value);
+    return formatMoney(value);
   }
 
   protected formatDate(iso: string): string {

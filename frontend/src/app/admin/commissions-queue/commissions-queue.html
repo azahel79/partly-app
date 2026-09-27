@@ -15,22 +15,22 @@
   @if (summary(); as s) {
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <button type="button" (click)="setFilter('REVIEW')" class="text-left p-5 rounded-2xl border transition-colors" [class]="s.inReview.count > 0 ? 'bg-blue-50 border-blue-200 hover:bg-blue-100/60' : 'bg-white border-slate-200/70 hover:bg-slate-50'">
-        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Por revisar</p>
+        <p class="text-xs font-bold text-on-surface-variant">Por revisar</p>
         <p class="text-2xl font-black text-ink tabular-nums mt-2">{{ s.inReview.count }}</p>
         <p class="text-xs text-on-surface-variant mt-0.5">{{ money(s.inReview.amount) }}</p>
       </button>
       <button type="button" (click)="setFilter('PENDING')" class="text-left p-5 rounded-2xl bg-white border border-slate-200/70 hover:bg-slate-50 transition-colors">
-        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Por cobrar</p>
+        <p class="text-xs font-bold text-on-surface-variant">Por cobrar</p>
         <p class="text-2xl font-black text-ink tabular-nums mt-2">{{ money(s.pending.amount) }}</p>
         <p class="text-xs text-on-surface-variant mt-0.5">{{ s.pending.count }} {{ s.pending.count === 1 ? 'cobro' : 'cobros' }} · +{{ money(s.accruedNotBilled) }} por generar</p>
       </button>
       <button type="button" (click)="setFilter('OVERDUE')" class="text-left p-5 rounded-2xl border transition-colors" [class]="s.overdue.count > 0 ? 'bg-red-50 border-red-200 hover:bg-red-100/60' : 'bg-white border-slate-200/70 hover:bg-slate-50'">
-        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Vencidas</p>
+        <p class="text-xs font-bold text-on-surface-variant">Vencidas</p>
         <p class="text-2xl font-black text-ink tabular-nums mt-2">{{ s.overdue.count }}</p>
         <p class="text-xs text-on-surface-variant mt-0.5">{{ money(s.overdue.amount) }} · {{ s.restrictedSellers }} {{ s.restrictedSellers === 1 ? 'vendedor restringido' : 'vendedores restringidos' }}</p>
       </button>
       <button type="button" (click)="setFilter('PAID')" class="text-left p-5 rounded-2xl bg-white border border-slate-200/70 hover:bg-slate-50 transition-colors">
-        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Cobrado este mes</p>
+        <p class="text-xs font-bold text-on-surface-variant">Cobrado este mes</p>
         <p class="text-2xl font-black text-ink tabular-nums mt-2">{{ money(s.paidThisMonth.amount) }}</p>
         <p class="text-xs text-on-surface-variant mt-0.5">{{ s.paidThisMonth.count }} {{ s.paidThisMonth.count === 1 ? 'pago validado' : 'pagos validados' }}</p>
       </button>
@@ -79,7 +79,7 @@
         </label>
       </div>
       <div class="mt-4 flex items-center gap-2">
-        <button type="button" (click)="saveBank()" [disabled]="!canSaveBank() || savingBank()" class="py-2.5 px-6 rounded-lg bg-pink hover:bg-[#047857] active:scale-[0.98] text-white text-sm font-bold transition-all disabled:opacity-50 disabled:hover:bg-pink">{{ savingBank() ? 'Guardando…' : 'Guardar cuenta' }}</button>
+        <button type="button" (click)="saveBank()" [disabled]="!canSaveBank() || savingBank()" class="py-2.5 px-6 rounded-lg bg-pink hover:bg-[#065f46] active:scale-[0.98] text-white text-sm font-bold transition-all disabled:opacity-50 disabled:hover:bg-pink">{{ savingBank() ? 'Guardando…' : 'Guardar cuenta' }}</button>
         @if (bank()) { <button type="button" (click)="cancelEditBank()" class="py-2.5 px-4 rounded-lg bg-slate-100 hover:bg-slate-200 text-ink text-sm font-bold">Cancelar</button> }
       </div>
     } @else if (bank(); as acc) {
@@ -119,16 +119,16 @@
             <p class="text-xs text-on-surface-variant truncate">{{ charge.seller.email }}</p>
             <div class="mt-2 flex flex-wrap gap-1.5">
               @for (g of charge.groups; track g.groupId) {
-                <span class="px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-[11px] font-semibold text-ink">{{ g.platformName }} · {{ g.payments }} {{ g.payments === 1 ? 'pago' : 'pagos' }} · {{ money(g.commission) }}</span>
+                <span class="px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-xs font-semibold text-ink">{{ g.platformName }} · {{ g.payments }} {{ g.payments === 1 ? 'pago' : 'pagos' }} · {{ money(g.commission) }}</span>
               }
             </div>
-            <p class="mt-2 text-[11px] text-on-surface-variant">
+            <p class="mt-2 text-xs text-on-surface-variant">
               Generada el {{ formatDate(charge.createdAt) }} · límite {{ formatDate(charge.payBy) }}
               @if (charge.receiptUploadedAt) { · comprobante subido el {{ formatDate(charge.receiptUploadedAt) }} }
               @if (charge.paidAt) { · pagada el {{ formatDate(charge.paidAt) }} }
             </p>
             @if (charge.rejectionReason && charge.status === 'PENDING') {
-              <p class="mt-1 text-[11px] text-red-700 font-semibold">Último rechazo: {{ charge.rejectionReason }}</p>
+              <p class="mt-1 text-xs text-red-700 font-semibold">Último rechazo: {{ charge.rejectionReason }}</p>
             }
           </div>
 

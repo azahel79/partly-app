@@ -1,21 +1,24 @@
 import { Component, HostListener, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { AuthService } from '../../shared/auth.service';
 import { NotificationsService } from '../../shared/notifications.service';
+import { PaymentsService } from '../../shared/payments.service';
 import { Notification } from '../../shared/notifications.models';
 import { ThemeService } from '../../shared/theme.service';
 import { ThemeToggle } from '../../shared/theme-toggle/theme-toggle';
 
 const ADMIN_SECTIONS = [
   { label: 'Resumen', keywords: 'inicio dashboard métricas', route: '/admin', icon: 'space_dashboard' },
-  { label: 'Solicitudes de proveedor', keywords: 'proveedores solicitudes', route: '/admin/proveedores', icon: 'badge' },
-  { label: 'Mi tienda', keywords: 'proveedor tienda cuentas mayoreo vender publicar', route: '/admin/mi-tienda', icon: 'storefront' },
   { label: 'Grupos', keywords: 'grupos revisión aprobar rechazar', route: '/admin/grupos', icon: 'groups' },
-  { label: 'Pagos y comprobantes', keywords: 'pagos comprobantes transferencias supervision', route: '/admin/pagos', icon: 'receipt_long' },
-  { label: 'Acceso a mayoreo', keywords: 'acceso mayoreo reputación autorizar vendedores tope', route: '/admin/mayoreo-acceso', icon: 'verified_user' },
+  { label: 'Pagos', keywords: 'pagos comprobantes transferencias supervision', route: '/admin/pagos', icon: 'receipt_long' },
   { label: 'Comisiones', keywords: 'comisiones cobros vendedores cuenta bancaria transferencias', route: '/admin/comisiones', icon: 'request_quote' },
-  { label: 'Correos', keywords: 'correos emails bandeja recordatorios envío proveedor dominio', route: '/admin/correos', icon: 'mark_email_read' },
+  { label: 'Mi tienda', keywords: 'proveedor tienda cuentas mayoreo vender publicar', route: '/admin/mi-tienda', icon: 'storefront' },
+  { label: 'Acceso a mayoreo', keywords: 'acceso mayoreo reputación autorizar vendedores tope', route: '/admin/mayoreo-acceso', icon: 'verified_user' },
+  { label: 'Proveedores', keywords: 'proveedores solicitudes', route: '/admin/proveedores', icon: 'badge' },
   { label: 'Incidencias', keywords: 'incidencias soporte problemas', route: '/admin/incidencias', icon: 'support_agent' },
+  { label: 'Correos', keywords: 'correos emails bandeja recordatorios envío proveedor dominio', route: '/admin/correos', icon: 'mark_email_read' },
   { label: 'Usuarios', keywords: 'usuarios cuentas roles', route: '/admin/usuarios', icon: 'manage_accounts' },
 ];
 
@@ -30,6 +33,16 @@ export class AdminLayout implements OnInit, OnDestroy {
   protected readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly notificationsService = inject(NotificationsService);
+  private readonly paymentsService = inject(PaymentsService);
+
+  /** Pagos pendientes (sin comprobante o por revisar): el número junto a "Pagos" en el menú. */
+  protected readonly pendingPayments = signal(0);
+
+  constructor() {
+    this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd), takeUntilDestroyed())
+      .subscribe(() => this.refreshPendingPayments());
+  }
 
   protected readonly notifications = signal<Notification[] | null>(null);
   protected readonly unreadCount = signal(0);
@@ -51,6 +64,13 @@ export class AdminLayout implements OnInit, OnDestroy {
       clearInterval(this.pollHandle);
     }
     window.removeEventListener('focus', this.refreshOnFocus);
+  }
+
+  private refreshPendingPayments(): void {
+    this.paymentsService.findAllForAdmin('PENDING', '', 1, 1).subscribe({
+      next: (res) => this.pendingPayments.set(res.counts.missingReceipt + res.counts.awaitingSeller),
+      error: () => undefined,
+    });
   }
 
   private refreshUnreadCount(): void {

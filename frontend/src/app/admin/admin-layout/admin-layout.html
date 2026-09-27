@@ -5,7 +5,8 @@
     <nav class="side-nav" aria-label="Administración">
       @for (item of sections; track item.route) {
         <a [routerLink]="item.route" [routerLinkActiveOptions]="{ exact: item.route === '/admin' }" routerLinkActive="is-active" (click)="closeSidebar()">
-          <span class="material-symbols-outlined">{{ item.icon }}</span>{{ item.label }}
+          <span class="material-symbols-outlined">{{ item.icon }}</span><span class="nav-label">{{ item.label }}</span>
+          @if (item.route === '/admin/pagos' && pendingPayments() > 0) { <b class="nav-badge">{{ pendingPayments() }}</b> }
         </a>
       }
     </nav>

@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommissionsService } from '../../shared/commissions.service';
 import { CommissionCharge, CommissionChargeStatus, MyCommissions } from '../../shared/commissions.models';
+import { formatMoney } from '../../shared/money';
 
 const MAX_RECEIPT_BYTES = 8 * 1024 * 1024;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
@@ -38,8 +39,6 @@ export class CommissionsPage implements OnInit {
   protected readonly history = computed(() => (this.data()?.charges ?? []).filter((c) => c.status !== 'PENDING'));
   protected readonly toPayTotal = computed(() => this.pending().reduce((sum, c) => sum + c.amount, 0));
 
-  private readonly money$ = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
-
   ngOnInit(): void {
     this.commissionsService.refreshStatus();
     this.load();
@@ -53,7 +52,7 @@ export class CommissionsPage implements OnInit {
   }
 
   protected money(value: number): string {
-    return this.money$.format(value);
+    return formatMoney(value);
   }
 
   protected formatDate(iso: string): string {

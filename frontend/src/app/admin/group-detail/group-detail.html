@@ -17,14 +17,12 @@
     <div class="detail-layout">
       <main class="detail-main">
         <section class="platform-hero" [style.background]="brand().background">
-          <div class="hero-glow" [style.background]="brand().accent"></div>
           <div class="platform-mark"><span>{{ g.plan.platform.name.charAt(0).toUpperCase() }}</span>@if (brand().logoUrl) { <img [class.local]="brand().logoUrl?.startsWith('/logos/')" [src]="brand().logoUrl" [alt]="'Logo de ' + g.plan.platform.name" (error)="hideBrokenImage($event)" /> }</div>
           <div class="hero-copy">
             <div class="hero-title-row"><h2>{{ g.plan.platform.name }} {{ g.plan.tierName }}</h2><span class="approval-pill" [attr.data-status]="g.approvalStatus">{{ g.approvalStatus === 'PENDING' ? 'Pendiente' : g.approvalStatus === 'APPROVED' ? 'Aprobado' : 'Rechazado' }}</span></div>
             <p class="hero-meta">{{ g.plan.tierName }} · #{{ g.id.slice(0, 8) }}</p><p class="hero-description">{{ brand().description }}</p>
             <div class="hero-tags">@if (g.plan.platform.categoryName) { <span>{{ g.plan.platform.categoryName }}</span> }<span>{{ g.plan.billingPeriod === 'MONTHLY' ? 'Mensual' : g.plan.billingPeriod === 'QUARTERLY' ? 'Trimestral' : g.plan.billingPeriod === 'SEMIANNUAL' ? 'Semestral' : 'Anual' }}</span><span>{{ groupStatusLabel(g.status) }}</span></div>
           </div>
-          <div class="hero-slogan"><strong>{{ g.plan.platform.name }}</strong><span>Comparte más.<br />Paga menos.</span></div>
         </section>
 
         <nav class="detail-tabs" aria-label="Secciones del grupo">
@@ -39,7 +37,7 @@
             <div class="card-heading"><span class="heading-icon"><span class="material-symbols-outlined">description</span></span><div><h3>Información del grupo</h3><p>Datos principales de la solicitud.</p></div>@if (!editingInfo()) { <button type="button" class="outline-button" (click)="startEditInfo()"><span class="material-symbols-outlined">edit</span>Editar</button> }</div>
             @if (!editingInfo()) {
               <div class="info-grid">
-                <article><span class="info-icon material-symbols-outlined">attach_money</span><div><strong>${{ g.pricePerSlot }} / mes</strong><small>Precio por cupo</small></div></article>
+                <article><span class="info-icon material-symbols-outlined">attach_money</span><div><strong>{{ g.pricePerSlot | money }} / mes</strong><small>Precio por cupo</small></div></article>
                 <article><span class="info-icon material-symbols-outlined">groups</span><div><strong>{{ g.occupiedSlots }} / {{ g.availableSlots }}</strong><small>Cupos ocupados</small></div></article>
                 <article><span class="info-icon material-symbols-outlined">calendar_month</span><div><strong>Día {{ g.billingDay }}</strong><small>Día de cobro</small></div></article>
                 <article><span class="info-icon material-symbols-outlined">event</span><div><strong>{{ formatDate(g.createdAt) }}</strong><small>Fecha de solicitud</small></div></article>
@@ -104,7 +102,7 @@
                   <article class="payment-row">
                     <div class="member-avatar">{{ p.buyer.name.charAt(0).toUpperCase() }}</div>
                     <div class="member-copy">
-                      <strong>{{ p.buyer.name }} · ${{ p.amount }}</strong>
+                      <strong>{{ p.buyer.name }} · {{ p.amount | money }}</strong>
                       <small>
                         @if (p.receiptUploadedAt) { Comprobante subido el {{ formatDate(p.receiptUploadedAt) }} } @else { Sin comprobante subido }
                         @if (p.paidAt) { · Aprobado el {{ formatDate(p.paidAt) }} }
@@ -152,9 +150,9 @@
             }
             @if (proposalValid() && proposalPreview(); as p) {
               <div class="commission-breakdown">
-                <div><small>Total a miembros</small><strong>${{ p.gross.toFixed(2) }}</strong></div>
-                <div><small>Comisión Partly</small><strong>${{ p.commission.toFixed(2) }}</strong></div>
-                <div><small>Recibe el vendedor</small><strong>${{ p.net.toFixed(2) }}</strong></div>
+                <div><small>Total a miembros</small><strong>{{ p.gross | money }}</strong></div>
+                <div><small>Comisión Partly</small><strong>{{ p.commission | money }}</strong></div>
+                <div><small>Recibe el vendedor</small><strong>{{ p.net | money }}</strong></div>
               </div>
             }
             @if (!g.commissionPercentage) {

@@ -17,11 +17,13 @@ export class PaymentsService {
     page = 1,
     limit = 50,
     groupId?: string,
+    q?: string,
   ): Observable<AdminPaymentsPage> {
     let params = new HttpParams().set('page', page).set('limit', limit);
     if (status) params = params.set('status', status);
     if (receipt) params = params.set('receipt', receipt);
     if (groupId) params = params.set('groupId', groupId);
+    if (q) params = params.set('q', q);
     return this.http
       .get<AdminPaymentsPage>(`${API_BASE_URL}/admin/payments`, { params })
       .pipe(catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))));

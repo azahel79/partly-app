@@ -1,89 +1,28 @@
-<div class="panel-shell min-h-screen w-full bg-[#FCF8FF]">
-  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-    <div class="pl-blob pl-blob-slow absolute -top-40 -right-32 w-136 h-104 bg-emerald-200/22" style="animation-delay: -2s"></div>
-    <div class="pl-blob pl-blob-fast absolute -top-10 right-88 w-64 h-64 bg-emerald-300/16" style="animation-delay: -6s"></div>
-    <div class="pl-blob pl-blob-slow absolute -bottom-32 -left-28 w-120 h-104 bg-emerald-200/22" style="animation-delay: -12s"></div>
-    <div class="pl-blob pl-blob-fast absolute -bottom-36 -right-32 w-lg h-112 bg-[#E8E5FF]/38" style="animation-delay: -4s"></div>
-  </div>
-
-  <header class="panel-header sticky top-0 z-40 bg-[#FCF8FF]/90 backdrop-blur-md border-b border-crema-border/60">
-    <div class="panel-header-row max-w-6xl mx-auto px-4 sm:px-6 min-h-20 py-4 flex items-center justify-between gap-3">
-      <a routerLink="/" class="group flex items-center shrink-0">
-        <img [src]="theme.isDark() ? 'partly-wordmark-dark.png' : 'partly-wordmark.png'" alt="Partly" class="h-8 w-auto group-hover:scale-105 transition-transform" />
+<div class="panel-shell min-h-screen w-full">
+  <header class="panel-header sticky top-0 z-40">
+    <div class="panel-header-row max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
+      <a routerLink="/" class="flex items-center shrink-0">
+        <img [src]="theme.isDark() ? 'partly-wordmark-dark.png' : 'partly-wordmark.png'" alt="Partly" class="panel-logo w-auto" />
       </a>
 
-      <nav aria-label="Panel" class="panel-navigation flex items-center gap-1 bg-crema-inset shadow-neu-inset-sm p-1 rounded-full overflow-x-auto">
-        <a
-          routerLink="/panel"
-          [routerLinkActiveOptions]="{ exact: true }"
-          routerLinkActive="bg-pink text-white shadow-[0_4px_12px_rgba(5,150,105,0.35)] hover:scale-100"
-          class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-surface-variant rounded-full transition-all hover:bg-white hover:text-ink hover:shadow-sm hover:scale-105 active:scale-95"
-        >
-          Inicio
-        </a>
-        <a
-          routerLink="/panel/explorar"
-          routerLinkActive="bg-pink text-white shadow-[0_4px_12px_rgba(5,150,105,0.35)] hover:scale-100"
-          class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-surface-variant rounded-full transition-all hover:bg-white hover:text-ink hover:shadow-sm hover:scale-105 active:scale-95"
-        >
-          Explorar grupos
-        </a>
-        <a
-          routerLink="/panel/grupos"
-          routerLinkActive="bg-pink text-white shadow-[0_4px_12px_rgba(5,150,105,0.35)] hover:scale-100"
-          class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-surface-variant rounded-full transition-all hover:bg-white hover:text-ink hover:shadow-sm hover:scale-105 active:scale-95"
-        >
-          Mis grupos
-        </a>
-        <a
-          routerLink="/panel/mayoreo"
-          routerLinkActive="bg-pink text-white shadow-[0_4px_12px_rgba(5,150,105,0.35)] hover:scale-100"
-          class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-surface-variant rounded-full transition-all hover:bg-white hover:text-ink hover:shadow-sm hover:scale-105 active:scale-95"
-        >
-          Mayoreo
-        </a>
-        <a
-          routerLink="/panel/soporte"
-          routerLinkActive="bg-pink text-white shadow-[0_4px_12px_rgba(5,150,105,0.35)] hover:scale-100"
-          class="whitespace-nowrap px-3.5 py-2 text-xs sm:text-sm font-semibold text-on-surface-variant rounded-full transition-all hover:bg-white hover:text-ink hover:shadow-sm hover:scale-105 active:scale-95"
-        >
-          Soporte
-        </a>
+      <nav aria-label="Panel" class="panel-navigation">
+        @for (item of navItems; track item.route) {
+          <a [routerLink]="item.route" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: item.exact }" ariaCurrentWhenActive="page">{{ item.label }}</a>
+        }
       </nav>
 
       <div class="panel-header-actions flex items-center gap-2 shrink-0">
         @if (authService.isAdmin()) {
-          <a
-          routerLink="/admin"
-            class="h-9 px-2.5 sm:px-3 rounded-full bg-ink text-crema shadow-neu-raised-sm hover:bg-pink hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 transition-all"
-            aria-label="Panel de administración"
-            title="Panel de administración"
-          >
-            <span class="material-symbols-outlined text-lg">shield_person</span>
-            <span class="hidden lg:inline text-[11px] font-bold">Panel admin</span>
+          <a routerLink="/admin" class="admin-link" aria-label="Panel de administración" title="Panel de administración">
+            <span class="material-symbols-outlined">shield_person</span><span class="admin-link-label">Panel admin</span>
           </a>
         }
         <app-theme-toggle />
-        <a
-          routerLink="/panel/explorar"
-          class="w-9 h-9 rounded-full bg-crema shadow-neu-raised-sm hover:shadow-neu-inset-sm hover:scale-110 active:scale-95 flex items-center justify-center text-on-surface-variant hover:text-pink transition-all"
-          aria-label="Buscar grupos"
-        >
-          <span class="material-symbols-outlined text-lg">search</span>
-        </a>
 
         <div class="relative">
-          <button
-            type="button"
-            (click)="toggleNotifPanel()"
-            class="h-9 min-w-9 px-2 rounded-full bg-crema shadow-neu-raised-sm hover:shadow-neu-inset-sm hover:scale-110 active:scale-95 flex items-center justify-center gap-1 text-on-surface-variant hover:text-pink transition-all"
-            [attr.aria-label]="'Notificaciones, ' + unreadCount() + ' sin leer'"
-          >
-            <span class="material-symbols-outlined text-lg">notifications</span>
-            <span
-              class="min-w-[18px] h-[18px] px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center leading-none"
-              [class]="unreadCount() > 0 ? 'bg-pink' : 'bg-on-surface-variant/45'"
-            >{{ unreadCount() > 99 ? '99+' : unreadCount() }}</span>
+          <button type="button" class="bell-button" (click)="toggleNotifPanel()" [attr.aria-label]="'Notificaciones, ' + unreadCount() + ' sin leer'">
+            <span class="material-symbols-outlined">notifications</span>
+            @if (unreadCount() > 0) { <span class="bell-dot"></span> }
           </button>
 
           @if (notifPanelOpen()) {
@@ -139,6 +78,7 @@
               <a routerLink="/panel/ganancias" (click)="closeProfileMenu()"><span class="material-symbols-outlined">savings</span><div><strong>Mis ganancias</strong><small>Lo que ganas por tus grupos</small></div><i class="material-symbols-outlined">chevron_right</i></a>
               <a routerLink="/panel/comisiones" (click)="closeProfileMenu()"><span class="material-symbols-outlined">request_quote</span><div><strong>Comisiones</strong><small>Lo que le pagas a Partly</small></div><i class="material-symbols-outlined">chevron_right</i></a>
               <a routerLink="/panel/perfil" (click)="closeProfileMenu()"><span class="material-symbols-outlined">manage_accounts</span><div><strong>Editar perfil</strong><small>Datos, seguridad y preferencias</small></div><i class="material-symbols-outlined">chevron_right</i></a>
+              <a routerLink="/panel/soporte" class="mobile-only" (click)="closeProfileMenu()"><span class="material-symbols-outlined">support_agent</span><div><strong>Soporte</strong><small>Tus tickets y ayuda</small></div><i class="material-symbols-outlined">chevron_right</i></a>
               <a routerLink="/panel/perfil" [queryParams]="{ tab: 'notifications' }" (click)="closeProfileMenu()"><span class="material-symbols-outlined">notifications</span><div><strong>Notificaciones</strong><small>Configura tus avisos</small></div><i class="material-symbols-outlined">chevron_right</i></a>
               <button type="button" (click)="logout()"><span class="material-symbols-outlined">logout</span><div><strong>Cerrar sesión</strong><small>Salir de este dispositivo</small></div></button>
             </div>
@@ -147,9 +87,19 @@
       </div>
     </div>
   </header>
+  <app-commission-notice />
 
-  <main class="panel-content relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8">
-    <app-commission-notice class="block empty:hidden mb-5" />
+  <!-- Sin z-index propio: así las ventanas emergentes de cada pantalla (z-50) quedan por encima del header (z-40). -->
+  <main class="panel-content relative max-w-6xl mx-auto px-4 sm:px-6 py-7">
     <router-outlet />
   </main>
+
+  <!-- En celular y tableta el menú baja a una barra de pestañas fija. -->
+  <nav aria-label="Menú principal" class="panel-tabbar">
+    @for (item of tabItems; track item.route) {
+      <a [routerLink]="item.route" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: item.exact }" ariaCurrentWhenActive="page">
+        <span class="material-symbols-outlined">{{ item.icon }}</span>{{ item.label }}
+      </a>
+    }
+  </nav>
 </div>

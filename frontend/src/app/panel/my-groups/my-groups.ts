@@ -4,14 +4,20 @@ import { GroupsService } from '../../shared/groups.service';
 import { Group } from '../../shared/groups.models';
 import { ConfirmService } from '../../shared/confirm.service';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
+import { MoneyPipe } from '../../shared/money';
+import { seatSegments } from '../../shared/seat-bar.util';
+import { ownerGroupStatus } from '../../shared/status-tag.util';
 
 @Component({
-  imports: [RouterLink, PlatformLogo],
+  imports: [RouterLink, PlatformLogo, MoneyPipe],
   selector: 'app-my-groups',
   styleUrl: './my-groups.css',
   templateUrl: './my-groups.html',
 })
 export class MyGroups implements OnInit {
+  protected readonly seats = seatSegments;
+  protected readonly groupStatus = ownerGroupStatus;
+
   private readonly confirmService = inject(ConfirmService);
   private readonly groupsService = inject(GroupsService);
   private readonly destroyRef = inject(DestroyRef);

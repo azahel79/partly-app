@@ -71,7 +71,7 @@
             <div class="transfer-panel">
               <div class="amount-box">
                 <small>Monto a transferir</small>
-                <strong>${{ p.amount }} <em>MXN</em></strong>
+                <strong>{{ p.amount | money }}</strong>
                 @if (p.includesNextCycle) {
                   <p>Incluye {{ p.proratedDays }} días restantes de este ciclo más el ciclo siguiente completo. Cubre hasta el {{ p.coveredUntil ? formatDate(p.coveredUntil) : '' }}.</p>
                 } @else if (p.proratedDays) {
@@ -134,7 +134,7 @@
             <dl>
               <div><dt><span class="material-symbols-outlined">business_center</span> Plataforma</dt><dd>{{ g.plan.platform.name }}</dd></div>
               <div><dt><span class="material-symbols-outlined">layers</span> Plan</dt><dd>{{ g.plan.tierName }}</dd></div>
-              <div><dt><span class="material-symbols-outlined">paid</span> Precio por cupo</dt><dd>${{ g.pricePerSlot }} MXN / mes</dd></div>
+              <div><dt><span class="material-symbols-outlined">paid</span> Precio por cupo</dt><dd>{{ g.pricePerSlot | money }} / mes</dd></div>
               <div><dt><span class="material-symbols-outlined">calendar_month</span> Cargo</dt><dd>Se cobra cada mes</dd></div>
               <div><dt><span class="material-symbols-outlined">person</span> Vendedor</dt><dd>{{ g.owner.name }}<small><b>★</b> {{ g.owner.ratingAvg }} (reseñas)</small></dd></div>
             </dl>

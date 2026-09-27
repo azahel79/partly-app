@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter } from 'rxjs';
 import { CommissionsService } from '../../shared/commissions.service';
+import { formatMoney } from '../../shared/money';
 
 /**
  * Aviso del panel para el vendedor que debe comisión a Partly (o la tiene en revisión). No
@@ -16,25 +17,50 @@ import { CommissionsService } from '../../shared/commissions.service';
       @if (onCommissionsPage()) {
         <!-- la propia pantalla de Comisiones ya lo explica -->
       } @else if (s.restricted) {
-        <div class="flex flex-wrap items-center gap-3 p-4 rounded-xl bg-red-50 border border-red-200 text-red-900" role="alert">
-          <span class="material-symbols-outlined">block</span>
-          <p class="flex-1 min-w-[220px] text-sm"><strong>Tu comisión de {{ money(s.toPay) }} está vencida.</strong> Tus grupos no reciben miembros nuevos hasta que la pagues.</p>
-          <a routerLink="/panel/comisiones" class="py-2 px-4 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors">Pagar ahora</a>
+        <div class="cn-strip cn-danger" role="alert">
+          <div class="cn-inner">
+            <span><strong>Tu comisión de {{ money(s.toPay) }} está vencida.</strong> Tus grupos no reciben miembros nuevos hasta que la pagues.</span>
+            <a routerLink="/panel/comisiones">Pagar ahora →</a>
+          </div>
         </div>
       } @else if (s.toPay > 0) {
-        <div class="flex flex-wrap items-center gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
-          <span class="material-symbols-outlined">request_quote</span>
-          <p class="flex-1 min-w-[220px] text-sm"><strong>Tienes {{ money(s.toPay) }} de comisión por pagar</strong>@if (s.payBy) { antes del {{ dateLabel(s.payBy) }}}.</p>
-          <a routerLink="/panel/comisiones" class="py-2 px-4 rounded-lg bg-pink hover:bg-[#047857] text-white text-xs font-bold transition-colors">Pagar comisión</a>
+        <div class="cn-strip cn-warn">
+          <div class="cn-inner">
+            <span><strong>Comisión por pagar: {{ money(s.toPay) }}</strong>@if (s.payBy) { · vence el {{ dateLabel(s.payBy) }} ({{ daysLeftLabel(s.payBy) }})}</span>
+            <a routerLink="/panel/comisiones">Pagar comisión →</a>
+          </div>
         </div>
       } @else if (s.inReview > 0) {
-        <div class="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100 text-blue-900">
-          <span class="material-symbols-outlined">hourglass_top</span>
-          <p class="flex-1 text-sm">Estamos revisando tu comprobante de comisión. Te avisamos cuando quede validado.</p>
-          <a routerLink="/panel/comisiones" class="text-xs font-bold text-blue-800 hover:underline">Ver detalle</a>
+        <div class="cn-strip cn-info">
+          <div class="cn-inner">
+            <span>Estamos revisando tu comprobante de comisión. Te avisamos cuando quede validado.</span>
+            <a routerLink="/panel/comisiones">Ver detalle →</a>
+          </div>
         </div>
       }
     }
+  `,
+  styles: `
+    :host { display: block; }
+    .cn-strip { border-bottom: 1px solid; font-size: 13px; }
+    .cn-inner { max-width: 72rem; min-height: 40px; margin: 0 auto; padding: 8px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; }
+    .cn-inner a { font-weight: 700; text-decoration: none; white-space: nowrap; }
+    .cn-inner a:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .cn-warn { background: #fffaeb; border-color: #fedf89; color: #93370d; }
+    .cn-warn strong { color: #7a2e0e; }
+    .cn-warn a { color: #b54708; }
+    .cn-danger { background: #fef3f2; border-color: #fecdca; color: #912018; }
+    .cn-danger strong { color: #7a271a; }
+    .cn-danger a { color: #b42318; }
+    .cn-info { background: #eff8ff; border-color: #b2ddff; color: #194185; }
+    .cn-info a { color: #175cd3; }
+    @media (max-width: 639px) { .cn-inner { padding-inline: 16px; } }
+    :host-context(html.dark) .cn-warn { background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.25); color: #fde68a; }
+    :host-context(html.dark) .cn-warn strong, :host-context(html.dark) .cn-warn a { color: #fcd34d; }
+    :host-context(html.dark) .cn-danger { background: rgba(248, 113, 113, 0.1); border-color: rgba(248, 113, 113, 0.28); color: #fecaca; }
+    :host-context(html.dark) .cn-danger strong, :host-context(html.dark) .cn-danger a { color: #fca5a5; }
+    :host-context(html.dark) .cn-info { background: rgba(96, 165, 250, 0.1); border-color: rgba(96, 165, 250, 0.25); color: #bfdbfe; }
+    :host-context(html.dark) .cn-info a { color: #93c5fd; }
   `,
 })
 export class CommissionNotice {
@@ -43,8 +69,6 @@ export class CommissionNotice {
 
   protected readonly onCommissionsPage = signal(this.router.url.startsWith('/panel/comisiones'));
   protected readonly status = computed(() => this.commissionsService.status());
-
-  private readonly money$ = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 
   constructor() {
     this.router.events
@@ -56,10 +80,17 @@ export class CommissionNotice {
   }
 
   protected money(value: number): string {
-    return this.money$.format(value);
+    return formatMoney(value);
   }
 
   protected dateLabel(iso: string): string {
-    return new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' });
+    return new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  protected daysLeftLabel(iso: string): string {
+    const days = Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
+    if (days < 0) return 'ya venció';
+    if (days === 0) return 'hoy';
+    return days === 1 ? 'mañana' : `en ${days} días`;
   }
 }

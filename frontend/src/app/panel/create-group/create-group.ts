@@ -5,6 +5,7 @@ import { ProviderOrdersService } from '../../shared/provider-orders.service';
 import { UsersService } from '../../shared/users.service';
 import { inspectClabe } from '../../shared/clabe.util';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
+import { MoneyPipe } from '../../shared/money';
 
 /**
  * Solo una ESTIMACIÓN para este formulario: el % real lo asigna un ADMIN caso por caso al
@@ -15,7 +16,7 @@ const COMMISSION_MIN_PCT = 10;
 const COMMISSION_MAX_PCT = 15;
 
 @Component({
-  imports: [RouterLink, PlatformLogo],
+  imports: [RouterLink, PlatformLogo, MoneyPipe],
   selector: 'app-create-group',
   styleUrl: './create-group.css',
   templateUrl: './create-group.html',

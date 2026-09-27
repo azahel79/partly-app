@@ -6,9 +6,10 @@ import { WholesaleAccessService } from '../../shared/wholesale-access.service';
 import { ProviderListing } from '../../shared/provider-listings.models';
 import { MyWholesaleAccess } from '../../shared/wholesale-access.models';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
+import { MoneyPipe } from '../../shared/money';
 
 @Component({
-  imports: [RouterLink, PlatformLogo],
+  imports: [RouterLink, PlatformLogo, MoneyPipe],
   selector: 'app-buy-account-detail',
   styleUrl: './buy-account-detail.css',
   templateUrl: './buy-account-detail.html',

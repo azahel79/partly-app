@@ -1,100 +1,125 @@
 <section class="monitor-page">
   <header class="page-heading">
-    <div>
-      <p class="eyebrow">CONTROL DE COBROS</p>
-      <h1>Pagos y comprobantes</h1>
-      <p>Consulta qué compradores ya enviaron su comprobante y cuáles siguen pendientes.</p>
-    </div>
-    <div class="read-only-note">
-      <span class="note-icon"><span class="material-symbols-outlined">visibility</span></span>
-      <div><strong>Supervisión y recordatorios</strong><small>El vendedor aprueba el pago; tú puedes recordarle a cada quien lo que le toca.</small></div>
-    </div>
+    <h1>Pagos y comprobantes</h1>
+    <p>Pagos entre compradores y vendedores. El vendedor aprueba; tú supervisas y recuerdas.</p>
   </header>
 
-  @if (page(); as result) {
-    <div class="metrics">
-      <button type="button" class="metric amber" (click)="setFilter('MISSING')">
-        <span class="metric-icon"><span class="material-symbols-outlined">upload_file</span></span>
-        <span class="metric-text"><strong>{{ result.counts.missingReceipt }}</strong><b>Sin comprobante</b><small>Faltan por subir</small></span>
-        <span class="metric-arrow"><span class="material-symbols-outlined">chevron_right</span></span>
+  <!-- Conteos: también sirven de atajo al filtro -->
+  <div class="metrics">
+    @for (m of metricCards; track m.filter) {
+      <button type="button" class="metric" [class.active]="activeFilter() === m.filter" (click)="setFilter(m.filter)">
+        <span class="metric-label"><i [style.background]="m.dot"></i>{{ m.label }}</span>
+        @if (page(); as result) {
+          <strong>{{ result.counts[m.count] }}</strong>
+        } @else {
+          <span class="ui-skeleton w-6! h-5!"></span>
+        }
       </button>
-      <button type="button" class="metric violet" (click)="setFilter('UPLOADED')">
-        <span class="metric-icon"><span class="material-symbols-outlined">manage_search</span></span>
-        <span class="metric-text"><strong>{{ result.counts.awaitingSeller }}</strong><b>Esperando al vendedor</b><small>Comprobantes por revisar</small></span>
-        <span class="metric-arrow"><span class="material-symbols-outlined">chevron_right</span></span>
-      </button>
-      <button type="button" class="metric green" (click)="setFilter('PAID')">
-        <span class="metric-icon"><span class="material-symbols-outlined">verified</span></span>
-        <span class="metric-text"><strong>{{ result.counts.approved }}</strong><b>Pagos aprobados</b><small>Confirmados por el vendedor</small></span>
-        <span class="metric-arrow"><span class="material-symbols-outlined">chevron_right</span></span>
-      </button>
-      <button type="button" class="metric red" (click)="setFilter('FAILED')">
-        <span class="metric-icon"><span class="material-symbols-outlined">event_busy</span></span>
-        <span class="metric-text"><strong>{{ result.counts.failed }}</strong><b>Pagos vencidos</b><small>Pasaron su fecha límite</small></span>
-        <span class="metric-arrow"><span class="material-symbols-outlined">chevron_right</span></span>
-      </button>
-    </div>
-  } @else {
-    <div class="metrics loading"><article></article><article></article><article></article><article></article></div>
-  }
+    }
+  </div>
 
   <section class="content-card">
     <div class="toolbar">
-      <div class="filter-tabs">
+      <div class="filter-tabs" role="tablist" aria-label="Filtrar pagos">
         @for (filter of filters; track filter.value) {
-          <button type="button" [class.active]="activeFilter() === filter.value" (click)="setFilter(filter.value)">
-            <span class="material-symbols-outlined">{{ filter.icon }}</span>{{ filter.label }}
+          <button type="button" role="tab" [attr.aria-selected]="activeFilter() === filter.value" [class.active]="activeFilter() === filter.value" (click)="setFilter(filter.value)">
+            {{ filter.label }}@if (activeFilter() === filter.value && page()) { <span class="tab-count">· {{ page()!.total }}</span> }
           </button>
         }
       </div>
-      <button class="refresh-button" type="button" (click)="load()"><span class="material-symbols-outlined">refresh</span>Actualizar</button>
+
+      @if (selected().size > 0) {
+        <div class="selection-bar" role="status">
+          {{ selected().size }} seleccionado{{ selected().size === 1 ? '' : 's' }}
+          <button type="button" class="selection-action" [disabled]="bulkSending()" (click)="remindSelected()">
+            <span class="material-symbols-outlined">notifications</span>{{ bulkSending() ? 'Enviando…' : 'Recordar a ' + (selected().size === 1 ? '1' : 'los ' + selected().size) }}
+          </button>
+          <button type="button" class="selection-clear" (click)="clearSelection()" aria-label="Quitar selección"><span class="material-symbols-outlined">close</span></button>
+        </div>
+      } @else {
+        <div class="toolbar-actions">
+          <label class="search-box">
+            <span class="material-symbols-outlined">search</span>
+            <input type="search" [value]="search()" (input)="onSearch($any($event.target).value)" placeholder="Buscar comprador, vendedor o grupo…" aria-label="Buscar pagos" />
+          </label>
+          <button class="icon-button" type="button" (click)="load()" aria-label="Actualizar" title="Actualizar"><span class="material-symbols-outlined">refresh</span></button>
+        </div>
+      }
     </div>
 
     @if (notice()) {
-      <div class="reminder-notice"><span class="material-symbols-outlined">mark_email_read</span>{{ notice() }}</div>
+      <div class="reminder-notice"><span class="material-symbols-outlined">mark_email_read</span><span>{{ notice() }}</span><button type="button" (click)="notice.set(null)" aria-label="Cerrar aviso"><span class="material-symbols-outlined">close</span></button></div>
     }
     @if (errorMessage()) {
       <div class="error-box"><span class="material-symbols-outlined">error</span>{{ errorMessage() }}<button type="button" (click)="load()">Reintentar</button></div>
     } @else if (page() === null) {
-      <div class="empty-state"><span class="spinner"></span><p>Cargando pagos…</p></div>
+      <div class="loading-rows">
+        @for (n of [1, 2, 3, 4, 5]; track n) { <span class="ui-skeleton"></span> }
+      </div>
     } @else if (page()!.data.length === 0) {
-      <div class="empty-state"><span class="material-symbols-outlined">receipt_long</span><h2>No hay pagos en esta categoría</h2><p>Cuando exista actividad aparecerá aquí.</p></div>
+      <div class="empty-state"><span class="material-symbols-outlined">receipt_long</span><h2>{{ search() ? 'Sin resultados para “' + search() + '”' : 'No hay pagos en esta categoría' }}</h2><p>{{ search() ? 'Prueba con otro nombre, correo o plataforma.' : 'Cuando exista actividad aparecerá aquí.' }}</p></div>
     } @else {
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Grupo</th><th>Comprador</th><th>Vendedor</th><th>Monto y fecha</th><th>Estado</th><th>Comprobante</th><th class="th-more"></th></tr></thead>
+          <thead>
+            <tr>
+              <th class="col-check">
+                @if (remindableOnPage().length > 0) {
+                  <input type="checkbox" [checked]="allSelected()" [indeterminate]="selected().size > 0 && !allSelected()" (change)="toggleAll()" aria-label="Seleccionar todos los pendientes" />
+                }
+              </th>
+              <th>Grupo</th>
+              <th>Comprador</th>
+              <th>Vendedor</th>
+              <th class="num">Monto</th>
+              <th>Solicitado</th>
+              <th>Estado</th>
+              <th class="actions">Acción</th>
+            </tr>
+          </thead>
           <tbody>
             @for (payment of page()!.data; track payment.id) {
-              <tr>
-                <td>
-                  <a class="group-cell" [routerLink]="['/admin/grupos', payment.group.id]">
-                    <app-platform-logo class="platform-logo" [name]="payment.group.platform.name" [logoUrl]="payment.group.platform.logoUrl" />
-                    <span><strong>{{ payment.group.platform.name }}</strong><small>{{ payment.group.planName }}</small></span>
-                  </a>
-                </td>
-                <td><div class="person"><span class="avatar">{{ initials(payment.buyer.name) }}</span><span><strong>{{ payment.buyer.name }}</strong><small [attr.title]="payment.buyer.email">{{ payment.buyer.email }}</small></span></div></td>
-                <td><div class="person"><span class="avatar">{{ initials(payment.seller.name) }}</span><span><strong>{{ payment.seller.name }}</strong><small [attr.title]="payment.seller.email">{{ payment.seller.email }}</small></span></div></td>
-                <td><strong class="amount">${{ payment.amount }} MXN</strong><small>Solicitado {{ formatDate(payment.requestedAt) }}</small></td>
-                <td>
-                  <span [class]="'status ' + statusClass(payment)"><span class="material-symbols-outlined">{{ statusIcon(payment) }}</span>{{ statusLabel(payment) }}</span>
-                  @if (payment.paidAt) {<small>{{ formatDate(payment.paidAt, true) }}</small>}
-                </td>
-                <td>
-                  @if (payment.receiptUploadedAt) {
-                    <button class="receipt-button" type="button" [disabled]="viewingId() === payment.id" (click)="viewReceipt(payment)"><span class="material-symbols-outlined">visibility</span>{{ viewingId() === payment.id ? 'Abriendo…' : 'Ver comprobante' }}</button>
-                    <small>{{ formatDate(payment.receiptUploadedAt, true) }}</small>
-                  } @else { <span class="no-receipt"><span class="material-symbols-outlined">schedule</span>Aún no enviado</span> }
+              <tr [class.is-selected]="selected().has(payment.id)">
+                <td class="col-check">
                   @if (payment.status === 'PENDING') {
-                    <button class="remind-button" type="button" [disabled]="remindingId() === payment.id" (click)="sendReminder(payment)"><span class="material-symbols-outlined">notifications</span>{{ remindingId() === payment.id ? 'Enviando…' : (payment.receiptUploadedAt ? 'Recordar al vendedor' : 'Enviar recordatorio') }}</button>
+                    <input type="checkbox" [checked]="selected().has(payment.id)" (change)="toggleSelected(payment.id)" [attr.aria-label]="'Seleccionar el pago de ' + payment.buyer.name" />
                   }
                 </td>
-                <td class="td-more"><a class="more-button" [routerLink]="['/admin/grupos', payment.group.id]" title="Ver el grupo"><span class="material-symbols-outlined">more_horiz</span></a></td>
+                <td>
+                  <a class="group-cell" [routerLink]="['/admin/grupos', payment.group.id]" [attr.title]="payment.group.planName">
+                    <app-platform-logo class="platform-logo" [name]="payment.group.platform.name" [logoUrl]="payment.group.platform.logoUrl" />
+                    <strong>{{ payment.group.platform.name }}</strong>
+                  </a>
+                </td>
+                <td><span class="cell-text strong" [attr.title]="payment.buyer.email">{{ payment.buyer.name }}</span></td>
+                <td><span class="cell-text muted" [attr.title]="payment.seller.email">{{ payment.seller.name }}</span></td>
+                <td class="num"><strong>{{ payment.amount | money }}</strong></td>
+                <td><span class="cell-text muted" [attr.title]="formatDate(payment.requestedAt, true)">{{ shortDate(payment.requestedAt) }}</span></td>
+                <td><span class="ui-pill" [class]="statusTone(payment)" [attr.title]="payment.paidAt ? 'Aprobado el ' + formatDate(payment.paidAt, true) : null">{{ statusLabel(payment) }}</span></td>
+                <td class="actions">
+                  @if (payment.receiptUploadedAt) {
+                    <button class="link-button" type="button" [disabled]="viewingId() === payment.id" (click)="viewReceipt(payment)" [attr.title]="'Subido el ' + formatDate(payment.receiptUploadedAt, true)">{{ viewingId() === payment.id ? 'Abriendo…' : 'Ver comprobante' }}</button>
+                  }
+                  @if (payment.status === 'PENDING') {
+                    <button class="link-button" type="button" [disabled]="remindingId() === payment.id || bulkSending()" (click)="sendReminder(payment)" [attr.title]="payment.receiptUploadedAt ? 'Recordarle al vendedor que revise el comprobante' : 'Recordarle al comprador que suba su comprobante'">{{ remindingId() === payment.id ? 'Enviando…' : 'Recordar' }}</button>
+                  }
+                  @if (!payment.receiptUploadedAt && payment.status !== 'PENDING') { <span class="muted">—</span> }
+                </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
-      <footer class="table-footer"><span>Mostrando {{ page()!.data.length }} de {{ page()!.total }} pagos</span><span class="footer-note"><span class="material-symbols-outlined">info</span>El administrador solo envía recordatorios (1 vez por persona al día).</span></footer>
+      <footer class="table-footer">
+        <span>Mostrando {{ page()!.data.length }} de {{ page()!.total }} pagos · los recordatorios se envían 1 vez por persona al día</span>
+        @if (page()!.totalPages > 1) {
+          <div class="pager">
+            <button type="button" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">Anterior</button>
+            <span>{{ currentPage() }} de {{ page()!.totalPages }}</span>
+            <button type="button" [disabled]="currentPage() >= page()!.totalPages" (click)="goToPage(currentPage() + 1)">Siguiente</button>
+          </div>
+        }
+      </footer>
     }
   </section>
 </section>

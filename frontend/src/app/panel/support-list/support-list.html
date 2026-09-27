@@ -9,7 +9,7 @@
     </div>
     <a
       routerLink="/panel/soporte/nueva"
-      class="hover:bg-[#047857] inline-flex items-center gap-1.5 px-4 py-2.5 bg-pink text-white text-xs font-bold rounded-lg active:scale-[0.98] transition-all"
+      class="hover:bg-[#065f46] inline-flex items-center gap-1.5 px-4 py-2.5 bg-pink text-white text-xs font-bold rounded-lg active:scale-[0.98] transition-all"
     >
       <span class="material-symbols-outlined text-sm">add</span>
       Reportar un problema
@@ -29,7 +29,7 @@
       <p class="text-xs text-on-surface-variant mb-4">Si tienes un problema con una suscripción a la que perteneces, repórtalo aquí y el vendedor te responderá.</p>
       <a
         routerLink="/panel/soporte/nueva"
-        class="active:scale-[0.98] hover:bg-[#047857] inline-flex items-center gap-1.5 px-5 py-2.5 bg-pink text-white text-xs font-bold rounded-lg transition-all"
+        class="active:scale-[0.98] hover:bg-[#065f46] inline-flex items-center gap-1.5 px-5 py-2.5 bg-pink text-white text-xs font-bold rounded-lg transition-all"
       >
         Reportar un problema
         <span class="material-symbols-outlined text-sm">arrow_forward</span>
@@ -43,8 +43,8 @@
           class="anim-in block p-5 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 hover:shadow-neu-raised-lg transition-all"
         >
           <div class="flex items-start justify-between gap-2 mb-3">
-            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold" [class]="statusClass(incident.status)">{{ statusLabel(incident.status) }}</span>
-            <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wide">Eres {{ roleFor(incident) }}</span>
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold" [class]="statusClass(incident.status)">{{ statusLabel(incident.status) }}</span>
+            <span class="text-xs font-bold text-on-surface-variant">Eres {{ roleFor(incident) }}</span>
           </div>
           <h3 class="text-sm font-bold text-ink mb-1">{{ incident.subject }}</h3>
           <p class="text-xs text-on-surface-variant">Abierta el {{ formatDate(incident.createdAt) }}</p>

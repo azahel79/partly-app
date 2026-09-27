@@ -4,6 +4,7 @@ import { ProviderOrdersService } from '../../shared/provider-orders.service';
 import { ConfirmService } from '../../shared/confirm.service';
 import { ProviderOrder } from '../../shared/provider-orders.models';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
+import { MoneyPipe, formatMoney } from '../../shared/money';
 
 const STATUS_LABEL: Record<ProviderOrder['status'], { label: string; tone: string }> = {
   AWAITING_PAYMENT: { label: 'Esperando el pago del comprador', tone: 'bg-slate-100 text-on-surface-variant' },
@@ -24,7 +25,7 @@ const WHOLESALE_STATUS: Record<string, string> = {
 };
 
 @Component({
-  imports: [RouterLink, PlatformLogo],
+  imports: [RouterLink, PlatformLogo, MoneyPipe],
   selector: 'app-provider-order-detail',
   styleUrl: './provider-order-detail.css',
   templateUrl: './provider-order-detail.html',
@@ -63,8 +64,6 @@ export class ProviderOrderDetail implements OnInit {
     return official > 0 ? Math.max(0, Math.round((1 - Number(o.unitPrice) / official) * 100)) : 0;
   });
 
-  private readonly money$ = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
-
   private get orderId(): string {
     return this.route.snapshot.paramMap.get('id')!;
   }
@@ -84,7 +83,7 @@ export class ProviderOrderDetail implements OnInit {
   }
 
   protected money(value: string | number): string {
-    return this.money$.format(Number(value));
+    return formatMoney(value);
   }
 
   protected formatDate(iso: string): string {

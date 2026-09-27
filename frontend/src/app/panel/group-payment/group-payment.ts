@@ -6,12 +6,13 @@ import { Group } from '../../shared/groups.models';
 import { Payment } from '../../shared/payments.models';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
 import { RenewalToggle } from '../../shared/renewal-toggle/renewal-toggle';
+import { MoneyPipe } from '../../shared/money';
 
 const MAX_RECEIPT_BYTES = 8 * 1024 * 1024;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 
 @Component({
-  imports: [RouterLink, PlatformLogo, RenewalToggle],
+  imports: [RouterLink, PlatformLogo, RenewalToggle, MoneyPipe],
   selector: 'app-group-payment',
   styleUrl: './group-payment.css',
   templateUrl: './group-payment.html',

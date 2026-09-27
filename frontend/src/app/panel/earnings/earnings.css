@@ -1,1 +1,22 @@
 :host { display: block; }
+
+/* Tabla "Ganancia por grupo": en celular cada fila se apila con su etiqueta a la izquierda. */
+.earn-row { display: block; padding: 12px 20px; border-top: 1px solid #eef0f4; }
+.earn-row > * + * { margin-top: 6px; }
+.earn-cell { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.earn-cell > span { color: #5b6478; font-size: 12px; font-weight: 400; }
+.earn-head { padding-top: 10px; padding-bottom: 10px; background: #f6f7f9; color: #5b6478; font-size: 12px; font-weight: 600; }
+.earn-total { background: #f6f7f9; font-weight: 700; }
+.earn-total .earn-cell { font-weight: 800; }
+.earn-due { border-color: #fedf89; background: #fffaeb; }
+@media (min-width: 768px) {
+  .earn-row { display: grid; grid-template-columns: minmax(0, 2.2fr) repeat(5, minmax(0, 1fr)); gap: 12px; align-items: center; padding-inline: 24px; }
+  .earn-row > * + * { margin-top: 0; }
+  .earn-cell { display: block; text-align: right; }
+}
+
+:host-context(html.dark) .earn-row { border-color: rgba(255, 255, 255, 0.07); }
+:host-context(html.dark) .earn-head,
+:host-context(html.dark) .earn-total { background: rgba(255, 255, 255, 0.04); color: #8fa9a1; }
+:host-context(html.dark) .earn-cell > span { color: #8fa9a1; }
+:host-context(html.dark) .earn-due { border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.08); }

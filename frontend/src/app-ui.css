@@ -1,0 +1,278 @@
+/* ============================================================
+   Estilo común del panel y el admin
+   Un solo lenguaje visual: fondo gris muy claro, tarjetas blancas con borde
+   fino, títulos del mismo tamaño, textos de 12 px como mínimo y etiquetas de
+   estado que siempre significan lo mismo.
+
+   Todo va acotado a <app-panel-layout> y <app-admin-layout>: la landing y los
+   logins no lo ven. El modo oscuro vive en dark-theme.css; sus reglas empiezan
+   con `html.dark` y por eso le ganan a las de aquí sin tener que repetirlas.
+   ============================================================ */
+
+:root {
+  --ui-bg: #f6f7f9;
+  --ui-surface: #ffffff;
+  --ui-soft: #f6f7f9;
+  --ui-line: #e6e8ee;
+  --ui-line-strong: #d5d9e2;
+  --ui-text: #14142b;
+  --ui-muted: #5b6478;
+  --ui-faint: #8a93a6;
+  --ui-accent: #047857;
+  --ui-accent-hover: #065f46;
+  --ui-accent-soft: #ecfdf3;
+}
+
+html.dark {
+  --ui-bg: var(--dm-bg);
+  --ui-surface: var(--dm-surface);
+  --ui-soft: var(--dm-surface-2);
+  --ui-line: var(--dm-line-strong);
+  --ui-line-strong: rgba(255, 255, 255, 0.2);
+  --ui-text: var(--dm-text);
+  --ui-muted: var(--dm-muted);
+  --ui-faint: var(--dm-faint);
+  --ui-accent: var(--dm-accent);
+  --ui-accent-hover: var(--dm-accent-2);
+  --ui-accent-soft: var(--dm-accent-bg);
+}
+
+/* Tokens de Tailwind con el tono nuevo, solo dentro del panel y el admin. */
+html:not(.dark) :is(app-panel-layout, app-admin-layout) {
+  --color-pink: #047857;
+  --color-pink-deep: #065f46;
+  --color-crema: #f6f7f9;
+  --color-crema-dim: #eef0f4;
+  --color-crema-inset: #f6f7f9;
+  --color-crema-border: #e6e8ee;
+  --color-on-surface-variant: #5b6478;
+}
+
+/* ---------- Tarjetas ----------
+   Blancas, borde fino y casi sin sombra. Muchas tarjetas no traen clase de
+   borde, así que el borde se dibuja con un anillo de sombra. */
+:is(app-panel-layout, app-admin-layout) :is(.shadow-neu-raised, .shadow-neu-raised-lg) {
+  box-shadow: 0 0 0 1px var(--ui-line), 0 1px 2px rgba(16, 24, 40, 0.04);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+:is(app-panel-layout, app-admin-layout) .shadow-neu-raised-sm {
+  box-shadow: 0 0 0 1px var(--ui-line);
+}
+:is(app-panel-layout, app-admin-layout) :is(.shadow-neu-inset, .shadow-neu-inset-sm) {
+  box-shadow: none;
+}
+:is(app-panel-layout, app-admin-layout) :is(.hover\:shadow-neu-raised-lg:hover, .hover\:shadow-neu-raised:hover) {
+  box-shadow: 0 0 0 1px rgba(4, 120, 87, 0.35), 0 8px 20px -12px rgba(16, 24, 40, 0.18);
+}
+:is(app-panel-layout, app-admin-layout) :is(.rounded-3xl, .rounded-\[28px\]) {
+  border-radius: 16px;
+}
+
+/* ---------- Títulos ----------
+   Misma letra que el resto de la app (la de títulos decorativa se queda en la
+   landing) y un solo tamaño para el título de cada pantalla. */
+:is(app-panel-layout, app-admin-layout) :is(h1, h2, h3, h4) {
+  font-family: var(--font-sans);
+  letter-spacing: -0.01em;
+}
+:is(app-panel-layout, app-admin-layout) h1 {
+  font-size: 26px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+@media (max-width: 639px) {
+  :is(app-panel-layout, app-admin-layout) h1 { font-size: 22px; }
+}
+
+/* ---------- Etiquetas de estado ----------
+   Verde = todo en orden · Ámbar = te toca hacer algo · Azul = esperando a
+   alguien más · Rojo = se perdió o venció · Violeta = próximo ciclo. */
+.ui-pill {
+  --pill-dot: #98a2b3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border: 1px solid #e4e7ec;
+  border-radius: 999px;
+  background: #f2f4f7;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.ui-pill::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--pill-dot);
+}
+.ui-pill.no-dot::before { display: none; }
+.ui-pill--ok { --pill-dot: #17b26a; border-color: #abefc6; background: #ecfdf3; color: #067647; }
+.ui-pill--warn { --pill-dot: #f79009; border-color: #fedf89; background: #fffaeb; color: #b54708; }
+.ui-pill--info { --pill-dot: #2e90fa; border-color: #b2ddff; background: #eff8ff; color: #175cd3; }
+.ui-pill--danger { --pill-dot: #f04438; border-color: #fecdca; background: #fef3f2; color: #b42318; }
+.ui-pill--violet { --pill-dot: #7a5af8; border-color: #d9d6fe; background: #f4f3ff; color: #5925dc; }
+
+html.dark .ui-pill { border-color: rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.06); color: #c3d7d0; }
+html.dark .ui-pill--ok { --pill-dot: #34d399; border-color: rgba(52, 211, 153, 0.35); background: rgba(16, 185, 129, 0.14); color: #6ee7b7; }
+html.dark .ui-pill--warn { --pill-dot: #fbbf24; border-color: rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.12); color: #fcd34d; }
+html.dark .ui-pill--info { --pill-dot: #60a5fa; border-color: rgba(96, 165, 250, 0.35); background: rgba(96, 165, 250, 0.12); color: #93c5fd; }
+html.dark .ui-pill--danger { --pill-dot: #f87171; border-color: rgba(248, 113, 113, 0.35); background: rgba(248, 113, 113, 0.12); color: #fca5a5; }
+html.dark .ui-pill--violet { --pill-dot: #a78bfa; border-color: rgba(167, 139, 250, 0.35); background: rgba(139, 92, 246, 0.14); color: #c4b5fd; }
+
+/* ---------- Mientras carga ----------
+   Barras grises en lugar del texto "Cargando…". */
+.ui-skeleton {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #eceef2 0%, #f5f6f8 50%, #eceef2 100%);
+  background-size: 200% 100%;
+  animation: ui-shimmer 1.4s ease-in-out infinite;
+}
+html.dark .ui-skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 100%);
+  background-size: 200% 100%;
+}
+.ui-skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid var(--ui-line);
+  border-radius: 16px;
+  background: var(--ui-surface);
+}
+@keyframes ui-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-skeleton { animation: none; }
+}
+
+/* ---------- Barra de lugares ----------
+   Un segmento por lugar: ocupado, por liberarse o libre. */
+.ui-seats {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+.ui-seats > span {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--ui-line);
+}
+.ui-seats > span.taken { background: #17b26a; }
+.ui-seats > span.freeing { background: #7a5af8; }
+.ui-seats > span.held { background: #abefc6; }
+html.dark .ui-seats > span.taken { background: #34d399; }
+html.dark .ui-seats > span.freeing { background: #a78bfa; }
+html.dark .ui-seats > span.held { background: rgba(52, 211, 153, 0.4); }
+
+/* Montos negativos (pérdidas) */
+.ui-negative { color: #b42318; }
+html.dark .ui-negative { color: #fca5a5; }
+
+/* ---------- Botones ----------
+   El verde solo en la acción principal de cada pantalla; lo demás con borde. */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.ui-btn .material-symbols-outlined { font-size: 18px; }
+.ui-btn:disabled { opacity: 0.55; }
+.ui-btn--sm { min-height: 36px; padding: 0 14px; font-size: 13px; }
+.ui-btn--primary { background: #047857; color: #fff; }
+.ui-btn--primary:not(:disabled):hover { background: #065f46; }
+.ui-btn--secondary { border-color: #d5d9e2; background: #fff; color: #14142b; font-weight: 600; }
+.ui-btn--secondary:not(:disabled):hover { border-color: #047857; color: #047857; }
+.ui-link { display: inline-flex; align-items: center; gap: 4px; color: #047857; font-size: 13px; font-weight: 600; text-decoration: none; }
+.ui-link:hover { color: #065f46; text-decoration: underline; text-underline-offset: 3px; }
+.ui-link .material-symbols-outlined { font-size: 16px; }
+
+html.dark .ui-btn--primary { background: rgba(16, 185, 129, 0.16); color: #fff; box-shadow: inset 0 0 0 1.5px #34d399, 0 0 22px -7px rgba(52, 211, 153, 0.55); }
+html.dark .ui-btn--primary:not(:disabled):hover { background: rgba(16, 185, 129, 0.3); }
+html.dark .ui-btn--secondary { border-color: rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.04); color: #eaf5f1; }
+html.dark .ui-btn--secondary:not(:disabled):hover { border-color: #34d399; color: #6ee7b7; }
+html.dark .ui-link { color: #34d399; }
+html.dark .ui-link:hover { color: #6ee7b7; }
+
+/* ---------- Tarjeta de número ---------- */
+.ui-metric { display: flex; flex-direction: column; gap: 4px; padding: 20px 22px; border: 1px solid var(--ui-line); border-radius: 16px; background: var(--ui-surface); }
+.ui-metric-label { color: var(--ui-muted); font-size: 13px; font-weight: 500; }
+.ui-metric-value { color: var(--ui-text); font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.ui-metric-note { color: var(--ui-muted); font-size: 12px; }
+html.dark .ui-metric { border-color: var(--dm-card-border); }
+
+/* Tarjetas sin "saltito" al pasar el mouse y sin notas escritas a mano: el
+   panel y el admin son herramientas, la decoración se queda en la landing. */
+:is(app-panel-layout, app-admin-layout) :is(.hover\:-translate-y-1, .hover\:-translate-y-0\.5):hover { translate: none; }
+:is(app-panel-layout, app-admin-layout) .hand-note { display: none !important; }
+
+/* ---------- Filtros (chips) ---------- */
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--ui-line);
+  border-radius: 999px;
+  background: var(--ui-surface);
+  color: var(--ui-muted);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.ui-chip:hover { border-color: var(--ui-line-strong); color: var(--ui-text); }
+.ui-chip .material-symbols-outlined { font-size: 17px; }
+.ui-chip.is-active { border-color: #abefc6; background: #ecfdf3; color: #047857; }
+html.dark .ui-chip.is-active { border-color: rgba(52, 211, 153, 0.4); background: rgba(16, 185, 129, 0.16); color: #6ee7b7; }
+
+/* ---------- Campos ---------- */
+.ui-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--ui-line-strong);
+  border-radius: 10px;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.ui-input::placeholder { color: var(--ui-faint); }
+.ui-input:focus { border-color: #047857; box-shadow: 0 0 0 4px rgba(4, 120, 87, 0.12); }
+html.dark .ui-input:focus { border-color: #34d399; box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.15); }
+
+/* Los íconos nunca se encogen dentro de un renglón flexible */
+:is(app-panel-layout, app-admin-layout) .material-symbols-outlined { flex-shrink: 0; }
+
+/* Filas de chips: en celular se deslizan de lado en vez de ocupar varias líneas */
+@media (max-width: 639px) {
+  .ui-chip-row { flex-wrap: nowrap !important; overflow-x: auto; margin-inline: -16px; padding-inline: 16px; scrollbar-width: none; }
+  .ui-chip-row::-webkit-scrollbar { display: none; }
+}

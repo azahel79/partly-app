@@ -30,7 +30,7 @@
       <div class="lg:col-span-2 space-y-5">
         <!-- Cuenta solicitada -->
         <section class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70 space-y-5">
-          <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Cuenta {{ o.kind === 'RENEWAL' ? 'a renovar' : 'solicitada' }}</h2>
+          <h2 class="text-sm font-extrabold text-ink">Cuenta {{ o.kind === 'RENEWAL' ? 'a renovar' : 'solicitada' }}</h2>
           <div class="flex items-center gap-4">
             <app-platform-logo class="w-14 h-14 rounded-2xl font-black text-lg shrink-0" [name]="o.listing.platform.name" />
             <div class="min-w-0">
@@ -39,10 +39,10 @@
             </div>
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 text-center"><p class="text-lg font-black text-ink">{{ o.listing.maxSlots }}</p><p class="text-xs text-on-surface-variant font-bold uppercase tracking-wider">Perfiles</p></div>
-            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 text-center"><p class="text-lg font-black text-ink">${{ o.listing.officialPrice }}</p><p class="text-xs text-on-surface-variant font-bold uppercase tracking-wider">Precio oficial</p></div>
-            <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-100 text-center"><p class="text-lg font-black text-emerald-800">${{ o.unitPrice }}</p><p class="text-xs text-emerald-700 font-bold uppercase tracking-wider">Mayoreo</p></div>
-            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 text-center"><p class="text-lg font-black text-ink">{{ discountPct() }}%</p><p class="text-xs text-on-surface-variant font-bold uppercase tracking-wider">Descuento</p></div>
+            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 text-center"><p class="text-lg font-black text-ink">{{ o.listing.maxSlots }}</p><p class="text-xs text-on-surface-variant font-bold">Perfiles</p></div>
+            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 text-center"><p class="text-lg font-black text-ink">{{ o.listing.officialPrice | money }}</p><p class="text-xs text-on-surface-variant font-bold">Precio oficial</p></div>
+            <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-100 text-center"><p class="text-lg font-black text-emerald-800">{{ o.unitPrice | money }}</p><p class="text-xs text-emerald-700 font-bold">Mayoreo</p></div>
+            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 text-center"><p class="text-lg font-black text-ink">{{ discountPct() }}%</p><p class="text-xs text-on-surface-variant font-bold">Descuento</p></div>
           </div>
           @if (o.expiresAt) {
             <p class="text-xs text-on-surface-variant flex items-center gap-1.5"><span class="material-symbols-outlined text-base text-pink">event</span>Vigente hasta el {{ formatDate(o.expiresAt) }}</p>
@@ -53,7 +53,7 @@
         @switch (o.status) {
           @case ('AWAITING_PAYMENT') {
             <section class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70 space-y-4">
-              <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Esperando el pago</h2>
+              <h2 class="text-sm font-extrabold text-ink">Esperando el pago</h2>
               <p class="text-xs text-on-surface-variant">El comprador tiene que transferirte {{ money(o.unitPrice) }} y subir su comprobante{{ o.paymentDueAt ? ' antes del ' + formatDateTime(o.paymentDueAt) : '' }}. Si no lo hace, la reserva se cancela sola y la cuenta vuelve al inventario.</p>
               @if (o.receiptRejectionReason) {
                 <p class="text-xs text-red-600 font-semibold">Último comprobante rechazado: {{ o.receiptRejectionReason }}</p>
@@ -64,10 +64,10 @@
 
           @case ('PENDING_APPROVAL') {
             <section class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70 space-y-4">
-              <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Valida el pago</h2>
+              <h2 class="text-sm font-extrabold text-ink">Valida el pago</h2>
               <div class="flex flex-wrap items-center gap-4 p-4 rounded-2xl bg-blue-50/60 border border-blue-100">
                 <div>
-                  <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Debe haberte llegado</p>
+                  <p class="text-xs font-bold text-on-surface-variant">Debe haberte llegado</p>
                   <p class="text-2xl font-black text-ink tabular-nums">{{ money(o.unitPrice) }}</p>
                 </div>
                 <div class="flex-1 min-w-[160px] text-xs text-on-surface-variant">
@@ -77,7 +77,7 @@
                 <button type="button" (click)="viewReceipt()" [disabled]="viewingReceipt()" class="py-2 px-3.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-ink text-xs font-bold flex items-center gap-1 disabled:opacity-60"><span class="material-symbols-outlined text-sm">visibility</span>{{ viewingReceipt() ? 'Abriendo…' : 'Ver comprobante' }}</button>
               </div>
               <div class="flex flex-wrap items-center gap-2">
-                <button type="button" [disabled]="working()" (click)="approve()" class="hover:bg-[#047857] py-2.5 px-6 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-60 active:scale-95 transition-all">{{ working() ? 'Procesando…' : (o.kind === 'RENEWAL' ? 'Aprobar y renovar' : 'Aprobar pago') }}</button>
+                <button type="button" [disabled]="working()" (click)="approve()" class="hover:bg-[#065f46] py-2.5 px-6 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-60 active:scale-95 transition-all">{{ working() ? 'Procesando…' : (o.kind === 'RENEWAL' ? 'Aprobar y renovar' : 'Aprobar pago') }}</button>
                 <button type="button" [disabled]="working()" (click)="rejectReceipt()" class="active:scale-[0.98] transition-colors hover:bg-amber-50 py-2.5 px-5 rounded-lg bg-white border border-amber-200 text-amber-800 text-xs font-bold disabled:opacity-60">Comprobante no válido</button>
                 <button type="button" [disabled]="working()" (click)="rejectRequest()" class="active:scale-[0.98] transition-colors hover:bg-slate-200 py-2.5 px-5 rounded-lg bg-slate-100 text-ink text-xs font-bold disabled:opacity-60">Rechazar solicitud</button>
               </div>
@@ -86,11 +86,11 @@
 
           @case ('PENDING_DELIVERY') {
             <section class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70 space-y-4">
-              <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Entrega de credenciales</h2>
+              <h2 class="text-sm font-extrabold text-ink">Entrega de credenciales</h2>
               @if (!delivering()) {
                 <p class="text-xs text-on-surface-variant">Ya validaste su pago{{ o.paidAt ? ' el ' + formatDate(o.paidAt) : '' }}. Entrégale el usuario y contraseña de la cuenta.{{ o.kind === 'REPLACEMENT' ? ' Es una reposición: al entregarla se actualiza sola la credencial de su grupo.' : '' }}</p>
                 <div class="flex flex-wrap items-center gap-2">
-                  <button type="button" (click)="delivering.set(true)" class="hover:bg-[#047857] py-2.5 px-6 rounded-lg bg-pink text-white text-xs font-bold active:scale-95 transition-all">Entregar credenciales</button>
+                  <button type="button" (click)="delivering.set(true)" class="hover:bg-[#065f46] py-2.5 px-6 rounded-lg bg-pink text-white text-xs font-bold active:scale-95 transition-all">Entregar credenciales</button>
                   <button type="button" [disabled]="working()" (click)="cancelPaid()" class="active:scale-[0.98] transition-colors hover:bg-red-50 py-2.5 px-5 rounded-lg bg-white border border-red-200 text-red-600 text-xs font-bold disabled:opacity-60">Cancelar y reembolsar</button>
                 </div>
               } @else {
@@ -100,7 +100,7 @@
                 </div>
                 <textarea rows="2" [value]="deliverNotes()" (input)="deliverNotes.set($any($event.target).value)" placeholder="Instrucciones para el vendedor (opcional)" class="w-full bg-white rounded-2xl py-3 px-4 text-sm font-medium text-ink border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink resize-none"></textarea>
                 <div class="flex items-center gap-2">
-                  <button type="button" [disabled]="working() || !deliverUsername().trim() || !deliverPassword()" (click)="submitDelivery()" class="active:scale-[0.98] transition-colors hover:bg-[#047857] py-2.5 px-5 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-60">{{ working() ? 'Enviando…' : 'Confirmar entrega' }}</button>
+                  <button type="button" [disabled]="working() || !deliverUsername().trim() || !deliverPassword()" (click)="submitDelivery()" class="active:scale-[0.98] transition-colors hover:bg-[#065f46] py-2.5 px-5 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-60">{{ working() ? 'Enviando…' : 'Confirmar entrega' }}</button>
                   <button type="button" (click)="delivering.set(false)" class="active:scale-[0.98] transition-colors hover:bg-slate-200 py-2.5 px-5 rounded-lg bg-slate-100 text-ink text-xs font-bold">Cancelar</button>
                 </div>
               }
@@ -120,7 +120,7 @@
           @case ('CANCELLED') {
             @if (o.paidAt && !o.refundedAt) {
               <section class="p-6 rounded-[28px] bg-red-50 border border-red-100 space-y-3">
-                <h2 class="text-sm font-extrabold text-red-800 uppercase tracking-wide">Reembolso pendiente</h2>
+                <h2 class="text-sm font-extrabold text-red-800">Reembolso pendiente</h2>
                 <p class="text-xs text-red-900">Esta compra ya se había pagado. Devuélvele {{ money(o.unitPrice) }} al comprador por transferencia y marca el reembolso.</p>
                 <button type="button" [disabled]="working()" (click)="markRefunded()" class="py-2.5 px-5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold disabled:opacity-60 active:scale-95 transition-all">Marcar como reembolsado</button>
               </section>
@@ -134,7 +134,7 @@
       <!-- Comprador -->
       <aside class="space-y-5">
         <section class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70 space-y-4">
-          <h2 class="text-sm font-extrabold text-ink uppercase tracking-wide">Quién compra</h2>
+          <h2 class="text-sm font-extrabold text-ink">Quién compra</h2>
           @if (o.buyer; as b) {
             <div class="flex items-center gap-3">
               <span class="w-12 h-12 rounded-full bg-ink text-white font-black flex items-center justify-center">{{ b.name.charAt(0).toUpperCase() }}</span>
