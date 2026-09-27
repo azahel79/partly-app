@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-26T05:05:08.1242515Z",
+  "title": "Design System: Partly",
+  "extensions": {
+    "colorMeta": {
+      "protection-navy": {
+        "role": "secondary",
+        "displayName": "Protection Navy",
+        "canonical": "#14142b",
+        "tonalRamp": ["#03040c", "#08091a", "#0e0f24", "#14142b", "#34344c", "#646477", "#aaaab5", "#f1f1f4"]
+      },
+      "protection-navy-surface": {
+        "role": "secondary",
+        "displayName": "Protection Navy Surface",
+        "canonical": "#1b1b36",
+        "tonalRamp": ["#05050d", "#0b0b1c", "#131329", "#1b1b36", "#3b3b56", "#69697d", "#adadb8", "#f2f2f5"]
+      },
+      "trust-green": {
+        "role": "primary",
+        "displayName": "Trust Green",
+        "canonical": "#059669",
+        "tonalRamp": ["#022c22", "#064e3b", "#047857", "#059669", "#10b981", "#34d399", "#a7f3d0", "#ecfdf5"]
+      },
+      "trust-green-deep": {
+        "role": "primary",
+        "displayName": "Deep Trust Green",
+        "canonical": "#047857",
+        "tonalRamp": ["#01291f", "#064e3b", "#065f46", "#047857", "#059669", "#34d399", "#a7f3d0", "#ecfdf5"]
+      },
+      "trust-green-dark": {
+        "role": "primary",
+        "displayName": "Dark Trust Green",
+        "canonical": "#064e3b",
+        "tonalRamp": ["#011d16", "#033629", "#064e3b", "#07664d", "#078b68", "#35b894", "#a7e8d5", "#eefbf7"]
+      },
+      "warm-cream": {
+        "role": "neutral",
+        "displayName": "Warm Cream",
+        "canonical": "#f6f4ef",
+        "tonalRamp": ["#292721", "#4a473f", "#6e6a60", "#928e84", "#b8b4aa", "#d8d5cd", "#ece9e3", "#f6f4ef"]
+      },
+      "warm-cream-dim": {
+        "role": "neutral",
+        "displayName": "Dimmed Cream",
+        "canonical": "#f2f1ee",
+        "tonalRamp": ["#292825", "#4a4945", "#6c6b67", "#908f8a", "#b5b4b0", "#d5d4d0", "#e8e7e4", "#f2f1ee"]
+      },
+      "clear-white": {
+        "role": "neutral",
+        "displayName": "Clear White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#262626", "#494949", "#6d6d6d", "#929292", "#b8b8b8", "#d8d8d8", "#eeeeee", "#ffffff"]
+      },
+      "warm-border": {
+        "role": "neutral",
+        "displayName": "Warm Border",
+        "canonical": "#e4e1d7",
+        "tonalRamp": ["#28261f", "#49463d", "#6b685e", "#8f8b81", "#b3afa5", "#d0ccc2", "#dfdbd1", "#f7f5ef"]
+      },
+      "muted-slate": {
+        "role": "neutral",
+        "displayName": "Muted Slate",
+        "canonical": "#62616d",
+        "tonalRamp": ["#1f1e27", "#373640", "#4c4b56", "#62616d", "#85848f", "#aaa9b1", "#d1d0d5", "#f4f3f5"]
+      },
+      "night-forest": {
+        "role": "neutral",
+        "displayName": "Night Forest",
+        "canonical": "#04100e",
+        "tonalRamp": ["#020807", "#04100e", "#0a2721", "#124139", "#2d6257", "#628e83", "#add0c7", "#eef8f5"]
+      },
+      "night-surface": {
+        "role": "neutral",
+        "displayName": "Night Surface",
+        "canonical": "#0a1d19",
+        "tonalRamp": ["#030a09", "#0a1d19", "#13362f", "#235348", "#46766a", "#79a197", "#bdd3ce", "#f0f8f6"]
+      },
+      "night-text": {
+        "role": "neutral",
+        "displayName": "Night Text",
+        "canonical": "#eaf5f1",
+        "tonalRamp": ["#17231f", "#33423d", "#55655f", "#798a84", "#9fb0aa", "#c3d2cd", "#dce9e5", "#f4fbf9"]
+      },
+      "night-mint": {
+        "role": "primary",
+        "displayName": "Night Mint",
+        "canonical": "#34d399",
+        "tonalRamp": ["#053326", "#07513c", "#087252", "#0f966c", "#34d399", "#6ee7b7", "#b7f5dc", "#effdf8"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Primary landing statements and major campaign moments." },
+      "headline": { "displayName": "Headline", "purpose": "Section openings and persuasive transitions." },
+      "title": { "displayName": "Title", "purpose": "Cards, product modules, and page subsections." },
+      "body": { "displayName": "Body", "purpose": "Explanations, forms, data, and reading copy." },
+      "label": { "displayName": "Label", "purpose": "Controls, compact metadata, badges, and statuses." }
+    },
+    "shadows": [
+      { "name": "soft-raised", "value": "-4px -4px 10px rgba(255,255,255,0.65), 4px 4px 10px rgba(20,20,43,0.08)", "purpose": "Small controls on warm light surfaces." },
+      { "name": "ambient-card", "value": "0 0 0 1px #e5e9ef, 0 4px 14px -8px rgba(16,24,40,0.18)", "purpose": "Default product cards and grouped containers." },
+      { "name": "trust-lift", "value": "0 0 0 1px rgba(5,150,105,0.32), 0 14px 30px -15px rgba(5,150,105,0.3)", "purpose": "Selected or interactive card feedback." },
+      { "name": "overlay", "value": "0 24px 60px rgba(20,29,55,0.22)", "purpose": "Dialogs, dropdowns, and floating panels." },
+      { "name": "night-glow", "value": "0 0 22px -6px rgba(52,211,153,0.55)", "purpose": "Active elements on dark product surfaces." }
+    ],
+    "motion": [
+      { "name": "state-fast", "value": "150ms cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Button press and compact control feedback." },
+      { "name": "state-standard", "value": "200ms ease", "purpose": "Hover, focus, border, and color transitions." },
+      { "name": "entrance", "value": "700ms cubic-bezier(0.2, 0.8, 0.2, 1)", "purpose": "Landing copy and scene entrances when motion is allowed." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "workspace", "value": "900px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Default high-priority action inside the product.",
+      "html": "<button class=\"ds-btn-primary\">Continuar</button>",
+      "css": ".ds-btn-primary{border:0;border-radius:12px;padding:12px 20px;background:var(--color-pink,#059669);color:#fff;font:700 14px/1.4 'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background-color .2s ease,transform .15s ease}.ds-btn-primary:hover{background:var(--color-pink-deep,#047857)}.ds-btn-primary:active{transform:scale(.98)}.ds-btn-primary:focus-visible{outline:3px solid rgba(5,150,105,.46);outline-offset:3px}"
+    },
+    {
+      "name": "Landing CTA",
+      "kind": "button",
+      "refersTo": "button-landing-cta",
+      "description": "Prominent rounded call to action used in public marketing navigation.",
+      "html": "<button class=\"ds-btn-landing\">Crear cuenta <span aria-hidden=\"true\">→</span></button>",
+      "css": ".ds-btn-landing{border:0;border-radius:9999px;padding:10px 20px;background:var(--color-pink,#059669);color:#fff;font:700 14px/1.4 'Plus Jakarta Sans',sans-serif;box-shadow:0 6px 16px rgba(5,150,105,.35);cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}.ds-btn-landing:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(5,150,105,.45)}.ds-btn-landing:active{transform:scale(.98)}.ds-btn-landing:focus-visible{outline:3px solid rgba(5,150,105,.46);outline-offset:3px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Quiet alternative action with navy text on a warm surface.",
+      "html": "<button class=\"ds-btn-secondary\">Iniciar sesión</button>",
+      "css": ".ds-btn-secondary{border:1px solid var(--color-crema-border,#e4e1d7);border-radius:12px;padding:12px 20px;background:var(--color-crema,#f6f4ef);color:var(--color-ink,#14142b);font:700 14px/1.4 'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background-color .2s ease,transform .15s ease}.ds-btn-secondary:hover{background:#fff}.ds-btn-secondary:active{transform:scale(.98)}.ds-btn-secondary:focus-visible{outline:3px solid rgba(5,150,105,.46);outline-offset:3px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-default",
+      "description": "Readable field with moderate corners and a trust-green focus treatment.",
+      "html": "<label class=\"ds-field\"><span>Correo electrónico</span><input type=\"email\" placeholder=\"tu@correo.com\"></label>",
+      "css": ".ds-field{display:grid;gap:7px;color:var(--color-ink,#14142b);font:700 12px/1.4 'Plus Jakarta Sans',sans-serif}.ds-field input{height:48px;box-sizing:border-box;border:1px solid #dde1ea;border-radius:12px;padding:12px 14px;background:#fff;color:var(--color-ink,#14142b);font:500 16px/1.5 'Plus Jakarta Sans',sans-serif;outline:0;transition:border-color .2s ease,box-shadow .2s ease}.ds-field input:focus{border-color:var(--color-pink,#059669);box-shadow:0 0 0 4px rgba(5,150,105,.12)}"
+    },
+    {
+      "name": "Product Card",
+      "kind": "card",
+      "refersTo": "card-default",
+      "description": "Quiet operational container that gains depth only in response to interaction.",
+      "html": "<article class=\"ds-card\"><span class=\"ds-card-kicker\">Grupo verificado</span><h3>Plan familiar</h3><p>Consulta cupos, importe y próxima fecha antes de unirte.</p></article>",
+      "css": ".ds-card{border:1px solid #e5e9ef;border-radius:16px;padding:24px;background:#fff;color:var(--color-ink,#14142b);font-family:'Plus Jakarta Sans',sans-serif;transition:box-shadow .2s ease,transform .2s ease,border-color .2s ease}.ds-card:hover{border-color:rgba(5,150,105,.38);box-shadow:0 16px 36px -22px rgba(5,82,65,.42);transform:translateY(-2px)}.ds-card h3{margin:8px 0 6px;font:800 21px/1.2 'Bricolage Grotesque','Plus Jakarta Sans',sans-serif}.ds-card p{margin:0;color:#62616d;font-size:14px;line-height:1.5}.ds-card-kicker{color:#047857;font-size:12px;font-weight:700}"
+    },
+    {
+      "name": "Trust Chip",
+      "kind": "chip",
+      "refersTo": "chip-trust",
+      "description": "Compact state marker for verified, protected, or selected information.",
+      "html": "<span class=\"ds-chip\"><span aria-hidden=\"true\">✓</span> Verificado</span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:6px;border-radius:9999px;padding:8px 14px;background:rgba(5,150,105,.1);color:#047857;font:700 12px/1.4 'Plus Jakarta Sans',sans-serif}.ds-chip:focus-visible{outline:3px solid rgba(5,150,105,.46);outline-offset:3px}"
+    },
+    {
+      "name": "Navigation Item",
+      "kind": "nav",
+      "refersTo": "chip-trust",
+      "description": "Compact navigation state with an explicit active treatment.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Ejemplo\"><a href=\"#\">Inicio</a><a class=\"is-active\" href=\"#\" aria-current=\"page\">Mis grupos</a><a href=\"#\">Soporte</a></nav>",
+      "css": ".ds-nav{display:flex;gap:4px;padding:4px;border-radius:16px;background:var(--color-crema-dim,#f2f1ee);font-family:'Plus Jakarta Sans',sans-serif}.ds-nav a{border-radius:12px;padding:9px 14px;color:#62616d;text-decoration:none;font-size:13px;font-weight:700;transition:background-color .2s ease,color .2s ease}.ds-nav a:hover{background:#fff;color:var(--color-ink,#14142b)}.ds-nav a.is-active{background:var(--color-pink,#059669);color:#fff}.ds-nav a:focus-visible{outline:3px solid rgba(5,150,105,.46);outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Confianza en movimiento",
+    "overview": "Partly combines the steadiness of a protected service with the energy of people sharing something useful. Deep navy anchors important decisions, green signals progress and trust, and warm cream keeps the experience approachable. The landing may be expressive and persuasive; authenticated surfaces become calmer and more operational while retaining the same recognizable identity.\n\nThe system is clear, agile, close, and secure. It uses confident typography, practical hierarchy, moderate rounding, and ambient depth to guide attention without appearing like a cold bank, an infantilized marketplace, or a visually saturated promotion. Motion supports comprehension and perceived responsiveness; it never obscures content or becomes the product's personality by itself.",
+    "keyCharacteristics": [
+      "Protective navy foundations with purposeful green signals.",
+      "Warm, readable surfaces rather than clinical white expanses.",
+      "Expressive marketing compositions paired with restrained product UI.",
+      "Moderate corners by default; fully rounded shapes only when function calls for them.",
+      "Visible focus, clear states, and reduced-motion support."
+    ],
+    "rules": [
+      { "name": "The Trust Signal Rule", "body": "Green communicates action, verified progress, protection, or a selected state; it is not general decoration.", "section": "colors" },
+      { "name": "The Navy Anchor Rule", "body": "Every dense or persuasive composition needs a stable navy anchor so cream and green never become visually weightless.", "section": "colors" },
+      { "name": "The Two-Voice Rule", "body": "Bricolage speaks for meaning and momentum; Plus Jakarta Sans handles interaction and detail. Do not introduce a third UI typeface.", "section": "typography" },
+      { "name": "The Weight Before Size Rule", "body": "In operational screens, establish hierarchy with weight, grouping, and spacing before increasing type size.", "section": "typography" },
+      { "name": "The Two-Density Rule", "body": "Landing pages earn generous space and composition; panel and admin pages prioritize task density without becoming cramped.", "section": "layout" },
+      { "name": "The One-Focus Rule", "body": "Each viewport region should have one obvious primary message or action, supported by secondary information rather than competing with it.", "section": "layout" },
+      { "name": "The Flat-by-Default Rule", "body": "Product cards are quiet at rest; elevation is evidence of hierarchy or interaction, not permanent decoration.", "section": "elevation" },
+      { "name": "The Ambient Marketing Rule", "body": "Landing-page shadows should feel like atmosphere around the composition, never gray boxes stacked on gray boxes.", "section": "elevation" },
+      { "name": "The Necessary Circle Rule", "body": "Use a pill or circle only when the component's behavior benefits from a compact continuous silhouette; do not round every card, field, and button to the maximum.", "section": "shapes" },
+      { "name": "The Moderate Corner Rule", "body": "New operational components start at 12px for controls and 16px for cards unless an existing neighboring pattern establishes otherwise.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do preserve the approved Partly wordmark proportions and provide breathing room around it.",
+      "Do use navy as the visual anchor and green as a purposeful trust or action signal.",
+      "Do keep product cards mostly flat, with a 16px default radius and restrained borders.",
+      "Do preserve visible keyboard focus, 44px touch targets, responsive reflow, and reduced-motion behavior.",
+      "Do distinguish demonstrative landing content from verified product data."
+    ],
+    "donts": [
+      "Don't turn every button, input, or card into an exaggerated pill.",
+      "Don't introduce unrelated accent colors or another UI typeface.",
+      "Don't rely on green alone to explain verification, payment, protection, success, or selection.",
+      "Don't use heavy permanent shadows across operational screens.",
+      "Don't make Partly feel like a cold bank, a childish marketplace, or a visually saturated promotion."
+    ]
+  }
+}
