@@ -1,0 +1,57 @@
+<section class="audience-section" aria-labelledby="audience-title">
+  <div class="audience-shell">
+    <header appReveal>
+      <h2 id="audience-title">¿Qué quieres hacer con Partly?</h2>
+      <p>Elige tu objetivo y te mostramos el recorrido, los beneficios y el siguiente paso que te corresponde.</p>
+    </header>
+
+    <div appReveal appRevealVariant="blur" class="audience-switch" aria-label="Selecciona cómo usarás Partly">
+      <button type="button" [class.active]="audience() === 'buyer'" [attr.aria-pressed]="audience() === 'buyer'" (click)="selectAudience('buyer')">
+        <span class="material-symbols-outlined">person_search</span>
+        Quiero unirme a un grupo
+      </button>
+      <button type="button" [class.active]="audience() === 'owner'" [attr.aria-pressed]="audience() === 'owner'" (click)="selectAudience('owner')">
+        <span class="material-symbols-outlined">group_add</span>
+        Quiero compartir mi plan
+      </button>
+    </div>
+
+    <article class="audience-detail" aria-live="polite">
+      @if (audience() === 'buyer') {
+        <div class="audience-copy">
+          <span class="material-symbols-outlined audience-icon">subscriptions</span>
+          <div>
+            <h3>Encuentra un cupo y conoce el monto antes de transferir</h3>
+            <p>Explora grupos con espacios disponibles, revisa quién administra el plan y consulta el importe proporcional de tu primer ciclo.</p>
+            <ul>
+              <li><span class="material-symbols-outlined">check</span>Precio y fecha visibles antes del pago</li>
+              <li><span class="material-symbols-outlined">check</span>Comprobante asociado a tu solicitud</li>
+              <li><span class="material-symbols-outlined">check</span>Acceso después de la confirmación del titular</li>
+            </ul>
+          </div>
+        </div>
+        <div class="audience-actions">
+          <a class="primary" routerLink="/crear-cuenta" appTrackEvent="landing_cta_clicked" [trackEventParams]="{ location: 'audience_buyer', action: 'register' }">Crear cuenta para explorar<span class="material-symbols-outlined">arrow_forward</span></a>
+          <a routerLink="/como-funciona-el-ciclo" appTrackEvent="landing_context_link_clicked" [trackEventParams]="{ location: 'audience_buyer', destination: 'cycle_guide' }">Ver el ciclo completo</a>
+        </div>
+      } @else {
+        <div class="audience-copy">
+          <span class="material-symbols-outlined audience-icon">manage_accounts</span>
+          <div>
+            <h3>Publica tus espacios libres y mantén cada cobro organizado</h3>
+            <p>Define el precio por cupo, recibe comprobantes y confirma cada depósito desde un historial centralizado.</p>
+            <ul>
+              <li><span class="material-symbols-outlined">check</span>Simulación de recuperación antes de publicar</li>
+              <li><span class="material-symbols-outlined">check</span>Estados claros para cada miembro</li>
+              <li><span class="material-symbols-outlined">check</span>Soporte e incidencias con evidencia</li>
+            </ul>
+          </div>
+        </div>
+        <div class="audience-actions">
+          <a class="primary" routerLink="/crear-cuenta" appTrackEvent="landing_cta_clicked" [trackEventParams]="{ location: 'audience_owner', action: 'register' }">Crear mi primer grupo<span class="material-symbols-outlined">arrow_forward</span></a>
+          <a href="#owners" appTrackEvent="landing_context_link_clicked" [trackEventParams]="{ location: 'audience_owner', destination: 'owner_simulator' }">Probar el simulador</a>
+        </div>
+      }
+    </article>
+  </div>
+</section>

@@ -7,15 +7,27 @@
   <div class="shield-visual" aria-hidden="true"><span class="material-symbols-outlined">verified_user</span><i></i></div>
   <div class="security-shell">
     <header appReveal appRevealVariant="blur" class="security-heading">
-      <div class="security-badge"><span class="material-symbols-outlined">verified_user</span>Protocolo blindado Partly</div>
       <h2>Seguridad real,<br /><span>no solo apariencia</span></h2>
-      <p>Guardamos la contraseña de tu cuenta compartida cifrada, no en texto<br />plano — ni siquiera el equipo de Partly puede leerla.</p>
+      <p>Las credenciales compartidas se almacenan cifradas y el acceso<br />se limita a miembros activos del grupo.</p>
     </header>
     <div class="security-grid">
-      <article appReveal appRevealVariant="left" class="security-card green-card"><b>01</b><span class="security-icon material-symbols-outlined">vpn_key</span><div><h3>Tu contraseña,<br />protegida</h3><p>Nadie puede leer la contraseña de la cuenta compartida, <strong>ni nosotros.</strong> Solo la ven el dueño del grupo y sus miembros activos.</p></div><small><i></i>Cifrado de extremo a extremo</small></article>
-      <article appReveal appRevealVariant="right" class="security-card violet-card"><b>02</b><span class="security-icon material-symbols-outlined">account_balance_wallet</span><div><h3>Tu dinero,<br />siempre claro</h3><p>Cuando alguien paga, el dinero aparece al instante en tu wallet. Ves cada movimiento y cuánto se lleva la plataforma, sin sorpresas.</p></div><small><i></i>Transacciones transparentes</small></article>
+      <article appReveal appRevealVariant="left" class="security-card green-card"><b>01</b><span class="security-icon material-symbols-outlined">vpn_key</span><div><h3>Tu contraseña,<br />protegida</h3><p>La credencial se almacena con cifrado AES-256-GCM y solo se muestra a miembros activos autorizados.</p></div><small><i></i>Cifrado en reposo</small></article>
+      <article appReveal appRevealVariant="right" class="security-card violet-card"><b>02</b><span class="security-icon material-symbols-outlined">fact_check</span><div><h3>Cada pago,<br />con evidencia</h3><p>El miembro transfiere, sube su comprobante y Partly registra la revisión antes de actualizar el estado del pago.</p></div><small><i></i>Revisión humana documentada</small></article>
       <article appReveal appRevealVariant="left" class="security-card pink-card"><b>03</b><span class="security-icon material-symbols-outlined">privacy_tip</span><div><h3>Tus datos<br />son tuyos</h3><p>Puedes ver, corregir o borrar tu información cuando quieras. Si cierras tu cuenta, borramos tus datos personales.</p></div><small><i></i>Tú tienes el control</small></article>
-      <article appReveal appRevealVariant="right" class="security-card blue-card"><b>04</b><span class="security-icon material-symbols-outlined">fingerprint</span><div><h3>Acceso bajo<br />control</h3><p>Si cierras tu cuenta o algo raro pasa con tu sesión, te sacamos del sistema al instante. Nadie más puede entrar como si fueras tú.</p></div><small><i></i>Sesión siempre segura</small></article>
+      <article appReveal appRevealVariant="right" class="security-card blue-card"><b>04</b><span class="security-icon material-symbols-outlined">fingerprint</span><div><h3>Acceso bajo<br />control</h3><p>Al cerrar tu cuenta o invalidar una sesión, Partly revoca el acceso asociado para impedir nuevos ingresos.</p></div><small><i></i>Control de sesión</small></article>
+    </div>
+    <div appReveal class="security-operations">
+      <div>
+        <h3>Qué ocurre cuando pagas</h3>
+        <p>Partly Shield mantiene visible el estado y conserva el historial para resolver incidencias.</p>
+        <a routerLink="/seguridad">Ver el protocolo completo<span class="material-symbols-outlined">arrow_forward</span></a>
+      </div>
+      <dl>
+        <div><dt>Quién revisa</dt><dd>El titular del plan</dd></div>
+        <div><dt>Cuándo</dt><dd>Después de recibir el comprobante</dd></div>
+        <div><dt>Si algo falla</dt><dd>Puedes abrir una incidencia</dd></div>
+        <div><dt>Al salir</dt><dd>El acceso deja de estar disponible</dd></div>
+      </dl>
     </div>
   </div>
 </section>

@@ -1,6 +1,4 @@
-<app-navbar [links]="navLinks" />
-
-<main class="cmp-page">
+<main id="contenido-principal" class="cmp-page">
   <div class="cmp-blob blob-a"></div>
   <div class="cmp-blob blob-b"></div>
   <div class="cmp-blob blob-c"></div>
@@ -11,9 +9,9 @@
       <h1>Cuánto pagas solo<br />vs. cuánto pagas con <b>Partly</b>.</h1>
       <p>En Partly te unes a grupos verificados para compartir el costo de tus suscripciones favoritas. Mismos servicios, menos gasto, más para ti.</p>
       <div class="cmp-chips">
-        <div appReveal appRevealVariant="pop" [appRevealDelay]="120" class="cmp-chip"><span class="material-symbols-outlined">attach_money</span><div><strong>Ahorro real</strong><small>Hasta 80% menos</small></div></div>
+        <div appReveal appRevealVariant="pop" [appRevealDelay]="120" class="cmp-chip"><span class="material-symbols-outlined">attach_money</span><div><strong>Pago proporcional</strong><small>Según días y cupos</small></div></div>
         <div appReveal appRevealVariant="pop" [appRevealDelay]="200" class="cmp-chip"><span class="material-symbols-outlined">verified_user</span><div><strong>Grupos verificados</strong><small>Seguros y confiables</small></div></div>
-        <div appReveal appRevealVariant="pop" [appRevealDelay]="280" class="cmp-chip"><span class="material-symbols-outlined">group</span><div><strong>Miles de usuarios</strong><small>Ya ahorran con Partly</small></div></div>
+        <div appReveal appRevealVariant="pop" [appRevealDelay]="280" class="cmp-chip"><span class="material-symbols-outlined">fact_check</span><div><strong>Datos verificables</strong><small>Solo cifras activas del sistema</small></div></div>
       </div>
     </div>
 
@@ -108,4 +106,3 @@
     <div class="cmp-cta-apps" aria-hidden="true"><i class="app-spotify">●</i><i class="app-netflix">N</i><i class="app-youtube material-symbols-outlined">smart_display</i><i class="app-disney">D+</i><small>Más<br />para ti.</small></div>
   </section>
 </main>
-<app-footer surfaceColor="#FAF9F5" />

@@ -1,16 +1,19 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { EmblaCarouselType, EmblaPluginType } from 'embla-carousel';
 import Autoplay from 'embla-carousel-autoplay';
 import { RevealDirective } from '../../../shared/reveal.directive';
 import { TiltDirective } from '../../../shared/tilt.directive';
 import { CarouselDirective } from '../../../shared/carousel.directive';
 import { prefersReducedMotion } from '../../../shared/gsap';
+import { Group } from '../../../shared/groups.models';
+import { GroupsService } from '../../../shared/groups.service';
+import { TrackEventDirective } from '../../../shared/track-event.directive';
 
 type MockupType = 'poster' | 'music' | 'icon';
 
 interface PlatformTile {
   name: string;
-  price: string;
   description: string;
   features: string[];
   icon?: string;
@@ -21,6 +24,12 @@ interface PlatformTile {
   bannerTo: string;
   mockup: MockupType;
   badge?: string;
+}
+
+interface InventorySummary {
+  groups: number;
+  freeSlots: number;
+  lowestPrice: number;
 }
 
 const FEATURE_ICONS: Record<string, string> = {
@@ -49,16 +58,40 @@ const FEATURE_ICONS: Record<string, string> = {
 };
 
 @Component({
-  imports: [RevealDirective, TiltDirective, CarouselDirective],
+  imports: [RevealDirective, TiltDirective, CarouselDirective, RouterLink, TrackEventDirective],
   selector: 'app-platforms',
   styleUrl: './platforms.css',
   templateUrl: './platforms.html',
 })
-export class Platforms {
+export class Platforms implements OnInit {
+  private readonly groupsService = inject(GroupsService);
+
+  protected readonly availableGroups = signal<Group[] | null>(null);
+  protected readonly inventoryError = signal(false);
+  protected readonly inventoryByPlatform = computed(() => {
+    const summaries = new Map<string, InventorySummary>();
+    for (const group of this.availableGroups() ?? []) {
+      if (!group.canJoinNow || group.freeSlots < 1) {
+        continue;
+      }
+      const key = this.platformKey(group.plan.platform.name);
+      const price = Number(group.pricePerSlot);
+      if (!Number.isFinite(price)) {
+        continue;
+      }
+      const current = summaries.get(key);
+      summaries.set(key, {
+        groups: (current?.groups ?? 0) + 1,
+        freeSlots: (current?.freeSlots ?? 0) + group.freeSlots,
+        lowestPrice: current ? Math.min(current.lowestPrice, price) : price,
+      });
+    }
+    return summaries;
+  });
+
   protected readonly tiles: PlatformTile[] = [
     {
       name: 'Netflix',
-      price: 'Desde $89/mes',
       description: 'Series, películas y documentales de todo el mundo.',
       features: ['Ultra HD', 'Varios perfiles', 'Descargas'],
       letter: 'N',
@@ -71,7 +104,6 @@ export class Platforms {
     },
     {
       name: 'Spotify',
-      price: 'Desde $55/mes',
       description: 'Música, podcasts y más, sin límites.',
       features: ['Sin anuncios', 'Modo offline', 'Listas personalizadas'],
       icon: 'graphic_eq',
@@ -83,7 +115,6 @@ export class Platforms {
     },
     {
       name: 'Disney+',
-      price: 'Desde $65/mes',
       description: 'Películas, series y contenido exclusivo de Disney, Pixar, Marvel y más.',
       features: ['Hasta 4 dispositivos', 'Ultra HD', 'Descargas'],
       icon: 'play_circle',
@@ -95,7 +126,6 @@ export class Platforms {
     },
     {
       name: 'HBO Max',
-      price: 'Desde $59/mes',
       description: 'Las mejores series, películas y contenido exclusivo.',
       features: ['Sin anuncios', 'Ultra HD', 'Varios perfiles'],
       icon: 'videocam',
@@ -107,7 +137,6 @@ export class Platforms {
     },
     {
       name: 'YouTube',
-      price: 'Desde $49/mes',
       description: 'Videos, creadores y contenido para todos los gustos.',
       features: ['Sin anuncios (Premium)', 'Descargas', 'YouTube Music'],
       icon: 'smart_display',
@@ -119,7 +148,6 @@ export class Platforms {
     },
     {
       name: 'Prime Video',
-      price: 'Desde $45/mes',
       description: 'Series, películas y Amazon Originals.',
       features: ['Envíos Prime', 'Descargas', 'Ultra HD'],
       icon: 'movie',
@@ -129,87 +157,50 @@ export class Platforms {
       bannerTo: 'to-ink',
       mockup: 'poster',
     },
-    {
-      name: 'Apple Music',
-      price: 'Desde $48/mes',
-      description: 'Más de 100 millones de canciones, sin anuncios.',
-      features: ['Modo offline', 'Listas personalizadas', 'Audio espacial'],
-      icon: 'music_note',
-      iconBg: 'bg-pink-500/15',
-      iconColor: 'text-pink',
-      bannerFrom: 'from-pink-500',
-      bannerTo: 'to-rose-800',
-      mockup: 'music',
-    },
-    {
-      name: 'Crunchyroll',
-      price: 'Desde $39/mes',
-      description: 'El catálogo de anime más grande, con simulcast cada temporada.',
-      features: ['Sin anuncios', 'Descargas', 'Subtítulos y doblaje'],
-      icon: 'animation',
-      iconBg: 'bg-orange-500/15',
-      iconColor: 'text-orange-600',
-      bannerFrom: 'from-orange-500',
-      bannerTo: 'to-ink',
-      mockup: 'poster',
-    },
-    {
-      name: 'Canva Pro',
-      price: 'Desde $42/mes',
-      description: 'Diseño gráfico profesional con miles de plantillas premium.',
-      features: ['Plantillas premium', 'Fondo removedor', 'Más almacenamiento'],
-      icon: 'palette',
-      iconBg: 'bg-teal-500/15',
-      iconColor: 'text-teal-700',
-      bannerFrom: 'from-teal-500',
-      bannerTo: 'to-sky-700',
-      mockup: 'icon',
-    },
-    {
-      name: 'Duolingo',
-      price: 'Desde $35/mes',
-      description: 'Aprende idiomas de forma divertida, sin límites de vidas.',
-      features: ['Sin anuncios', 'Vidas ilimitadas', 'Lecciones offline'],
-      icon: 'language',
-      iconBg: 'bg-lime-500/15',
-      iconColor: 'text-lime-700',
-      bannerFrom: 'from-lime-500',
-      bannerTo: 'to-emerald-700',
-      mockup: 'icon',
-    },
-    {
-      name: 'ChatGPT Plus',
-      price: 'Desde $119/mes',
-      description: 'Acceso prioritario a los modelos más avanzados de OpenAI.',
-      features: ['Modelos avanzados', 'Prioridad de acceso', 'Uso extendido'],
-      icon: 'psychology',
-      iconBg: 'bg-emerald-600/15',
-      iconColor: 'text-emerald-800',
-      bannerFrom: 'from-emerald-700',
-      bannerTo: 'to-ink',
-      mockup: 'icon',
-    },
-    {
-      name: 'Claude Pro',
-      price: 'Desde $119/mes',
-      description: 'Asistente de IA avanzado para trabajar, crear y pensar mejor.',
-      features: ['Más capacidad', 'Modelos avanzados', 'Prioridad'],
-      icon: 'bolt',
-      iconBg: 'bg-amber-600/15',
-      iconColor: 'text-amber-800',
-      bannerFrom: 'from-amber-400',
-      bannerTo: 'to-orange-700',
-      mockup: 'icon',
-    },
   ];
 
   protected readonly dots = this.tiles.map((_, i) => i);
-  protected readonly selectedIndex = signal(3);
+  protected readonly selectedIndex = signal(2);
   protected readonly carouselPlugins: EmblaPluginType[] = prefersReducedMotion()
     ? []
     : [Autoplay({ delay: 3500, stopOnInteraction: false, stopOnMouseEnter: true })];
 
   private embla: EmblaCarouselType | null = null;
+
+  ngOnInit(): void {
+    this.loadInventory();
+  }
+
+  protected loadInventory(): void {
+    this.inventoryError.set(false);
+    this.availableGroups.set(null);
+    this.groupsService.findAvailable(1, 100, undefined, undefined, { withSpots: true }).subscribe({
+      next: (response) => this.availableGroups.set(response.data),
+      error: () => {
+        this.availableGroups.set([]);
+        this.inventoryError.set(true);
+      },
+    });
+  }
+
+  protected inventoryFor(platformName: string): InventorySummary | null {
+    return this.inventoryByPlatform().get(this.platformKey(platformName)) ?? null;
+  }
+
+  protected formatMoney(value: number): string {
+    return value.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  private platformKey(name: string): string {
+    const normalized = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    if (normalized.includes('netflix')) return 'netflix';
+    if (normalized.includes('spotify')) return 'spotify';
+    if (normalized.includes('disney')) return 'disney';
+    if (normalized.includes('hbo') || normalized === 'max') return 'max';
+    if (normalized.includes('youtube')) return 'youtube';
+    if (normalized.includes('prime')) return 'prime';
+    return normalized;
+  }
 
   protected featureIcon(feature: string): string {
     return FEATURE_ICONS[feature] ?? 'check_circle';

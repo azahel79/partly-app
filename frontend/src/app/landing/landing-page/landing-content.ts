@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { WaveDivider } from '../../shared/wave-divider';
-import { Comparison } from '../components/comparison/comparison';
 import { CtaFinal } from '../components/cta-final/cta-final';
-import { Footer } from '../components/footer/footer';
+import { AudiencePaths } from '../components/audience-paths/audience-paths';
 import { HowItWorks } from '../components/how-it-works/how-it-works';
-import { MetricsBanner } from '../components/metrics-banner/metrics-banner';
 import { Owners } from '../components/owners/owners';
 import { Platforms } from '../components/platforms/platforms';
 import { ProductTour } from '../components/product-tour/product-tour';
+import { PaymentJourney } from '../components/payment-journey/payment-journey';
+import { SavingsCalculator } from '../components/savings-calculator/savings-calculator';
 import { Security } from '../components/security/security';
 import { Testimonials } from '../components/testimonials/testimonials';
 import { LandingMotionDirective } from './landing-motion.directive';
@@ -17,16 +17,16 @@ import { LandingMotionDirective } from './landing-motion.directive';
   selector: 'app-landing-content',
   imports: [
     LandingMotionDirective,
-    MetricsBanner,
+    AudiencePaths,
     HowItWorks,
-    Comparison,
     ProductTour,
+    PaymentJourney,
+    SavingsCalculator,
     Platforms,
     Security,
     Owners,
     Testimonials,
     CtaFinal,
-    Footer,
     WaveDivider,
   ],
   templateUrl: './landing-content.html',

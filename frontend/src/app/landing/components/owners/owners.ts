@@ -1,4 +1,5 @@
 import { Component, computed, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { RevealDirective } from '../../../shared/reveal.directive';
 
 interface OwnerPlan {
@@ -14,7 +15,7 @@ interface OwnerPlan {
 }
 
 @Component({
-  imports: [RevealDirective],
+  imports: [RevealDirective, RouterLink],
   selector: 'app-owners',
   styleUrl: './owners.css',
   templateUrl: './owners.html',
@@ -77,13 +78,10 @@ export class Owners {
 
   private pulseEarnings(): void {
     this.earningsPulse.set(false);
+    if (typeof window === 'undefined') return;
     requestAnimationFrame(() => {
       this.earningsPulse.set(true);
       setTimeout(() => this.earningsPulse.set(false), 400);
     });
-  }
-
-  protected requestWithdrawal(): void {
-    window.alert('Solicitud de retiro enviada. Partly la revisa y actualiza el estatus: pendiente → en proceso → pagado.');
   }
 }

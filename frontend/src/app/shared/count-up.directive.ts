@@ -27,7 +27,7 @@ export class CountUpDirective implements OnInit, OnDestroy {
   private tween: gsap.core.Tween | null = null;
 
   ngOnInit(): void {
-    if (prefersReducedMotion()) {
+    if (typeof window === 'undefined' || prefersReducedMotion()) {
       this.render(this.appCountUp);
       return;
     }

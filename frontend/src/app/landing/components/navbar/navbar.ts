@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../shared/auth.service';
 import { MagneticDirective } from '../../../shared/magnetic.directive';
 import { LenisScrollService } from '../../../shared/lenis-scroll.service';
+import { LandingAnalyticsService } from '../../../shared/landing-analytics.service';
 
 export interface NavLink {
   label: string;
@@ -14,7 +15,7 @@ export interface NavLink {
 }
 
 const DEFAULT_LINKS: NavLink[] = [
-  { label: 'Cómo funciona', routerLink: '/', fragment: 'como-funciona', active: true, icon: 'home' },
+  { label: 'Cómo funciona', routerLink: '/', fragment: 'como-funciona', icon: 'home' },
   { label: 'Explorar', routerLink: '/', fragment: 'producto', icon: 'explore' },
   { label: 'Compara tu plan', routerLink: '/', fragment: 'owners', icon: 'group' },
   { label: 'Precios', routerLink: '/', fragment: 'comparativa', icon: 'credit_card' },
@@ -40,6 +41,7 @@ export class Navbar implements OnInit {
   private readonly router = inject(Router);
   private readonly scrollService = inject(LenisScrollService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly analytics = inject(LandingAnalyticsService);
 
   ngOnInit(): void {
     // Centralizado aquí (no en cada página) porque el navbar es el único componente presente en
@@ -81,6 +83,7 @@ export class Navbar implements OnInit {
   /** El navbar de la landing siempre muestra "Iniciar sesión"/"Crear cuenta"; si el usuario ya
    * está autenticado, lo mandamos directo a su panel en vez de al formulario. */
   protected goToAuth(target: 'login' | 'register'): void {
+    this.analytics.track('public_nav_auth_clicked', { target });
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/panel']);
       return;

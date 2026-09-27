@@ -1,5 +1,7 @@
 # Partly Web
 
+El build de producciÃ³n genera HTML estÃ¡tico para la portada y las rutas pÃºblicas estables. Comparativa, autenticaciÃ³n, panel y administraciÃ³n conservan renderizado cliente mediante `index.csr.html`.
+
 Aplicación Angular 22 de Partly. Incluye landing pública, autenticación, panel de compradores/vendedores y panel administrativo.
 
 ## Desarrollo

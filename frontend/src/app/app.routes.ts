@@ -3,12 +3,18 @@ import { authGuard } from './shared/auth.guard';
 import { adminGuard } from './shared/admin.guard';
 
 export const routes: Routes = [
-  { path: '', loadComponent: () => import('./landing/landing-page/landing-page').then((m) => m.LandingPage) },
-  { path: 'como-funciona-el-ciclo', loadComponent: () => import('./landing/cycle-guide/cycle-guide').then((m) => m.CycleGuide) },
-  { path: 'comparativa', loadComponent: () => import('./landing/comparativa/comparativa').then((m) => m.Comparativa) },
-  { path: 'seguridad', loadComponent: () => import('./landing/seguridad/seguridad').then((m) => m.Seguridad) },
-  { path: 'terminos', loadComponent: () => import('./landing/terminos/terminos').then((m) => m.Terminos) },
-  { path: 'privacidad', loadComponent: () => import('./landing/privacidad/privacidad').then((m) => m.Privacidad) },
+  {
+    path: '',
+    loadComponent: () => import('./landing/public-layout/public-layout').then((m) => m.PublicLayout),
+    children: [
+      { path: '', pathMatch: 'full', loadComponent: () => import('./landing/landing-page/landing-page').then((m) => m.LandingPage) },
+      { path: 'como-funciona-el-ciclo', loadComponent: () => import('./landing/cycle-guide/cycle-guide').then((m) => m.CycleGuide) },
+      { path: 'comparativa', loadComponent: () => import('./landing/comparativa/comparativa').then((m) => m.Comparativa) },
+      { path: 'seguridad', loadComponent: () => import('./landing/seguridad/seguridad').then((m) => m.Seguridad) },
+      { path: 'terminos', loadComponent: () => import('./landing/terminos/terminos').then((m) => m.Terminos) },
+      { path: 'privacidad', loadComponent: () => import('./landing/privacidad/privacidad').then((m) => m.Privacidad) },
+    ],
+  },
   { path: 'iniciar-sesion', loadComponent: () => import('./auth/login/login').then((m) => m.Login) },
   { path: 'crear-cuenta', loadComponent: () => import('./auth/register/register').then((m) => m.Register) },
   { path: 'oauth/callback', loadComponent: () => import('./auth/oauth-callback/oauth-callback').then((m) => m.OauthCallback) },

@@ -15,6 +15,8 @@ export class LandingMotionDirective {
   private cleanupMotion: (() => void) | undefined;
 
   constructor() {
+    if (typeof window === 'undefined') return;
+
     afterNextRender(() => {
       const startMotion = async (): Promise<void> => {
         const [{ gsap, ScrollTrigger }, { mountLandingEffects }, { mountLandingScenes }] = await Promise.all([

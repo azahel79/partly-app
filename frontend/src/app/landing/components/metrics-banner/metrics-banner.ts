@@ -21,7 +21,7 @@ export class MetricsBanner implements AfterViewInit, OnDestroy {
   protected readonly paymentDay = 20;
 
   ngAfterViewInit(): void {
-    if (prefersReducedMotion()) return;
+    if (typeof window === 'undefined' || prefersReducedMotion()) return;
 
     this.waveAnimation = gsap.context(() => {
       const motions: gsap.core.Animation[] = [
@@ -51,7 +51,9 @@ export class MetricsBanner implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.waveVisibilityHandler) document.removeEventListener('visibilitychange', this.waveVisibilityHandler);
+    if (typeof document !== 'undefined' && this.waveVisibilityHandler) {
+      document.removeEventListener('visibilitychange', this.waveVisibilityHandler);
+    }
     this.waveAnimation?.revert();
   }
 }

@@ -24,7 +24,7 @@ export class TiltDirective implements OnInit {
   private disabled = false;
 
   ngOnInit(): void {
-    this.disabled = prefersReducedMotion();
+    this.disabled = typeof window === 'undefined' || prefersReducedMotion();
     if (this.disabled) return;
 
     gsap.set(this.el, { transformPerspective: 700, z: 0 });

@@ -1,16 +1,11 @@
 <div class="landing-progressive-content">
-  @defer (on viewport) {
-    <div appLandingMotion landingMotionMode="section">
-      <app-metrics-banner />
-      <app-wave-divider backColor="#F6F4EF" waveColor="#F8F7F3" />
-    </div>
-  } @placeholder { <div class="landing-section-placeholder"><i></i><i></i><i></i></div> }
-
   @defer (on idle) {
     <div appLandingMotion landingMotionMode="section">
+      <app-audience-paths />
       <app-how-it-works />
       <app-product-tour />
-      <app-comparison />
+      <app-payment-journey />
+      <app-savings-calculator />
       <div class="landing-motion-wave wave-to-platforms" aria-hidden="true">
         <div class="landing-wave-track">
           <svg viewBox="0 0 1200 140" preserveAspectRatio="none"><path d="M0 78 C200 22 400 22 600 78 C800 134 1000 134 1200 78 L1200 140 L0 140 Z" /></svg>
@@ -50,8 +45,4 @@
   @defer (on viewport) {
     <div appLandingMotion landingMotionMode="section"><app-cta-final /></div>
   } @placeholder { <div class="landing-section-placeholder"><i></i><i></i><i></i></div> }
-
-  @defer (on viewport) {
-    <div appLandingMotion landingMotionMode="section"><app-footer /></div>
-  } @placeholder { <div class="landing-section-placeholder footer"><i></i><i></i><i></i></div> }
 </div>

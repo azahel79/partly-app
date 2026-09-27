@@ -1,0 +1,52 @@
+<section class="savings-section" aria-labelledby="savings-title">
+  <div class="savings-shell">
+    <header appReveal>
+      <h2 id="savings-title">Calcula tu parte con precios del catálogo</h2>
+      <p>Selecciona un plan activo y ajusta cuántas personas compartirían el costo. El cálculo usa información disponible en Partly, no cifras inventadas para la landing.</p>
+    </header>
+
+    @if (plans() === null) {
+      <div class="calculator-state" role="status"><span class="state-spinner"></span><p>Consultando planes activos…</p></div>
+    } @else if (errorMessage()) {
+      <div class="calculator-state error" role="alert">
+        <span class="material-symbols-outlined">cloud_off</span>
+        <div><strong>No fue posible cargar el comparador</strong><p>{{ errorMessage() }}</p></div>
+        <button type="button" (click)="loadPlans()">Intentar de nuevo</button>
+      </div>
+    } @else if (plans()!.length === 0) {
+      <div class="calculator-state">
+        <span class="material-symbols-outlined">inventory_2</span>
+        <div><strong>Aún no hay planes activos para comparar</strong><p>Cuando el catálogo tenga información disponible, aparecerá aquí automáticamente.</p></div>
+        <a routerLink="/como-funciona-el-ciclo">Conocer el proceso</a>
+      </div>
+    } @else if (selectedPlan(); as plan) {
+      <div appReveal appRevealVariant="blur" class="calculator-grid">
+        <div class="calculator-controls">
+          <label for="savings-plan">Plan activo</label>
+          <select id="savings-plan" [value]="plan.id" (change)="selectPlan($any($event.target).value)">
+            @for (item of plans()!; track item.id) {
+              <option [value]="item.id">{{ item.platform.name }} · {{ item.tierName }}</option>
+            }
+          </select>
+
+          <div class="share-label"><label for="share-count">Personas que comparten</label><strong>{{ shareCount() }}</strong></div>
+          <input id="share-count" type="range" min="2" [max]="plan.maxSlots" [value]="shareCount()" (input)="updateShareCount($any($event.target).value)" (change)="trackShareCount()" />
+          <div class="range-scale"><span>2 personas</span><span>{{ plan.maxSlots }} personas</span></div>
+
+          <p class="catalog-source"><span class="material-symbols-outlined">database</span>Precio oficial configurado en el catálogo activo de Partly.</p>
+        </div>
+
+        <div class="calculator-result" aria-live="polite">
+          <div class="result-plan"><span class="material-symbols-outlined">subscriptions</span><div><small>{{ plan.platform.name }}</small><strong>{{ plan.tierName }}</strong></div></div>
+          <dl>
+            <div><dt>Precio completo</dt><dd>${{ formatMoney(officialPrice()) }} MXN</dd></div>
+            <div class="result-highlight"><dt>Tu parte estimada</dt><dd>${{ formatMoney(sharedPrice()) }} MXN</dd></div>
+            <div><dt>Ahorro mensual estimado</dt><dd>${{ formatMoney(monthlySaving()) }} MXN · {{ savingPercent() }}%</dd></div>
+          </dl>
+          <small>El importe final depende del grupo, los cupos y los días restantes del ciclo.</small>
+          <div class="result-actions"><a routerLink="/crear-cuenta" appTrackEvent="landing_cta_clicked" [trackEventParams]="{ location: 'savings_calculator', action: 'register' }">Explorar grupos<span class="material-symbols-outlined">arrow_forward</span></a><a routerLink="/comparativa" appTrackEvent="landing_context_link_clicked" [trackEventParams]="{ location: 'savings_calculator', destination: 'comparison' }">Ver comparativa completa</a></div>
+        </div>
+      </div>
+    }
+  </div>
+</section>

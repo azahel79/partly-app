@@ -15,7 +15,7 @@ export class ParallaxDirective implements OnInit, OnDestroy {
   private visible = false;
 
   ngOnInit(): void {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     this.el.style.willChange = 'translate';
     this.observer = new IntersectionObserver(([entry]) => {
       this.visible = entry.isIntersecting;
@@ -27,6 +27,7 @@ export class ParallaxDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (typeof window === 'undefined') return;
     this.observer?.disconnect();
     window.removeEventListener('scroll', this.scheduleUpdate);
     window.removeEventListener('resize', this.scheduleUpdate);
@@ -36,7 +37,7 @@ export class ParallaxDirective implements OnInit, OnDestroy {
   }
 
   private readonly scheduleUpdate = (): void => {
-    if (!this.visible || this.frame) return;
+    if (typeof window === 'undefined' || !this.visible || this.frame) return;
     this.frame = requestAnimationFrame(() => {
       this.frame = 0;
       const rect = this.el.getBoundingClientRect();

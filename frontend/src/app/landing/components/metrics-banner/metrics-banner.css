@@ -45,3 +45,10 @@
 @media(max-width:900px){.wave-zone-inner{padding:0 24px}.wave-orbit-one{right:-390px}.wave-orbit-two{left:-500px}.animated-wave-zone .grace-showcase{padding-top:205px;padding-bottom:125px}.animated-wave-zone .credentials-showcase{padding-top:125px;padding-bottom:190px}}
 @media(max-width:600px){.wave-zone-inner{padding:0 20px}.wave-stage{background:linear-gradient(180deg,transparent 0 76px,#087d6a 145px,#087d6a 47%,#082b46 56%,#082b46 calc(100% - 145px),transparent calc(100% - 48px))}.travelling-wave{height:145px}.travelling-wave-two{top:14px}.travelling-wave-three{top:28px}.transition-wave{top:calc(51% - 78px);height:156px}.transition-wave-two{top:calc(51% - 98px)}.exit-wave{height:160px}.exit-wave-two{bottom:18px}.animated-wave-zone .grace-showcase{padding-top:175px;padding-bottom:105px}.animated-wave-zone .credentials-showcase{padding-top:105px;padding-bottom:165px}}
 @media(prefers-reduced-motion:reduce){.results-bg-wave,.travelling-wave,.wave-strip,.wave-line,.wave-orbit{transform:none!important;animation:none!important}}
+
+/* Las cifras de esta escena son ejemplos, no métricas de adopción verificadas. */
+.results-button{border-radius:12px}
+.results-community p strong{color:#0b604e}
+.results-community.is-demonstrative .community-faces b{font-size:8px}
+.results-disclaimer{max-width:440px;margin:14px 0 0;color:#747b8e;font-size:9px;line-height:1.5}
+@media(max-width:900px){.results-disclaimer{margin-left:auto;margin-right:auto}}

@@ -17,7 +17,7 @@ export class MagneticDirective implements OnInit, OnDestroy {
   private targetY = 0;
 
   ngOnInit(): void {
-    this.disabled = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.disabled = typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (this.disabled) return;
     this.label = this.el.querySelector<HTMLElement>('.magnetic-label');
     this.el.style.willChange = 'translate';
@@ -42,6 +42,7 @@ export class MagneticDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (typeof window === 'undefined') return;
     cancelAnimationFrame(this.frame);
     this.el.style.removeProperty('translate');
     this.el.style.removeProperty('transition');
@@ -52,6 +53,7 @@ export class MagneticDirective implements OnInit, OnDestroy {
   }
 
   private scheduleUpdate(): void {
+    if (typeof window === 'undefined') return;
     cancelAnimationFrame(this.frame);
     this.frame = requestAnimationFrame(() => {
       this.el.style.transition = 'translate 480ms cubic-bezier(.2,.8,.2,1)';

@@ -8,15 +8,21 @@
 
   <div class="platforms-shell">
     <header appReveal appRevealVariant="scale" class="platforms-heading">
-      <div class="catalog-badge"><span class="material-symbols-outlined">grid_view</span>Catálogo de servicios</div>
       <h2>Tus plataformas favoritas<br />listas <span>para compartir</span></h2>
-      <p>Ejemplos de servicios que puedes compartir en Partly. El catálogo de plataformas<br />y planes sigue creciendo.</p>
+      @if (availableGroups() === null) {
+        <p role="status">Consultando la disponibilidad actual del catálogo público…</p>
+      } @else if (inventoryError()) {
+        <p class="inventory-message error">No pudimos actualizar la disponibilidad. <button type="button" (click)="loadInventory()">Intentar de nuevo</button></p>
+      } @else {
+        <p>Precios y cupos obtenidos del catálogo público de Partly.<br />La disponibilidad puede cambiar cuando una persona reserva un espacio.</p>
+      }
+      <a class="platforms-comparison-link" routerLink="/comparativa" appTrackEvent="landing_context_link_clicked" [trackEventParams]="{ location: 'platforms', destination: 'comparison' }">Abrir comparativa completa<span class="material-symbols-outlined">arrow_forward</span></a>
     </header>
 
     <div appReveal appRevealVariant="blur" class="platform-carousel-wrap">
       <button type="button" class="platform-nav prev" (click)="scrollPrev()" aria-label="Anterior"><span class="material-symbols-outlined">chevron_left</span></button>
       <button type="button" class="platform-nav next" (click)="scrollNext()" aria-label="Siguiente"><span class="material-symbols-outlined">chevron_right</span></button>
-      <div appCarousel [appCarouselOptions]="{ loop: true, align: 'center', startIndex: 3 }" [appCarouselPlugins]="carouselPlugins" (appCarouselReady)="onCarouselReady($event)" class="platform-viewport">
+      <div appCarousel [appCarouselOptions]="{ loop: true, align: 'center', startIndex: 2 }" [appCarouselPlugins]="carouselPlugins" (appCarouselReady)="onCarouselReady($event)" class="platform-viewport">
         <div class="platform-track">
           @for (tile of tiles; track tile.name; let i = $index) {
             <div class="platform-slide" [class.is-current]="selectedIndex() === i">
@@ -30,8 +36,21 @@
                 </div>
                 <div class="platform-card-body">
                   <div class="platform-logo" [class]="tile.iconColor">@if (tile.letter) {<strong>{{ tile.letter }}</strong>} @else {<span class="material-symbols-outlined">{{ tile.icon }}</span>}</div>
-                  <h3>{{ tile.name }}</h3><strong class="platform-price">{{ tile.price }}</strong><p>{{ tile.description }}</p>
-                  <div class="platform-card-footer"><div>@for (feature of tile.features; track feature) {<span><i class="material-symbols-outlined">{{ featureIcon(feature) }}</i>{{ feature }}</span>}</div><button type="button" aria-label="Ver {{ tile.name }}"><span class="material-symbols-outlined">arrow_forward</span></button></div>
+                  <h3>{{ tile.name }}</h3>
+                  @if (availableGroups() === null) {
+                    <strong class="platform-price is-loading">Consultando cupos…</strong>
+                  } @else if (inventoryError()) {
+                    <strong class="platform-price is-empty">Disponibilidad no disponible</strong>
+                    <small class="platform-availability">Usa “Intentar de nuevo” para actualizar.</small>
+                  } @else if (inventoryFor(tile.name); as inventory) {
+                    <strong class="platform-price">Desde ${{ formatMoney(inventory.lowestPrice) }} MXN/mes</strong>
+                    <small class="platform-availability">{{ inventory.groups }} {{ inventory.groups === 1 ? 'grupo' : 'grupos' }} · {{ inventory.freeSlots }} {{ inventory.freeSlots === 1 ? 'cupo libre' : 'cupos libres' }}</small>
+                  } @else {
+                    <strong class="platform-price is-empty">Sin cupos publicados ahora</strong>
+                    <small class="platform-availability">Puedes volver a consultar más tarde.</small>
+                  }
+                  <p>{{ tile.description }}</p>
+                  <div class="platform-card-footer"><div>@for (feature of tile.features; track feature) {<span><i class="material-symbols-outlined">{{ featureIcon(feature) }}</i>{{ feature }}</span>}</div><a routerLink="/crear-cuenta" appTrackEvent="landing_platform_selected" [trackEventParams]="{ platform: tile.name }" [attr.aria-label]="'Crear cuenta para explorar ' + tile.name"><span class="material-symbols-outlined">arrow_forward</span></a></div>
                 </div>
               </article>
             </div>

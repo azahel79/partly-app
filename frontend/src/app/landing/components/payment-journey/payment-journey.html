@@ -1,0 +1,103 @@
+<section class="journey-section" aria-labelledby="payment-journey-title">
+  <div class="journey-shell">
+    <header appReveal class="journey-heading">
+      <div>
+        <h2 id="payment-journey-title">Así avanza un pago dentro de Partly</h2>
+        <p>Un ejemplo realista de la interfaz: del cálculo inicial al acceso, sin pasos ocultos.</p>
+      </div>
+      <span>Contenido demostrativo · MXN</span>
+    </header>
+
+    <div appReveal appRevealVariant="blur" class="journey-workspace">
+      <nav class="journey-steps" aria-label="Etapas del pago">
+        @for (stage of stages; track stage.label; let i = $index) {
+          <button
+            type="button"
+            [attr.aria-pressed]="activeIndex() === i"
+            [class.active]="activeIndex() === i"
+            (click)="selectStage(i)"
+          >
+            <span>{{ i + 1 }}</span>
+            <i class="material-symbols-outlined">{{ stage.icon }}</i>
+            <b>{{ stage.label }}</b>
+          </button>
+        }
+      </nav>
+
+      <article
+        class="journey-panel"
+        aria-live="polite"
+      >
+        <div class="journey-appbar">
+          <img src="partly-wordmark.png" alt="Partly" />
+          <span><i></i>Solicitud en proceso</span>
+        </div>
+
+        <div class="journey-content">
+          <div class="journey-copy">
+            <span class="journey-index">Paso {{ activeIndex() + 1 }} de {{ stages.length }}</span>
+            <h3>{{ activeStage().title }}</h3>
+            <p>{{ activeStage().description }}</p>
+
+            @switch (activeIndex()) {
+              @case (0) {
+                <dl class="amount-breakdown">
+                  <div><dt>Plan</dt><dd>Netflix Premium · 1 cupo</dd></div>
+                  <div><dt>Periodo inicial</dt><dd>18 días restantes</dd></div>
+                  <div class="total"><dt>Total a transferir</dt><dd>$53.40 MXN</dd></div>
+                </dl>
+              }
+              @case (1) {
+                <div class="transfer-card">
+                  <span class="material-symbols-outlined">account_balance</span>
+                  <div><small>CLABE de demostración</small><strong>•••• •••• •••• 4821</strong><p>Referencia: PARTLY-7A32</p></div>
+                </div>
+              }
+              @case (2) {
+                <div class="receipt-card">
+                  <span class="material-symbols-outlined">description</span>
+                  <div><strong>comprobante-septiembre.pdf</strong><small>PDF · 284 KB · Listo para enviar</small></div>
+                  <i class="material-symbols-outlined">check_circle</i>
+                </div>
+              }
+              @case (3) {
+                <ol class="review-log">
+                  <li class="done"><i class="material-symbols-outlined">check</i><span><b>Comprobante recibido</b><small>Hoy, 10:42</small></span></li>
+                  <li class="current"><i class="material-symbols-outlined">schedule</i><span><b>Revisión del titular</b><small>Estado actual</small></span></li>
+                  <li><i class="material-symbols-outlined">key</i><span><b>Acceso</b><small>Disponible después de aprobarse</small></span></li>
+                </ol>
+              }
+              @case (4) {
+                <div class="access-preview">
+                  <div><small>Correo de la cuenta</small><strong>a••••••••••&#64;gmail.com</strong></div>
+                  <span><i class="material-symbols-outlined">verified_user</i>Miembro activo</span>
+                </div>
+              }
+            }
+          </div>
+
+          <aside class="journey-summary" aria-label="Resumen de la solicitud">
+            <span class="material-symbols-outlined">subscriptions</span>
+            <div><small>Grupo</small><strong>Netflix Premium 4K</strong><p>Espacio 3 de 4</p></div>
+            <dl>
+              <div><dt>Estado</dt><dd>{{ activeStage().label }}</dd></div>
+              <div><dt>Importe demo</dt><dd>$53.40 MXN</dd></div>
+            </dl>
+          </aside>
+        </div>
+
+        <footer class="journey-actions">
+          <p><span class="material-symbols-outlined">info</span>Los importes, nombres y archivos son ilustrativos.</p>
+          <div>
+            <a class="journey-guide-link" routerLink="/como-funciona-el-ciclo">Consultar guía completa</a>
+            @if (activeIndex() < stages.length - 1) {
+              <button type="button" (click)="nextStage()">Ver siguiente paso<span class="material-symbols-outlined">arrow_forward</span></button>
+            } @else {
+              <a routerLink="/crear-cuenta">Crear mi cuenta<span class="material-symbols-outlined">arrow_forward</span></a>
+            }
+          </div>
+        </footer>
+      </article>
+    </div>
+  </div>
+</section>

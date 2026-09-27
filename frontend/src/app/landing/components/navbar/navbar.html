@@ -1,5 +1,6 @@
+<a class="skip-link" href="#contenido-principal">Saltar al contenido</a>
 <header class="anim-in-down relative z-50 w-full pt-4 px-4 sm:px-6">
-  <div class="max-w-[1480px] mx-auto rounded-[28px] bg-crema/95 backdrop-blur-md border border-white/60 shadow-neu-raised overflow-hidden">
+  <div class="public-header-shell max-w-[1480px] mx-auto rounded-[20px] bg-crema/95 backdrop-blur-md border border-white/60 shadow-neu-raised overflow-hidden">
   <div class="public-header-row px-6 min-h-24 py-5 flex items-center justify-between">
     <a class="flex items-center group" routerLink="/" (click)="closeMobileMenu()">
       <img src="partly-wordmark.png" alt="Partly" class="h-8 w-auto group-hover:scale-105 transition-transform" />
@@ -20,7 +21,7 @@
     </nav>
 
     <div class="public-header-actions flex items-center gap-3 sm:gap-4">
-      <a class="hidden lg:grid w-10 h-10 place-items-center rounded-full text-ink hover:bg-white/70 transition-colors border-r border-crema-border" href="#producto" aria-label="Ver Partly en acción">
+      <a class="hidden lg:grid w-10 h-10 place-items-center rounded-full text-ink hover:bg-white/70 transition-colors border-r border-crema-border" routerLink="/" fragment="producto" aria-label="Ver Partly en acción">
         <span class="material-symbols-outlined text-[25px]">search</span>
       </a>
       <a
@@ -44,7 +45,7 @@
         class="xl:hidden w-11 h-11 shrink-0 rounded-full bg-crema shadow-neu-raised-sm flex items-center justify-center text-ink"
         (click)="toggleMobileMenu()"
         [attr.aria-expanded]="mobileMenuOpen()" aria-controls="public-mobile-nav"
-        aria-label="Abrir menú"
+        [attr.aria-label]="mobileMenuOpen() ? 'Cerrar menú' : 'Abrir menú'"
       >
         <span class="material-symbols-outlined text-2xl">{{ mobileMenuOpen() ? 'close' : 'menu' }}</span>
       </button>

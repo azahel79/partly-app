@@ -1,10 +1,4 @@
-<header class="guide-nav">
-  <a routerLink="/" class="guide-logo"><img src="partly-wordmark.png" alt="Partly" /></a>
-  <nav><a class="active" routerLink="/como-funciona-el-ciclo" fragment="inicio">La guía</a><a routerLink="/como-funciona-el-ciclo" fragment="primer-pago">Pagos y ciclo</a><a routerLink="/como-funciona-el-ciclo" fragment="comprobante">Comprobante</a><a routerLink="/como-funciona-el-ciclo" fragment="credenciales">Acceso</a><a routerLink="/como-funciona-el-ciclo" fragment="preguntas">Preguntas</a></nav>
-  <div><a class="login" routerLink="/iniciar-sesion">Iniciar sesión</a><a class="signup" routerLink="/crear-cuenta">Crear cuenta<span class="material-symbols-outlined">arrow_forward</span></a></div>
-</header>
-
-<main class="guide-page">
+<main id="contenido-principal" class="guide-page">
   <section class="guide-hero" id="inicio">
     <div appReveal class="guide-copy">
       <div class="guide-label"><span class="material-symbols-outlined">payments</span>Guía de pagos</div>
@@ -70,7 +64,7 @@
 
   <section class="access-section" id="credenciales">
     <div appReveal class="access-copy"><div class="guide-label"><span class="material-symbols-outlined">lock</span>Acceso protegido</div><h2>Tus credenciales aparecen solo cuando corresponde.</h2><p>Una compra nueva no da acceso hasta que el titular del plan aprueba el comprobante. Cuando eso ocurre, Partly muestra los datos cifrados de la cuenta, el perfil asignado y cualquier instrucción especial.</p><ul><li>Solo el titular del plan y los miembros activos pueden consultar los datos.</li><li>Si cambian las credenciales, recibirás una notificación.</li><li>Al salir, cancelar o perder el espacio, el acceso se revoca.</li></ul></div>
-    <div appReveal appRevealVariant="blur" class="access-card"><header><div class="netflix-mini">N</div><div><b>Netflix Premium 4K</b><small>Acceso activo · Perfil 3</small></div><mark><i></i>Activo</mark></header><label>Correo de la cuenta</label><div class="credential"><span>a**********&#64;gmail.com</span><button type="button"><span class="material-symbols-outlined">visibility_off</span>Mostrar</button></div><label>Contraseña</label><div class="credential"><span>••••••••••••</span><button type="button"><span class="material-symbols-outlined">visibility_off</span>Mostrar</button></div><footer><span class="material-symbols-outlined">encrypted</span><p><b>Cifrado de extremo a extremo</b><small>Acceso disponible únicamente para miembros activos.</small></p></footer></div>
+    <div appReveal appRevealVariant="blur" class="access-card"><header><div class="netflix-mini">N</div><div><b>Netflix Premium 4K</b><small>Acceso activo · Perfil 3</small></div><mark><i></i>Activo</mark></header><label>Correo de la cuenta</label><div class="credential"><span>a**********&#64;gmail.com</span><button type="button" disabled><span class="material-symbols-outlined">lock</span>Protegido</button></div><label>Contraseña</label><div class="credential"><span>••••••••••••</span><button type="button" disabled><span class="material-symbols-outlined">lock</span>Protegido</button></div><footer><span class="material-symbols-outlined">encrypted</span><p><b>Cifrado AES-256-GCM en reposo</b><small>Acceso disponible únicamente para miembros activos.</small></p></footer></div>
   </section>
 
   <section class="situations-section" id="casos-importantes">
@@ -89,4 +83,3 @@
   </section>
 
 </main>
-<app-footer surfaceColor="#EDF7F3" />

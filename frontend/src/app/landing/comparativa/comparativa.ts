@@ -7,16 +7,7 @@ import { PlansService } from '../../shared/plans.service';
 import { GroupsService } from '../../shared/groups.service';
 import { Plan } from '../../shared/plans.models';
 import { ScrollTrigger } from '../../shared/gsap';
-import { Footer } from '../components/footer/footer';
-import { Navbar, NavLink } from '../components/navbar/navbar';
 import { platformLogoSrc } from '../../shared/platform-logo.util';
-
-const NAV_LINKS: NavLink[] = [
-  { label: 'Resumen', routerLink: '/comparativa', fragment: 'resumen', active: true },
-  { label: 'Comparativa', routerLink: '/comparativa', fragment: 'tabla' },
-  { label: 'Cómo se calcula', routerLink: '/comparativa', fragment: 'calculo' },
-  { label: 'Preguntas', routerLink: '/comparativa', fragment: 'preguntas' },
-];
 
 /** Nombres de plataforma que son claramente datos de prueba QA (nunca hubo una vista
  *  pública del catálogo antes de esta página, así que nadie los había limpiado). */
@@ -51,13 +42,11 @@ interface PlatformRow {
 
 @Component({
   selector: 'app-comparativa',
-  imports: [RouterLink, RevealDirective, CountUpDirective, DecimalPipe, Footer, Navbar],
+  imports: [RouterLink, RevealDirective, CountUpDirective, DecimalPipe],
   templateUrl: './comparativa.html',
   styleUrls: ['./comparativa.css', './comparativa-extra.css'],
 })
 export class Comparativa implements OnInit {
-  protected readonly navLinks = NAV_LINKS;
-
   private readonly plansService = inject(PlansService);
   private readonly groupsService = inject(GroupsService);
 
@@ -117,14 +106,14 @@ export class Comparativa implements OnInit {
     this.plansService.listActive().subscribe({
       next: (res) => {
         this.plans.set(res.data);
-        requestAnimationFrame(() => ScrollTrigger.refresh());
+        if (typeof window !== 'undefined') requestAnimationFrame(() => ScrollTrigger.refresh());
       },
       error: (message: string) => this.errorMessage.set(message),
     });
     this.groupsService.publicStats().subscribe({
       next: (res) => {
         this.activeGroupsCount.set(res.activeGroupsCount);
-        requestAnimationFrame(() => ScrollTrigger.refresh());
+        if (typeof window !== 'undefined') requestAnimationFrame(() => ScrollTrigger.refresh());
       },
       error: () => undefined,
     });

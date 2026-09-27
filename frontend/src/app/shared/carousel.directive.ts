@@ -33,6 +33,7 @@ export class CarouselDirective implements AfterViewInit, OnDestroy {
   };
 
   ngAfterViewInit(): void {
+    if (typeof window === 'undefined') return;
     this.embla = EmblaCarousel(this.el, { loop: false, align: 'start', ...this.appCarouselOptions }, this.appCarouselPlugins);
     this.appCarouselReady.emit(this.embla);
     this.autoplay = (this.embla.plugins() as unknown as Record<string, { play: () => void; stop: () => void }>)['autoplay'] ?? null;
@@ -52,6 +53,7 @@ export class CarouselDirective implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (typeof window === 'undefined') return;
     this.observer?.disconnect();
     document.removeEventListener('visibilitychange', this.syncAutoplay);
     this.embla?.destroy();

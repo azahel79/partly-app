@@ -1,6 +1,4 @@
-<app-navbar [links]="navLinks" />
-
-<main class="sec-page">
+<main id="contenido-principal" class="sec-page">
   <div class="sec-bg-orb orb-one"></div><div class="sec-bg-orb orb-two"></div><div class="sec-bg-orb orb-three"></div>
   <section class="sec-hero" id="resumen">
     <div appReveal class="sec-hero-copy">
@@ -8,7 +6,7 @@
       <h1>Seguridad real,<br />no solo <span>apariencia.</span></h1>
       <p>Cuidamos la confianza de tu cuenta compartida de principio a fin. No es solo un trato entre personas: es un sistema diseñado para proteger tus credenciales, tu dinero y tu acceso.</p>
       <div class="sec-benefits">
-        <article appReveal appRevealVariant="pop" [appRevealDelay]="80"><i class="material-symbols-outlined">lock</i><div><b>Credenciales cifradas</b><small>AES-256, en reposo y en tránsito.</small></div></article>
+        <article appReveal appRevealVariant="pop" [appRevealDelay]="80"><i class="material-symbols-outlined">lock</i><div><b>Credenciales cifradas</b><small>AES-256-GCM en reposo.</small></div></article>
         <article appReveal appRevealVariant="pop" [appRevealDelay]="150"><i class="material-symbols-outlined">groups</i><div><b>Grupos revisados</b><small>Antes de publicarse.</small></div></article>
         <article appReveal appRevealVariant="pop" [appRevealDelay]="220"><i class="material-symbols-outlined">verified_user</i><div><b>Acceso verificado</b><small>En cada solicitud y usuario.</small></div></article>
         <article appReveal appRevealVariant="pop" [appRevealDelay]="290"><i class="material-symbols-outlined">credit_card</i><div><b>Pagos transparentes</b><small>Sin cargos ocultos.</small></div></article>
@@ -19,9 +17,9 @@
       <div class="sec-hand-note note-safe"><span class="material-symbols-outlined">lock</span>Tu información<br />siempre segura<i></i></div>
       <article class="sec-credential-card">
         <header><div class="sec-platform"><span class="sec-netflix-logo">N</span><div><h3>Netflix Premium 4K</h3><p>Cuenta compartida · 4 perfiles</p></div></div><span class="sec-active-pill"><i></i>Activo</span></header>
-        <div class="sec-field"><span class="material-symbols-outlined">mail</span><div><small>Correo de la cuenta</small><strong>usuario••••&#64;gmail.com</strong></div><button type="button"><span class="material-symbols-outlined">content_copy</span>Copiar</button></div>
-        <div class="sec-field"><span class="material-symbols-outlined">lock</span><div><small>Contraseña</small><strong class="sec-dots">••••••••••••</strong></div><button type="button"><span class="material-symbols-outlined">content_copy</span>Copiar</button></div>
-        <div class="sec-encryption-banner"><span class="material-symbols-outlined">verified_user</span><div><strong>Cifrado de extremo a extremo (AES-256)</strong><small>Tus credenciales están protegidas con cifrado de nivel bancario.</small></div></div>
+        <div class="sec-field"><span class="material-symbols-outlined">mail</span><div><small>Correo de la cuenta</small><strong>usuario••••&#64;gmail.com</strong></div><button type="button" disabled><span class="material-symbols-outlined">lock</span>Protegido</button></div>
+        <div class="sec-field"><span class="material-symbols-outlined">lock</span><div><small>Contraseña</small><strong class="sec-dots">••••••••••••</strong></div><button type="button" disabled><span class="material-symbols-outlined">lock</span>Protegido</button></div>
+        <div class="sec-encryption-banner"><span class="material-symbols-outlined">verified_user</span><div><strong>Cifrado AES-256-GCM en reposo</strong><small>La plataforma descifra los datos únicamente para miembros activos autorizados.</small></div></div>
         <footer><span><i class="material-symbols-outlined">group</i>4 perfiles</span><span><i class="material-symbols-outlined">calendar_month</i>Renovación mensual</span><span><i class="material-symbols-outlined">shield</i>Protegido desde 2025</span></footer>
       </article>
       <div class="sec-hand-note note-calm">Más entretenimiento.<br />Más tranquilidad.<i></i></div>
@@ -29,10 +27,24 @@
   </section>
 
   <section class="sec-trust-strip" aria-label="Garantías de seguridad">
-    <article appReveal appRevealVariant="pop"><i class="material-symbols-outlined">verified_user</i><div><b>AES-256</b><small>Cifrado de nivel bancario</small></div></article>
-    <article appReveal appRevealVariant="pop" [appRevealDelay]="70"><i class="material-symbols-outlined">groups</i><div><b>100%</b><small>Grupos revisados manualmente</small></div></article>
+    <article appReveal appRevealVariant="pop"><i class="material-symbols-outlined">verified_user</i><div><b>AES-256-GCM</b><small>Cifrado en reposo</small></div></article>
+    <article appReveal appRevealVariant="pop" [appRevealDelay]="70"><i class="material-symbols-outlined">groups</i><div><b>Revisión previa</b><small>Antes de publicar cada grupo</small></div></article>
     <article appReveal appRevealVariant="pop" [appRevealDelay]="140"><i class="material-symbols-outlined">lock</i><div><b>Acceso controlado</b><small>Solo usuarios verificados</small></div></article>
     <article appReveal appRevealVariant="pop" [appRevealDelay]="210"><i class="material-symbols-outlined">credit_card</i><div><b>Pagos transparentes</b><small>Sin cargos ocultos</small></div></article>
+  </section>
+
+  <section appReveal class="sec-operations" aria-labelledby="sec-operations-title">
+    <header>
+      <h2 id="sec-operations-title">Protección que también explica qué sigue</h2>
+      <p>En una transferencia entre personas, la seguridad depende de estados claros, evidencia y una ruta de atención visible.</p>
+    </header>
+    <ol>
+      <li><span class="material-symbols-outlined">upload_file</span><div><b>1. Evidencia</b><p>El comprobante queda asociado a la solicitud.</p></div></li>
+      <li><span class="material-symbols-outlined">fact_check</span><div><b>2. Revisión</b><p>El titular confirma el depósito; Partly registra la decisión.</p></div></li>
+      <li><span class="material-symbols-outlined">support_agent</span><div><b>3. Incidencia</b><p>Si algo no coincide, puedes escalar el caso con su historial.</p></div></li>
+      <li><span class="material-symbols-outlined">key_off</span><div><b>4. Revocación</b><p>Al salir o dejar de renovar, las credenciales dejan de mostrarse.</p></div></li>
+    </ol>
+    <aside><span class="material-symbols-outlined">verified_user</span><p><b>Partly Shield</b> no sustituye la revisión humana: organiza comprobantes, estados e incidencias para que cada decisión tenga contexto.</p></aside>
   </section>
 
   <section class="sec-pillars" id="proteccion">
@@ -44,7 +56,7 @@
   <section appReveal appRevealVariant="flip" class="sec-faq" id="preguntas">
     <div class="sec-faq-kicker">¿Aún tienes dudas?</div><h2>Preguntas frecuentes</h2><p>Resolvemos las dudas más comunes sobre la seguridad en Partly.</p>
     <div class="sec-faq-list">
-      <details appReveal appRevealVariant="right"><summary><span>¿Quién puede ver la contraseña de la cuenta compartida?</span><span class="material-symbols-outlined">expand_more</span></summary><p>Solo el titular del plan y los miembros activos. La información se almacena cifrada y ni siquiera el equipo de Partly puede leerla directamente.</p></details>
+      <details appReveal appRevealVariant="right"><summary><span>¿Quién puede ver la contraseña de la cuenta compartida?</span><span class="material-symbols-outlined">expand_more</span></summary><p>Solo el titular del plan y los miembros activos. La información se almacena cifrada y se descifra cuando una solicitud autorizada necesita mostrarla.</p></details>
       <details appReveal appRevealVariant="right" [appRevealDelay]="70"><summary><span>¿Qué pasa si el titular cambia la contraseña?</span><span class="material-symbols-outlined">expand_more</span></summary><p>El cambio queda registrado y los miembros activos reciben una notificación, sin exponer los valores anteriores.</p></details>
       <details appReveal appRevealVariant="right" [appRevealDelay]="140"><summary><span>¿Puedo seguir unido a un grupo sin credenciales reales?</span><span class="material-symbols-outlined">expand_more</span></summary><p>No. Un grupo sin credenciales verificadas no puede mantenerse disponible para nuevos miembros.</p></details>
       <details appReveal appRevealVariant="right" [appRevealDelay]="210"><summary><span>¿Cómo protege Partly mi dinero como comprador?</span><span class="material-symbols-outlined">expand_more</span></summary><p>Antes de pagar ves el importe exacto y la fecha. Después puedes consultar el estado y el historial de cada movimiento desde tu panel.</p></details>
@@ -56,5 +68,3 @@
     <div class="sec-shield-scene" aria-hidden="true"><span class="shield-orbit"></span><span class="shield-core material-symbols-outlined">verified_user</span><i class="scene-chip chip-users"><span class="material-symbols-outlined">group</span>Mismas suscripciones.</i><i class="scene-chip chip-heart"><span class="material-symbols-outlined">favorite</span>Mejores personas.</i><i class="scene-chip chip-spark"><span class="material-symbols-outlined">bolt</span>Una internet más simple.</i></div>
   </section>
 </main>
-
-<app-footer surfaceColor="#FAF9F5" />

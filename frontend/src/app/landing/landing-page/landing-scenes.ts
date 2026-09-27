@@ -65,7 +65,7 @@ export function mountLandingScenes(
 
   // The phone assembles from the inside, then gently tilts with the scroll.
   sequence('.hero-inner', [
-    { selector: '.hero-description, .hero-form, .hero-benefits > div', from: { opacity: 0, y: 24 }, at: 0.15 },
+    { selector: '.hero-description, .hero-actions, .hero-benefits > div', from: { opacity: 0, y: 24 }, at: 0.15 },
     { selector: '.phone-brand, .phone-greeting, .phone-tabs', from: { opacity: 0, y: 18 }, at: 0.2 },
     { selector: '.subscription-list > article', from: { opacity: 0, x: 44, scale: 0.9 }, to: { stagger: 0.15, ease: 'back.out(1.4)' }, at: 0.45 },
     { selector: '.float-card > *', from: { opacity: 0, y: 16, scale: 0.8 }, at: 0.75 },

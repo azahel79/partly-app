@@ -1,4 +1,4 @@
-.floating-socials{position:fixed;left:24px;bottom:24px;z-index:50}
+.floating-socials{display:none}
 .social-links{display:flex;flex-direction:column;gap:10px}
 .social-button,.social-toggle{position:relative;width:48px;height:48px;display:grid;place-items:center;border:1px solid #ffffff55;border-radius:50%;color:#fff;cursor:pointer;box-shadow:0 6px 18px #14142b26;transition:transform .2s,box-shadow .2s}
 .social-button:hover,.social-toggle:hover{transform:translateY(-3px);box-shadow:0 9px 22px #14142b38}
@@ -17,10 +17,14 @@
 
 
 .public-header-row { gap: 24px; }
+.skip-link { position: fixed; z-index: 100; inset: 10px auto auto 10px; padding: 10px 14px; border-radius: 10px; background: #101631; color: #fff; font-weight: 800; text-decoration: none; transform: translateY(-150%); }
+.skip-link:focus { transform: translateY(0); }
+.public-header-shell { box-shadow: 0 10px 30px rgba(20,20,43,.08); }
 .public-header-row > a, .public-header-actions { flex-shrink: 0; }
 .public-header-actions a { white-space: nowrap; }
 #public-mobile-nav { max-height: calc(100dvh - 110px); overflow-y: auto; }
 @media (max-width: 639px) {
+  .public-header-shell { border-radius: 16px; }
   .public-header-row { height: auto; min-height: 76px; padding: 14px; gap: 10px; }
   .public-header-row > a img { height: 28px; }
   .public-header-actions { gap: 8px; }

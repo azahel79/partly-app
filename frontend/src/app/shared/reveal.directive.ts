@@ -61,6 +61,11 @@ export class RevealDirective implements OnInit, OnDestroy {
     const reveal = () => this.el.classList.add('is-visible');
     const hide = () => this.el.classList.remove('is-visible');
 
+    if (typeof window === 'undefined') {
+      this.hostClass += ' is-visible';
+      return;
+    }
+
     if (prefersReducedMotion()) {
       reveal();
       return;

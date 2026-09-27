@@ -35,3 +35,34 @@
   :host ::ng-deep .plan-tabs button{transition:box-shadow .25s,translate .25s}
   :host ::ng-deep .plan-tabs button:hover{translate:0 -4px;box-shadow:0 12px 24px #008d7026}
 }
+
+/* Partly polish: geometría sobria, profundidad puntual y una sola voz de marca. */
+:host ::ng-deep :is(h1,h2){letter-spacing:-.04em!important;text-wrap:balance}
+:host ::ng-deep h3{letter-spacing:-.02em;text-wrap:balance}
+:host ::ng-deep p{text-wrap:pretty}
+:host ::ng-deep .hero-accent{background:none!important;color:#038e6b!important;-webkit-text-fill-color:currentColor}
+
+:host ::ng-deep :is(.process-card,.security-card,.owner-card,.story-card,.platform-card,.price-card,.comparison-card,.credentials-card,.calendar-card){
+  border-radius:16px!important;
+  box-shadow:none!important;
+}
+:host ::ng-deep :is(.product-window,.groups-preview,.earning-box,.savings-summary){border-radius:16px!important}
+:host ::ng-deep :is(.comparison-cta,.results-button,.grace-button,.calendar-button,.calculator>a,.withdraw-bottom){border-radius:12px!important}
+
+:host ::ng-deep :is(.process-hand-note,.comparison-note,.platforms-note,.floating-apps p,.time-note,.apps-note,.grace-hand-note,.secure-note,.calendar-apps div,.calendar-hand-note,.owner-note,.security-note){
+  font-family:"Bricolage Grotesque","Plus Jakarta Sans",sans-serif!important;
+  font-style:italic;
+  letter-spacing:-.01em;
+}
+
+@media(hover:hover) and (prefers-reduced-motion:no-preference){
+  :host ::ng-deep :is(.process-card,.security-card,.owner-card,.story-card,.platform-card,.price-card):hover{
+    border-color:rgba(5,150,105,.38)!important;
+    box-shadow:0 16px 36px -22px rgba(5,82,65,.42)!important;
+    transform:translateY(-2px);
+  }
+}
+
+@media(max-width:700px){
+  :host ::ng-deep :is(.process-card,.security-card,.owner-card,.story-card,.platform-card,.price-card,.comparison-card,.credentials-card,.calendar-card){border-radius:14px!important}
+}

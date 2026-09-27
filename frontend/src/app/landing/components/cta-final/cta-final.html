@@ -3,10 +3,10 @@
     <div class="cta-orbit orbit-a"></div><div class="cta-orbit orbit-b"></div><div class="cta-blob blob-one"></div><div class="cta-blob blob-two"></div>
     <div class="floating-brand spotify">●</div><div class="floating-brand netflix">N</div><div class="floating-brand dropbox">◆</div>
     <div class="cta-note note-a">Más<br />por menos<i></i></div><div class="cta-note note-b">Juntos<br />se ahorra más<i></i></div>
-    <div class="cta-content"><div class="cta-badge"><span class="material-symbols-outlined">group</span>Únete a miles de usuarios</div><h2>Empieza a ahorrar hoy mismo<br />en <span>tus suscripciones</span></h2><p>Crea tu cuenta gratuita en menos de dos minutos. Únete a un grupo<br />activo o comparte tus cupos libres sin riesgo.</p>
-      <form (submit)="onSubmit($event,emailInput)"><span class="material-symbols-outlined">mail</span><input #emailInput [disabled]="submitState()==='submitting'" type="email" required placeholder="Ingresa tu correo"/><button appMagnetic [disabled]="submitState()==='submitting'" type="submit">{{submitState()==='submitting'?'Enviando…':'Crear cuenta gratis'}}<span class="material-symbols-outlined">arrow_forward</span></button></form>
-      @if(submitState()==='success'){<small class="status success">✓ ¡Listo! Te avisaremos en cuanto tengas acceso.</small>}@else if(submitState()==='error'){<small class="status error">Algo salió mal. Intenta de nuevo.</small>}@else{<small class="safe"><span class="material-symbols-outlined">lock</span>Sin tarjeta para registrarte · Cancela cuando quieras</small>}
-      <div class="cta-benefits"><span><i class="material-symbols-outlined">bar_chart</i>Ahorra hasta 75%</span><b></b><span><i class="material-symbols-outlined">verified_user</i>Pagos seguros</span><b></b><span><i class="material-symbols-outlined">eco</i>Sin permanencia</span></div>
+    <div class="cta-content"><h2>Empieza a ahorrar hoy mismo<br />en <span>tus suscripciones</span></h2><p>Crea tu cuenta gratuita, explora grupos disponibles o publica<br />los espacios libres de tu plan familiar.</p>
+      <div class="cta-actions"><a appMagnetic routerLink="/crear-cuenta" appTrackEvent="landing_cta_clicked" [trackEventParams]="{ location: 'final_cta', action: 'register' }">Crear cuenta gratis<span class="material-symbols-outlined">arrow_forward</span></a><a href="#producto" appTrackEvent="landing_context_link_clicked" [trackEventParams]="{ location: 'final_cta', destination: 'product_tour' }">Ver cómo funciona</a></div>
+      <small class="safe"><span class="material-symbols-outlined">lock</span>Sin tarjeta para registrarte · Cancela cuando quieras</small>
+      <div class="cta-benefits" aria-label="Siguientes pasos"><span><i>1</i>Crea tu cuenta</span><b></b><span><i>2</i>Explora un grupo</span><b></b><span><i>3</i>Conoce el monto antes de pagar</span></div>
     </div>
   </div>
 </section>
