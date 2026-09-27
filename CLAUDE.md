@@ -1,0 +1,66 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Qué es
+
+Partly: marketplace para compartir suscripciones (Netflix, Spotify…). Un vendedor publica un **grupo** (cuenta con varios perfiles), los compradores pagan su **cupo** por transferencia **directo al vendedor** y suben un comprobante; el vendedor lo aprueba y el comprador ve las credenciales. Partly cobra al vendedor una comisión de 10–15% por cada pago validado y vende cuentas completas "al mayoreo". Monorepo: `frontend/` (Angular 22) y `backend/` (NestJS 12 + Prisma 5 + PostgreSQL).
+
+**Todo texto visible al usuario va en español** (comentarios de código también). En la interfaz no se usa la palabra "prorrateo": se dice "pagas solo los días que faltan".
+
+## Comandos
+
+Desde la raíz: `npm test` (ambos), `npm run build` (ambos), `npm run verify` (pruebas + builds), `npm run start:backend`, `npm run start:frontend`.
+
+Backend (`cd backend`):
+- `npm run start:dev` — API en `http://localhost:3001/api` (puerto de `.env`), Swagger en `/api/docs`.
+- `npm test` — Jest; los specs viven en `backend/test/*.spec.ts`. Una prueba: `npx jest test/billing.util.spec.ts` o `npx jest -t "nombre del caso"`.
+- `npm run lint` — ESLint con `--fix`.
+- `npx prisma migrate dev --name <nombre>` — nueva migración; `npx prisma generate` tras cambiar `prisma/schema.prisma`. En Windows `generate` falla con EPERM si la API está corriendo (bloquea el motor): deténla primero.
+- `npm run admin:bootstrap -- --confirm` con `BOOTSTRAP_ADMIN_EMAIL` — convierte en ADMIN a una cuenta ya registrada (solo si aún no hay admin).
+
+Frontend (`cd frontend`):
+- `npm start` — `ng serve` en `http://localhost:4200`, consume `http://localhost:3001/api`.
+- `npx ng test --watch=false` — Vitest (builder `@angular/build:unit-test`); una prueba: `npx ng test --watch=false --include src/app/ruta/archivo.spec.ts` (o `--filter "nombre"`).
+- `npx ng build` — producción (`dist/frontend/browser`); `--configuration development` para compilar rápido y ver errores.
+
+CI (`.github/workflows/ci.yml`): `npm ci`, `prisma generate`, pruebas y builds de ambos en cada push.
+
+Pruebas de extremo a extremo de cobros y renovaciones: skill `prueba-renovacion` (scripts en `backend/scripts/qa/`).
+
+## Arquitectura del backend
+
+- Un módulo por dominio en `backend/src/modules/` (groups, payments, commissions, providers, reviews, notifications, mail, support, users, auth…). La lógica vive en los servicios; los controladores solo validan acceso. `ValidationPipe` global con `whitelist` + `forbidNonWhitelisted`: todo campo de entrada necesita decoradores de class-validator en su DTO.
+- Respuestas: DTOs con `@Exclude()`/`@Expose()` que se construyen a mano (`new GroupResponseDto(entidad)`); el `ClassSerializerInterceptor` global solo emite lo marcado con `@Expose`.
+- **Concurrencia en dinero:** las transiciones de estado (aprobar un pago, un cobro, una orden) usan `updateMany` con el estado esperado en el `where` dentro de `$transaction` y fallan si afectan 0 filas. Sigue ese patrón en cualquier acción que se pueda disparar dos veces.
+- **Notificaciones:** `NotificationsService.create(tx, {...})` se llama dentro de la transacción del cambio. Qué avisos salen también por correo lo decide `modules/notifications/email-rules.ts`; los correos pasan por una bandeja (`EmailMessage`) que se despacha cada minuto, con `emailDedupeKey`, `emailImmediate` y horario silencioso de 21:00 a 8:00 (CDMX). En desarrollo `MAIL_PROVIDER=log` (se ven en Admin > Correos); en producción se exige un proveedor real.
+- **Tareas programadas (`@Cron`)** — el orden importa:
+  - `PaymentsService.processDailyBilling` (medianoche): vencer pagos sin comprobante tras su gracia → cerrar membresías que no renuevan → dar el lugar a quien lo apartó → cerrar/abrir ciclos → generar cobros de renovación → recordatorios → limpiar comprobantes viejos.
+  - `CommissionsService.processDaily`, `GroupsService.sendStartReminders` (10:00), `ReviewsService.sendReviewReminders` (11:00), `ProviderOrdersService.processHourly`.
+- Credenciales de cuentas y CLABE se cifran con AES-256-GCM (`common/utils/crypto.util.ts`, llave `CREDENTIALS_ENCRYPTION_KEY`; perderla las vuelve irrecuperables).
+- `wallet` y `payouts` son del esquema financiero anterior; ningún flujo actual los usa.
+
+## Reglas de negocio que atraviesan varios archivos
+
+- **Alta de grupo, en este orden** (lo impone el backend): vendedor crea (PENDING) → admin fija comisión (`PUT /groups/:id/commission`, inmutable después) → admin pide credenciales → vendedor las envía (antes responde 403) → admin aprueba.
+- **Membresías:** `RESERVED` (apartó sin pagar) → `PENDING_PAYMENT` → `ACTIVE`; `CANCELLED` al salir o no pagar. `Group.occupiedSlots` cuenta solo pagados y se ajusta en la aprobación del primer pago y en cada cancelación. El grupo puede iniciar con 75% de cupos apartados (`slotsRequiredToStart`); al iniciar, cada reservado tiene 48 h para pagar.
+- **Entrada a un grupo ya iniciado:** solo si quedan `minEntryDays` (15 en mensual, mitad del ciclo en los demás) y se paga solo lo que resta (`computeJoinPricing` en `common/utils/billing.util.ts`).
+- **Renovación por adelantado:** 3 días antes del corte se crea un `Payment` con `forNextCycle=true` colgado del ciclo en curso, solo para miembros con `autoRenew=true`. Gracia de 48 h después del corte; un comprobante ya subido protege el lugar. Quien apaga la renovación libera su lugar al terminar el periodo; otro comprador puede apartarlo sin pagar (`common/utils/seats.util.ts`, `stage=freeing` en el marketplace).
+- **Dinero:** cada pago aprobado crea un `EarningEntry` (bruto/comisión/neto); las entradas se agrupan en un `CommissionCharge` que el vendedor paga con comprobante. Comisión vencida ⇒ sus grupos salen del marketplace y no puede crear/iniciar grupos ni comprar al mayoreo (sus miembros actuales no se tocan).
+- **Reseñas:** solo con un pago validado y 7 días de servicio; el vendedor responde, no borra.
+- Fechas de renovación a medianoche UTC; el frontend las muestra con `timeZone: 'UTC'` para no correrse un día en México.
+
+## Reglas de seguridad que no hay que romper
+
+- `GroupResponseDto.restrictTo(...)`: la cuenta bancaria del vendedor solo la ven él, un ADMIN y quien le debe un pago; la comisión, solo el vendedor y un ADMIN. `GET /groups/:id` usa `OptionalJwtAuthGuard` y no muestra grupos sin aprobar a extraños.
+- Un ADMIN solo lee credenciales de un grupo mientras están en revisión (`credentialReviewStatus = SUBMITTED`) y cada lectura se registra en `AdminActionLog`.
+- Todo comprobante subido pasa por `receiptMatchesType` (valida el contenido, no solo el tipo declarado).
+- La web se sirve con la CSP de `frontend/nginx/security-headers.conf`, que **prohíbe scripts en línea**: no agregues `<script>` con código en `index.html` (usa un archivo en `frontend/public/`, como `theme-init.js`) y registra ahí cualquier dominio externo nuevo.
+
+## Arquitectura del frontend
+
+- Componentes standalone con signals y control flow `@if/@for`; rutas perezosas en `src/app/app.routes.ts`. Áreas: `landing/` (público), `auth/`, `panel/` (comprador y vendedor comparten panel, protegido por `authGuard`) y `admin/` (`adminGuard`).
+- Servicios HTTP en `src/app/shared/*.service.ts`: envuelven `HttpClient` y convierten errores a un mensaje en español con `toErrorMessage`, así los componentes reciben `string` en el `error` de `subscribe`. La URL base está en `shared/api-config.ts` (dev: `localhost:3001/api`; prod: `/api` en el mismo dominio). El interceptor de auth agrega el token y renueva la sesión en 401; las claves de `localStorage` empiezan con `partly.`.
+- Estilos: Tailwind 4 con tokens propios (`pink` es el verde de la marca `#059669`, `ink`, `crema-*`). El modo oscuro aplica solo a panel y admin: clase `dark` en `<html>` más los tokens de `src/dark-theme.css`; los estilos de componentes usan `:host-context(html.dark)`.
+- Estilo común de panel y admin en `src/app-ui.css` (la landing no lo usa): fondo `#F6F7F9`, tarjetas blancas con borde fino, verde `#047857` solo en la acción principal, textos de 12 px como mínimo y un solo tamaño de título. Piezas reutilizables: `ui-btn` (`--primary`, `--secondary`, `--sm`), `ui-link`, `ui-pill` (`--ok` en orden, `--warn` le toca hacer algo, `--info` esperando a alguien, `--danger` vencido o rechazado, `--violet` próximo ciclo), `ui-metric`, `ui-chip`, `ui-input`, `ui-seats` (barra de lugares, con `shared/seat-bar.util.ts`) y `ui-skeleton` en lugar de "Cargando…". Dinero siempre con `{{ monto | money }}` o `formatMoney()` de `shared/money.ts`; estado de un grupo para su vendedor con `shared/status-tag.util.ts`.
+- Confirmaciones con `ConfirmService` (SweetAlert2). Logos de plataformas: `shared/platform-logo` + `platform-logo.util.ts` (archivos en `public/logos`, con respaldo genérico verde).

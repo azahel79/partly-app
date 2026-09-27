@@ -1,0 +1,5 @@
+{
+  "admin": "admin@ejemplo.com",
+  "vendedor": "vendedor@ejemplo.com",
+  "compradores": ["comprador1@ejemplo.com", "comprador2@ejemplo.com", "comprador3@ejemplo.com", "comprador4@ejemplo.com"]
+}
