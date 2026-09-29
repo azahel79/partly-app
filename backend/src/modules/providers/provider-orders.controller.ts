@@ -1,3 +1,4 @@
+import { UpdateProviderOrderCredentialDto } from './dto/update-provider-order-credential.dto';
 import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put, Query, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -169,15 +170,30 @@ export class ProviderOrdersController {
     return new ProviderOrderResponseDto(order);
   }
 
+  @Put(':id/credential')
+  @ApiOperation({
+    summary: 'Actualiza las credenciales de una cuenta ya entregada (solo el proveedor que la vendió)',
+    description: 'Si el vendedor ya la publicó como grupo, también cambia la del grupo y avisa a sus miembros; si hay un reporte abierto de esa cuenta, se le escribe ahí.',
+  })
+  @ApiResponse({ status: 200, type: ProviderOrderResponseDto })
+  async updateCredential(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateProviderOrderCredentialDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<ProviderOrderResponseDto> {
+    const order = await this.providerOrdersService.updateCredential(id, dto, user.id);
+    return new ProviderOrderResponseDto(order);
+  }
+
   @Get(':id/credential')
-  @ApiOperation({ summary: 'Ve la credencial descifrada de tu compra (solo el comprador)' })
+  @ApiOperation({ summary: 'Ve la credencial descifrada de la cuenta (el comprador, o el proveedor que la vendió)' })
   @ApiResponse({ status: 200, type: ProviderOrderCredentialResponseDto })
   @ApiResponse({ status: 404, description: 'El proveedor todavía no ha entregado las credenciales.' })
   async getCredential(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<ProviderOrderCredentialResponseDto> {
-    return this.providerOrdersService.getCredential(id, user.id);
+    return this.providerOrdersService.getCredential(id, user);
   }
 
   @Post(':id/create-group')

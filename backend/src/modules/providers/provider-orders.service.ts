@@ -1,7 +1,8 @@
+import { UpdateProviderOrderCredentialDto } from './dto/update-provider-order-credential.dto';
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { MembershipStatus, NotificationType, Prisma, ProviderOrderStatus, ProviderProfileStatus, Role } from '@prisma/client';
+import { MembershipStatus, NotificationType, Prisma, ProviderOrderStatus, ProviderProfileStatus, Role, IncidentStatus } from '@prisma/client';
 import { AuthenticatedUser } from '../auth/types/jwt-payload.interface';
 import { ProviderOrderBuyerInfo } from './dto/provider-order-response.dto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -71,6 +72,29 @@ const ORDER_WITH_PARTIES = {
 function accountName(plan: { tierName: string; platform?: { name: string } | null }): string {
   const tier = plan.tierName.replace(/\s+/g, ' ').trim();
   return plan.platform ? `${plan.platform.name} · ${tier}` : tier;
+}
+
+/**
+ * Datos cifrados de una entrega de mayoreo. Con credenciales se piden correo y contraseña; por panel, el link (y el
+ * usuario y la contraseña del panel son opcionales).
+ */
+function deliveryData(dto: DeliverProviderOrderCredentialDto, key: string) {
+  const panelUrl = dto.panelUrl?.trim();
+  if (!panelUrl && (!dto.username || !dto.password)) {
+    throw new BadRequestException('Escribe el correo y la contraseña de la cuenta, o el link del panel.');
+  }
+  return {
+    usernameEncrypted: dto.username ? encrypt(dto.username, key) : null,
+    passwordEncrypted: dto.password ? encrypt(dto.password, key) : null,
+    panelUrlEncrypted: panelUrl ? encrypt(panelUrl, key) : null,
+    notesEncrypted: dto.notes ? encrypt(dto.notes, key) : null,
+  };
+}
+
+/** Lo que se copia al grupo del vendedor: solo una entrega con credenciales (por panel, el acceso lo da el vendedor). */
+function groupCopy(data: ReturnType<typeof deliveryData>) {
+  if (data.panelUrlEncrypted || !data.usernameEncrypted || !data.passwordEncrypted) return null;
+  return { usernameEncrypted: data.usernameEncrypted, passwordEncrypted: data.passwordEncrypted, notesEncrypted: data.notesEncrypted };
 }
 
 @Injectable()
@@ -565,11 +589,8 @@ export class ProviderOrdersService {
     }
 
     const key = this.configService.get<string>('credentialsEncryptionKey')!;
-    const data = {
-      usernameEncrypted: encrypt(dto.username, key),
-      passwordEncrypted: encrypt(dto.password, key),
-      notesEncrypted: dto.notes ? encrypt(dto.notes, key) : null,
-    };
+    const data = deliveryData(dto, key);
+    const copy = groupCopy(data);
     const now = new Date();
 
     await this.prisma.$transaction(async (tx) => {
@@ -583,9 +604,9 @@ export class ProviderOrdersService {
       let swappedInto: string | null = null;
       if (order.replacesOrderId) {
         const previous = await tx.providerOrder.findUnique({ where: { id: order.replacesOrderId } });
-        if (previous?.resultingGroupId) {
+        if (previous?.resultingGroupId && copy) {
           const groupId = previous.resultingGroupId;
-          await tx.credential.upsert({ where: { groupId }, create: { groupId, ...data }, update: data });
+          await tx.credential.upsert({ where: { groupId }, create: { groupId, ...copy }, update: copy });
           await tx.credentialHistory.create({
             data: { groupId, changedByUserId: order.buyerUserId, changeReason: 'Reposición de la cuenta de mayoreo' },
           });
@@ -618,14 +639,15 @@ export class ProviderOrdersService {
     return this.findById(orderId);
   }
 
-  /** Solo el comprador (vendedor) puede ver la credencial descifrada — es su compra, no del proveedor ni de un ADMIN. */
-  async getCredential(orderId: string, requesterUserId: string): Promise<ProviderOrderCredentialResponseDto> {
-    const order = await this.prisma.providerOrder.findUnique({ where: { id: orderId } });
+  /** La credencial descifrada: la ve el comprador (es su compra) y el proveedor que la vendió (la administra). */
+  async getCredential(orderId: string, requester: { id: string }): Promise<ProviderOrderCredentialResponseDto> {
+    const order = await this.prisma.providerOrder.findUnique({ where: { id: orderId }, include: { listing: { select: { providerProfile: { select: { userId: true } } } } } });
     if (!order) {
       throw new NotFoundException('Orden no encontrada.');
     }
-    if (order.buyerUserId !== requesterUserId) {
-      throw new ForbiddenException('Solo el comprador de esta orden puede ver la credencial.');
+    // El comprador la usa; el proveedor que la vendió la administra (para corregirla desde su tienda).
+    if (order.buyerUserId !== requester.id && order.listing.providerProfile.userId !== requester.id) {
+      throw new ForbiddenException('Solo el comprador o el proveedor de esta orden pueden ver la credencial.');
     }
 
     const credential = await this.prisma.providerOrderCredential.findUnique({ where: { orderId } });
@@ -634,12 +656,101 @@ export class ProviderOrdersService {
     }
 
     const key = this.configService.get<string>('credentialsEncryptionKey')!;
+    const plain = (value: string | null) => (value ? decrypt(value, key) : null);
     return new ProviderOrderCredentialResponseDto({
-      username: decrypt(credential.usernameEncrypted, key),
-      password: decrypt(credential.passwordEncrypted, key),
-      notes: credential.notesEncrypted ? decrypt(credential.notesEncrypted, key) : null,
+      username: plain(credential.usernameEncrypted),
+      password: plain(credential.passwordEncrypted),
+      panelUrl: plain(credential.panelUrlEncrypted),
+      notes: plain(credential.notesEncrypted),
       deliveredAt: credential.deliveredAt,
     });
+  }
+
+  /**
+   * Partly (dueño de las credenciales de sus cuentas de mayoreo) las corrige o las cambia. Se le avisa al vendedor;
+   * si ya la publicó como grupo, también cambia la contraseña del grupo y se les avisa a sus miembros; y si el
+   * vendedor tiene un reporte abierto de esa cuenta, se le escribe ahí para que confirme que ya quedó.
+   */
+  async updateCredential(orderId: string, dto: UpdateProviderOrderCredentialDto, providerUserId: string) {
+    const order = await this.assertIsProviderOfOrder(orderId, providerUserId);
+    if (order.status !== ProviderOrderStatus.FULFILLED || order.renewsOrderId) {
+      throw new BadRequestException('Solo se pueden actualizar las credenciales de una cuenta ya entregada.');
+    }
+    const replacement = await this.prisma.providerOrder.findFirst({ where: { replacesOrderId: orderId, status: ProviderOrderStatus.FULFILLED }, select: { id: true } });
+    if (replacement) {
+      throw new BadRequestException('Esta cuenta ya fue sustituida por una reposición: actualiza las credenciales de la cuenta nueva.');
+    }
+
+    const key = this.configService.get<string>('credentialsEncryptionKey')!;
+    const data = deliveryData(dto, key);
+    const copy = groupCopy(data);
+    const name = accountName(order.listing.plan);
+    const reason = dto.changeReason?.trim();
+    // Por panel el acceso del grupo lo administra el vendedor: no se toca su contraseña.
+    const groupId = copy ? order.resultingGroupId : null;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.providerOrderCredential.upsert({ where: { orderId }, create: { orderId, ...data }, update: data });
+
+      if (groupId && copy) {
+        await tx.credential.upsert({ where: { groupId }, create: { groupId, ...copy }, update: copy });
+        await tx.credentialHistory.create({
+          data: { groupId, changedByUserId: providerUserId, changeReason: reason ? `Partly: ${reason}` : 'Partly actualizó las credenciales de la cuenta de mayoreo' },
+        });
+        const members = await tx.groupMembership.findMany({
+          where: { groupId, status: { in: [MembershipStatus.ACTIVE, MembershipStatus.SUSPENDED] } },
+          select: { userId: true },
+        });
+        for (const member of members) {
+          await this.notificationsService.create(tx, {
+            userId: member.userId,
+            type: NotificationType.CREDENTIAL_UPDATED,
+            groupId,
+            payload: `Se actualizó el acceso de tu cuenta de ${order.listing.plan.platform?.name ?? 'tu grupo'}${reason ? ` (${reason})` : ''}. Entra a tu grupo para ver la contraseña nueva.`,
+          });
+        }
+      }
+
+      await this.notificationsService.create(tx, {
+        userId: order.buyerUserId,
+        type: NotificationType.CREDENTIAL_UPDATED,
+        ...(groupId ? { groupId } : {}),
+        payload: `Partly actualizó las credenciales de tu cuenta "${name}"${reason ? ` (${reason})` : ''}. ${groupId ? 'Ya las cambiamos también en tu grupo y les avisamos a tus miembros.' : 'Revísalas en Mayoreo → Mis compras.'}`,
+      });
+
+      // Reportes abiertos de esta cuenta (del vendedor) o de su grupo (de un miembro): se deja la respuesta en la
+      // conversación para que quien reportó confirme que ya quedó.
+      const openIncidents = await tx.incident.findMany({
+        where: {
+          status: { in: [IncidentStatus.OPEN, IncidentStatus.IN_REVIEW, IncidentStatus.ESCALATED] },
+          OR: [{ providerOrderId: orderId }, ...(groupId ? [{ groupMembership: { groupId } }] : [])],
+        },
+        select: { id: true, status: true, subject: true, reportedByUserId: true, providerOrderId: true },
+      });
+      for (const incident of openIncidents) {
+        const aboutOrder = incident.providerOrderId === orderId;
+        await tx.incidentMessage.create({
+          data: {
+            incidentId: incident.id,
+            authorUserId: providerUserId,
+            body: aboutOrder
+              ? `Actualizamos las credenciales de esta cuenta${reason ? ` (${reason})` : ''}. Revísalas en Mayoreo → Mis compras${groupId ? ' (tu grupo ya tiene las nuevas)' : ''} y, si ya funcionan, cierra el reporte con "Ya quedó".`
+              : `Partly actualizó la contraseña de esta cuenta${reason ? ` (${reason})` : ''}. Revisa el acceso en tu grupo y, si ya funciona, cierra el reporte con "Ya quedó".`,
+          },
+        });
+        await tx.incident.update({
+          where: { id: incident.id },
+          data: { lastAssigneeReplyAt: new Date(), responseDueAt: null, ...(incident.status === IncidentStatus.OPEN ? { status: IncidentStatus.IN_REVIEW } : {}) },
+        });
+        await this.notificationsService.create(tx, {
+          userId: incident.reportedByUserId,
+          type: NotificationType.INCIDENT_MESSAGE,
+          payload: `Partly respondió tu reporte "${incident.subject}": ya actualizó las credenciales.`,
+        });
+      }
+    });
+
+    return this.findById(orderId);
   }
 
   // ------------------------------------------------------------------ cancelar y reembolsar

@@ -91,7 +91,7 @@
 
           <div>
             <div class="flex items-baseline justify-between gap-3">
-              <p class="text-ink"><span class="text-xl font-extrabold tabular-nums">{{ group.pricePerSlot | money }}</span><span class="text-xs text-on-surface-variant"> / {{ group.plan.billingPeriod === 'MONTHLY' ? 'mes' : group.plan.billingPeriod === 'QUARTERLY' ? 'trimestre' : group.plan.billingPeriod === 'SEMIANNUAL' ? 'semestre' : 'año' }}</span></p>
+              <p class="text-ink"><span class="text-xl font-extrabold tabular-nums">{{ group.pricePerSlot | money }}</span><span class="text-xs text-on-surface-variant"> / {{ periodNoun(group.plan.billingPeriod) }}</span></p>
               <span class="text-xs text-on-surface-variant shrink-0">{{ group.occupiedSlots + group.heldSlots }} de {{ group.availableSlots }} lugares</span>
             </div>
             <div class="ui-seats mt-2.5" aria-hidden="true">

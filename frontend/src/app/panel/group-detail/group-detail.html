@@ -115,7 +115,7 @@
           <span class="gd-banner-icon"><span class="material-symbols-outlined">hourglass_top</span></span>
           <div class="flex-1 min-w-0">
             <p class="gd-banner-title">Enviaste el comprobante de tu renovación ({{ pay.amount | money }})</p>
-            <p class="gd-banner-text">Falta que el vendedor lo apruebe para asegurar tu lugar el mes siguiente.</p>
+            <p class="gd-banner-text">Falta que el vendedor lo apruebe para asegurar tu lugar el siguiente periodo.</p>
           </div>
         </div>
       } @else {
@@ -123,7 +123,7 @@
           <span class="gd-banner-icon"><span class="material-symbols-outlined">schedule</span></span>
           <div class="flex-1 min-w-0">
             <p class="gd-banner-title">Tu renovación de {{ pay.amount | money }} ya está lista para pagar</p>
-            <p class="gd-banner-text">Págala a más tardar el {{ pay.graceUntil ? calendarDateLabel(pay.graceUntil) : 'corte' }} para conservar tu lugar el mes siguiente.</p>
+            <p class="gd-banner-text">Págala a más tardar el {{ pay.graceUntil ? calendarDateLabel(pay.graceUntil) : 'corte' }} para conservar tu lugar el siguiente periodo.</p>
           </div>
           <a [routerLink]="['/panel/grupos', g.id, 'pago']" class="ui-btn ui-btn--primary w-full sm:w-auto">Pagar renovación<span class="material-symbols-outlined">arrow_forward</span></a>
         </div>
@@ -225,7 +225,7 @@
                       <span class="text-xl font-black text-ink tabular-nums">{{ jp.amountToPay | money }}</span>
                     </div>
                     <p class="mt-2 text-xs text-on-surface-variant font-medium">
-                      Tu primera renovación es el {{ calendarDateLabel(jp.firstRenewalDate!) }}, igual que el resto del grupo, y es opcional: si solo quieres probar, después de entrar puedes desactivar la renovación y no se te cobrará el mes siguiente. Tienes 48 horas para transferir.
+                      Tu primera renovación es el {{ calendarDateLabel(jp.firstRenewalDate!) }}, igual que el resto del grupo, y es opcional: si solo quieres probar, después de entrar puedes desactivar la renovación y no se te cobrará el siguiente periodo. Tienes 48 horas para transferir.
                     </p>
                   </div>
                 } @else {
@@ -259,7 +259,7 @@
                 }
                 @case ('waiting') {
                   <p class="gd-banner-title">La renovación de tus miembros está en pausa</p>
-                  <p class="gd-banner-text">Tu cuenta de mayoreo vence el {{ paymentDateLabel(wn.expiresAt) }}, antes de que termine el siguiente mes, así que todavía no se les cobra. Podrás {{ wn.renewable ? 'renovarla' : 'comprar su reposición' }} desde el {{ paymentDateLabel(wn.actionFrom) }}; en cuanto lo hagas, se les genera su cobro.</p>
+                  <p class="gd-banner-text">Tu cuenta de mayoreo vence el {{ paymentDateLabel(wn.expiresAt) }}, antes de que termine el siguiente periodo, así que todavía no se les cobra. Podrás {{ wn.renewable ? 'renovarla' : 'comprar su reposición' }} desde el {{ paymentDateLabel(wn.actionFrom) }}; en cuanto lo hagas, se les genera su cobro.</p>
                 }
               }
             </div>
@@ -273,13 +273,29 @@
           <div class="gd-banner gd-banner--warn">
             <span class="gd-banner-icon"><span class="material-symbols-outlined">key</span></span>
             <div class="flex-1 min-w-0">
-              <p class="gd-banner-title">Cambio de contraseña pendiente</p>
-              <p class="gd-banner-text">
-                {{ rotation()!.departures === 1 ? rotation()!.lastMemberName + ' salió del grupo' : rotation()!.departures + ' personas salieron del grupo' }} el {{ paymentDateLabel(rotation()!.since!) }} y todavía conoce{{ rotation()!.departures === 1 ? '' : 'n' }} la contraseña.
-                Cámbiala en {{ g.plan.platform.name }}, cierra sesión en todos los dispositivos y guárdala aquí: tus miembros recibirán un aviso.
-              </p>
+              @if (isInviteGroup()) {
+                <p class="gd-banner-title">Saca del grupo familiar a quien salió</p>
+                <p class="gd-banner-text">
+                  {{ rotation()!.departures === 1 ? rotation()!.lastMemberName + ' salió del grupo' : rotation()!.departures + ' personas salieron del grupo' }} el {{ paymentDateLabel(rotation()!.since!) }}. Quítal{{ rotation()!.departures === 1 ? 'o' : 'os' }} del grupo familiar en {{ g.plan.platform.name }} para que dejen de tener acceso y confírmalo aquí.
+                </p>
+              } @else if (credentialsByPartly()) {
+                <p class="gd-banner-title">Partly cambiará la contraseña</p>
+                <p class="gd-banner-text">
+                  {{ rotation()!.departures === 1 ? rotation()!.lastMemberName + ' salió del grupo' : rotation()!.departures + ' personas salieron del grupo' }} el {{ paymentDateLabel(rotation()!.since!) }}. Como es una cuenta de mayoreo, Partly ya recibió el aviso y actualizará la contraseña; tus miembros recibirán el aviso.
+                </p>
+              } @else {
+                <p class="gd-banner-title">Cambio de contraseña pendiente</p>
+                <p class="gd-banner-text">
+                  {{ rotation()!.departures === 1 ? rotation()!.lastMemberName + ' salió del grupo' : rotation()!.departures + ' personas salieron del grupo' }} el {{ paymentDateLabel(rotation()!.since!) }} y todavía conoce{{ rotation()!.departures === 1 ? '' : 'n' }} la contraseña.
+                  Cámbiala en {{ g.plan.platform.name }}, cierra sesión en todos los dispositivos y guárdala aquí: tus miembros recibirán un aviso.
+                </p>
+              }
             </div>
-            <button type="button" class="ui-btn ui-btn--primary w-full sm:w-auto" (click)="startRotation()">Actualizar credenciales</button>
+            @if (isInviteGroup()) {
+              <button type="button" class="ui-btn ui-btn--primary w-full sm:w-auto" [disabled]="savingCredential()" (click)="confirmRemovedFromFamily()">Ya lo saqué</button>
+            } @else if (!credentialsByPartly()) {
+              <button type="button" class="ui-btn ui-btn--primary w-full sm:w-auto" (click)="startRotation()">Actualizar credenciales</button>
+            }
           </div>
         }
 
@@ -403,6 +419,19 @@
 
             @if (credentialFormOpen()) {
               <div class="space-y-3">
+                @if (isInviteGroup()) {
+                  <div>
+                    <label class="block text-xs font-bold text-on-surface-variant mb-1.5">Link de invitación al grupo familiar</label>
+                    <input
+                      type="url"
+                      [value]="credInviteLink()"
+                      (input)="credInviteLink.set($any($event.target).value)"
+                      placeholder="https://www.spotify.com/mx/family/join/invite/…"
+                      class="w-full bg-white rounded-full py-3 px-4 text-sm font-medium text-ink placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink"
+                    />
+                    <p class="text-xs text-on-surface-variant mt-1.5">Lo ven solo los miembros con su pago aprobado. Cópialo desde {{ g.plan.platform.name }} (administrar grupo familiar → invitar).</p>
+                  </div>
+                } @else {
                 <div>
                   <label class="block text-xs font-bold text-on-surface-variant mb-1.5">Usuario o correo</label>
                   <input
@@ -423,6 +452,7 @@
                     class="w-full bg-white rounded-full py-3 px-4 text-sm font-medium text-ink placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink"
                   />
                 </div>
+                }
                 <div>
                   <label class="block text-xs font-bold text-on-surface-variant mb-1.5">Perfil e instrucciones de uso (opcional)</label>
                   <textarea
@@ -444,7 +474,7 @@
                       placeholder="Ej. Salió un miembro del grupo"
                       class="w-full bg-white rounded-full py-3 px-4 text-sm font-medium text-ink placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink"
                     />
-                    <p class="text-xs text-on-surface-variant mt-1.5">Si cambias el usuario o la contraseña, tus miembros activos reciben un aviso por la app y por correo (sin la contraseña).</p>
+                    <p class="text-xs text-on-surface-variant mt-1.5">{{ isInviteGroup() ? 'Si cambias el link, tus miembros activos reciben un aviso por la app y por correo.' : 'Si cambias el usuario o la contraseña, tus miembros activos reciben un aviso por la app y por correo (sin la contraseña).' }}</p>
                   </div>
                 }
                 @if (credentialSaveError()) {
@@ -453,11 +483,11 @@
                 <div class="flex items-center gap-2 pt-1">
                   <button
                     type="button"
-                    [disabled]="savingCredential() || !credUsername().trim() || !credPassword()"
+                    [disabled]="savingCredential() || !canSaveCredential()"
                     (click)="saveCredential()"
                     class="active:scale-[0.98] hover:bg-[#065f46] py-2.5 px-5 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-60 transition-all"
                   >
-                    {{ savingCredential() ? 'Enviando…' : g.approvalStatus === 'PENDING' ? 'Enviar al administrador' : 'Guardar credenciales' }}
+                    {{ savingCredential() ? 'Enviando…' : g.approvalStatus === 'PENDING' ? 'Enviar al administrador' : (isInviteGroup() ? 'Guardar link' : 'Guardar credenciales') }}
                   </button>
                   <button type="button" (click)="closeCredentialForm()" class="active:scale-[0.98] hover:bg-slate-200 py-2.5 px-5 rounded-lg bg-slate-100 text-ink text-xs font-bold transition-all">
                     Cancelar
@@ -470,7 +500,7 @@
               @if (isOwner()) {
                 <div class="flex items-center justify-between gap-4 p-4 rounded-2xl bg-amber-50 border border-amber-100">
                   <div>
-                    <p class="text-xs font-bold text-ink">Credenciales pendientes de envío</p>
+                    <p class="text-xs font-bold text-ink">{{ isInviteGroup() ? 'Link de invitación pendiente de envío' : 'Credenciales pendientes de envío' }}</p>
                     <p class="text-xs text-on-surface-variant">
                       @if (g.approvalStatus === 'PENDING' && g.credentialReviewStatus !== 'REQUESTED') {
                         Podrás enviarlas cuando Partly las solicite, después de que conozcas tu comisión.
@@ -487,13 +517,28 @@
             } @else {
               @if (credential(); as cred) {
                 <div class="space-y-3">
+                  @if (cred.inviteLink) {
+                    <div class="p-4 rounded-xl bg-crema-inset flex flex-col sm:flex-row sm:items-center gap-3">
+                      <span class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-pink shrink-0"><span class="material-symbols-outlined">group_add</span></span>
+                      <div class="min-w-0 flex-1">
+                        <p class="text-sm font-bold text-ink">Invitación al grupo familiar</p>
+                        <p class="text-xs text-on-surface-variant truncate">{{ cred.inviteLink }}</p>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" class="ui-btn ui-btn--secondary ui-btn--sm" (click)="copyToClipboard(cred.inviteLink, 'username')"><span class="material-symbols-outlined">{{ copiedField() === 'username' ? 'check' : 'content_copy' }}</span>Copiar</button>
+                        @if (!isOwner()) {
+                          <a class="ui-btn ui-btn--primary ui-btn--sm" [href]="cred.inviteLink" target="_blank" rel="noopener"><span class="material-symbols-outlined">open_in_new</span>Unirme al grupo familiar</a>
+                        }
+                      </div>
+                    </div>
+                  } @else {
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="flex items-center justify-between gap-2 px-3.5 py-3 rounded-xl bg-crema-inset">
                       <div class="min-w-0">
                         <p class="text-xs font-bold text-on-surface-variant">Usuario</p>
                         <p class="text-sm font-bold text-ink truncate">{{ cred.username }}</p>
                       </div>
-                      <button type="button" (click)="copyToClipboard(cred.username, 'username')" class="active:scale-[0.98] shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
+                      <button type="button" (click)="copyToClipboard(cred.username ?? '', 'username')" class="active:scale-[0.98] shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
                         <span class="material-symbols-outlined text-base">{{ copiedField() === 'username' ? 'check' : 'content_copy' }}</span>
                       </button>
                     </div>
@@ -506,12 +551,13 @@
                         <button type="button" (click)="togglePasswordVisibility()" class="active:scale-[0.98] w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
                           <span class="material-symbols-outlined text-base">{{ showCredentialPassword() ? 'visibility_off' : 'visibility' }}</span>
                         </button>
-                        <button type="button" (click)="copyToClipboard(cred.password, 'password')" class="active:scale-[0.98] w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
+                        <button type="button" (click)="copyToClipboard(cred.password ?? '', 'password')" class="active:scale-[0.98] w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
                           <span class="material-symbols-outlined text-base">{{ copiedField() === 'password' ? 'check' : 'content_copy' }}</span>
                         </button>
                       </div>
                     </div>
                   </div>
+                  }
                   @if (cred.notes) {
                     <div class="flex items-start gap-2 p-3 rounded-2xl bg-pink/5">
                       <span class="material-symbols-outlined text-pink text-base shrink-0">info</span>
@@ -522,10 +568,15 @@
                     <div class="p-3 rounded-2xl bg-blue-50 border border-blue-100 flex items-center gap-2 text-blue-800"><span class="material-symbols-outlined text-base">schedule</span><p class="text-xs font-semibold">Enviadas al administrador y pendientes de revisión.</p></div>
                   }
                   <div class="flex items-center justify-end gap-3 flex-wrap">
-                    @if (isOwner()) {
+                    @if (isOwner() && credentialsByPartly()) {
+                      <p class="text-xs text-on-surface-variant flex-1">Las credenciales de esta cuenta de mayoreo las administra Partly.</p>
+                      <a routerLink="/panel/soporte/nueva" [queryParams]="{ compra: g.wholesaleAccount!.orderId }" class="inline-flex items-center gap-1 text-xs font-bold text-pink">
+                        <span class="material-symbols-outlined text-sm">support_agent</span>Pedir cambio a Partly
+                      </a>
+                    } @else if (isOwner()) {
                       <button type="button" (click)="openCredentialForm()" class="inline-flex items-center gap-1 text-xs font-bold text-pink">
                         <span class="material-symbols-outlined text-sm">edit</span>
-                        {{ g.approvalStatus === 'PENDING' ? 'Corregir y volver a enviar' : 'Editar credenciales' }}
+                        {{ g.approvalStatus === 'PENDING' ? 'Corregir y volver a enviar' : (isInviteGroup() ? 'Editar link de invitación' : 'Editar credenciales') }}
                       </button>
                     }
                   </div>
@@ -548,7 +599,7 @@
                   <app-platform-logo class="w-10 h-10 rounded-xl font-black text-sm shrink-0" [name]="other.plan.platform.name" />
                   <div class="min-w-0 flex-1">
                     <p class="text-xs font-bold text-ink truncate">{{ other.plan.platform.name }}</p>
-                    <p class="text-xs text-on-surface-variant truncate">{{ other.pricePerSlot | money }} / {{ other.plan.billingPeriod === 'MONTHLY' ? 'mes' : 'periodo' }}</p>
+                    <p class="text-xs text-on-surface-variant truncate">{{ other.pricePerSlot | money }} / {{ periodNoun(other.plan.billingPeriod) }}</p>
                   </div>
                   <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">chevron_right</span>
                 </a>

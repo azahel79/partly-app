@@ -71,6 +71,14 @@ export class NotificationsService {
     return notification;
   }
 
+  /** El mismo aviso para cada admin activo (dentro de la transacción de quien lo pide). */
+  async notifyAdmins(client: PrismaOrTx, params: { type: NotificationType; payload: string; groupId?: string }): Promise<void> {
+    const admins = await client.user.findMany({ where: { role: Role.ADMIN, deletedAt: null }, select: { id: true } });
+    for (const admin of admins) {
+      await this.create(client, { userId: admin.id, ...params });
+    }
+  }
+
   /** Copia el aviso a la bandeja de salida de correo, si corresponde. */
   private async mirrorToEmail(
     client: PrismaOrTx,

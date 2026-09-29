@@ -24,12 +24,12 @@ interface MyMembership {
           <p class="text-[13px] text-on-surface-variant mt-1 leading-relaxed">
             @if (m.autoRenew) {
               @if (endLabel()) {
-                Tu periodo termina el {{ endLabel() }}. Unos 3 días antes te generaremos el cobro de la renovación para que lo pagues antes de usar el mes siguiente. Si solo quieres probar el grupo, desactívala y no se te cobrará.
+                Tu periodo termina el {{ endLabel() }}. Unos 3 días antes te generaremos el cobro de la renovación para que lo pagues antes de que empiece el siguiente periodo. Si solo quieres probar el grupo, desactívala y no se te cobrará.
               } @else {
                 Unos 3 días antes de que termine tu primer periodo te generaremos el cobro de la renovación. Si solo quieres probar el grupo, desactívala.
               }
             } @else {
-              No se te cobrará el mes siguiente.
+              No se te cobrará el siguiente periodo.
               @if (endLabel()) { Tendrás acceso hasta el {{ endLabel() }} y después tu lugar quedará libre para otra persona. } @else { Tu lugar quedará libre al terminar tu primer periodo. }
               Puedes volver a activarla antes de esa fecha.
             }

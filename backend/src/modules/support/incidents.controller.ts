@@ -103,6 +103,15 @@ export class IncidentsController {
     return new IncidentMessageResponseDto(message);
   }
 
+  @Post(':id/request-response')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Partly le pide al responsable que conteste en 24 horas (solo ADMIN)' })
+  @ApiResponse({ status: 201, type: IncidentResponseDto })
+  async requestResponse(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthenticatedUser): Promise<IncidentResponseDto> {
+    return new IncidentResponseDto(await this.incidentsService.requestResponse(id, user));
+  }
+
   @Put(':id/status')
   @ApiOperation({
     summary: 'Cambia el estado de la incidencia',

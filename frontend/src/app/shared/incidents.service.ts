@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
 import { API_BASE_URL } from './api-config';
-import { CreateIncidentInput, Incident, IncidentMessage, IncidentStatus, PaginatedIncidents } from './incidents.models';
+import { CreateIncidentInput, Incident, IncidentMessage, IncidentStatus, PaginatedIncidents, IncidentMessageAudience } from './incidents.models';
 import { toErrorMessage } from './http-error.util';
 
 @Injectable({ providedIn: 'root' })
@@ -40,9 +40,17 @@ export class IncidentsService {
       .pipe(catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))));
   }
 
-  addMessage(id: string, body: string): Observable<IncidentMessage> {
+  /** `audience` distinto de ALL = mensaje privado entre Partly y una de las partes. */
+  addMessage(id: string, body: string, audience: IncidentMessageAudience = 'ALL'): Observable<IncidentMessage> {
     return this.http
-      .post<IncidentMessage>(`${API_BASE_URL}/incidents/${id}/messages`, { body })
+      .post<IncidentMessage>(`${API_BASE_URL}/incidents/${id}/messages`, { body, audience })
+      .pipe(catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))));
+  }
+
+  /** Solo admin: le pide al responsable que conteste en 24 horas. */
+  requestResponse(id: string): Observable<Incident> {
+    return this.http
+      .post<Incident>(`${API_BASE_URL}/incidents/${id}/request-response`, {})
       .pipe(catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))));
   }
 

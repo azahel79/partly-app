@@ -123,3 +123,15 @@ h1 em { color: inherit; }
 :host-context(html.dark) .wholesale-pick-copy small, :host-context(html.dark) .wholesale-picks-hint { color: var(--dm-muted); }
 @media (max-width: 560px) { .wholesale-pick { flex-wrap: wrap; } .wholesale-pick .ui-btn { width: 100%; } }
 
+/* Duración del periodo y tipo de acceso */
+.period-options { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.period-options button { min-height: 44px; padding: 0 16px; border: 1px solid #dbe0e8; border-radius: 10px; background: #fff; color: #222640; font-size: 13px; font-weight: 700; cursor: pointer; }
+.period-options button.selected { border-color: #047857; color: #047857; background: #ecfdf3; }
+.access-choice { grid-template-columns: 46px 1fr; margin: 16px 0; }
+.access-choice .segmented { grid-column: 2 / 3; justify-self: start; flex-wrap: wrap; }
+.access-note { display: flex; gap: 8px; margin: -6px 0 18px; padding: 10px 12px; border-radius: 10px; color: #175cd3; background: #eff8ff; font-size: 12px; line-height: 1.5; }
+.access-note .material-symbols-outlined { font-size: 17px; }
+:host-context(html.dark) .period-options button { border-color: var(--dm-line-strong); background: var(--dm-surface); color: var(--dm-text); }
+:host-context(html.dark) .period-options button.selected { border-color: #34d399; color: #6ee7b7; background: rgba(16, 185, 129, 0.14); }
+:host-context(html.dark) .access-note { color: #93c5fd; background: rgba(96, 165, 250, 0.12); }
+

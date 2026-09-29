@@ -3,13 +3,17 @@ import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
 export class ProviderOrderCredentialResponseDto {
-  @ApiProperty({ example: 'cuenta.mayoreo@example.com' })
+  @ApiProperty({ nullable: true, example: 'cuenta.mayoreo@example.com' })
   @Expose()
-  username: string;
+  username: string | null;
 
-  @ApiProperty({ example: 'ContraseñaRealDeLaCuenta123' })
+  @ApiProperty({ nullable: true, example: 'ContraseñaRealDeLaCuenta123' })
   @Expose()
-  password: string;
+  password: string | null;
+
+  @ApiProperty({ nullable: true, example: 'https://panel.proveedor.com/cliente/abc', description: 'Entrega por panel.' })
+  @Expose()
+  panelUrl: string | null;
 
   @ApiProperty({ nullable: true })
   @Expose()

@@ -2,7 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProviderOrdersService } from '../../shared/provider-orders.service';
 import { ConfirmService } from '../../shared/confirm.service';
-import { ProviderOrder } from '../../shared/provider-orders.models';
+import { ProviderOrder, canUpdateCredential } from '../../shared/provider-orders.models';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
 import { MoneyPipe, formatMoney } from '../../shared/money';
 import { DeliverCredentialsModal } from '../deliver-credentials-modal/deliver-credentials-modal';
@@ -44,6 +44,9 @@ export class ProviderOrderDetail implements OnInit {
 
   /** Modal de "Entregar credenciales" abierto. */
   protected readonly delivering = signal(false);
+  /** 'update' = corregir el acceso de una cuenta ya entregada (p. ej. desde un reporte del vendedor). */
+  protected readonly deliverMode = signal<'deliver' | 'update'>('deliver');
+  protected readonly canUpdateCredential = canUpdateCredential;
 
   protected readonly status = computed(() => {
     const o = this.order();
@@ -73,7 +76,11 @@ export class ProviderOrderDetail implements OnInit {
 
   private load(): void {
     this.providerOrdersService.findById(this.orderId).subscribe({
-      next: (order) => this.order.set(order),
+      next: (order) => {
+        this.order.set(order);
+        // Desde un reporte se llega con ?accion=credenciales para abrir directo la actualización.
+        if (this.route.snapshot.queryParamMap.get('accion') === 'credenciales' && canUpdateCredential(order)) this.openDelivery('update');
+      },
       error: (message: string) => {
         this.order.set(null);
         this.errorMessage.set(message);
@@ -188,9 +195,14 @@ export class ProviderOrderDetail implements OnInit {
     this.run(() => this.providerOrdersService.markRefunded(this.orderId));
   }
 
+  protected openDelivery(mode: 'deliver' | 'update'): void {
+    this.deliverMode.set(mode);
+    this.delivering.set(true);
+  }
+
   protected onDelivered(updated: ProviderOrder): void {
     this.delivering.set(false);
-    this.order.set(updated);
+    this.order.update((current) => ({ ...updated, buyer: updated.buyer ?? current?.buyer }));
   }
 
 }

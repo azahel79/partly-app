@@ -75,6 +75,13 @@ export class ProviderOrdersService {
   }
 
   /** Entrega las credenciales de una venta (solo el proveedor dueño de la orden). */
+  /** Partly corrige o cambia las credenciales de una cuenta ya entregada (se avisa al vendedor y, si aplica, a su grupo). */
+  updateCredential(orderId: string, input: DeliverProviderOrderCredentialInput): Observable<ProviderOrder> {
+    return this.http
+      .put<ProviderOrder>(`${API_BASE_URL}/provider-orders/${orderId}/credential`, input)
+      .pipe(catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))));
+  }
+
   deliver(orderId: string, input: DeliverProviderOrderCredentialInput): Observable<ProviderOrder> {
     return this.http
       .put<ProviderOrder>(`${API_BASE_URL}/provider-orders/${orderId}/deliver`, input)

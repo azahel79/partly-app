@@ -322,12 +322,18 @@ export class MailService {
   }
 
   /** Aviso genérico de respaldo a una notificación en la app (incidencias, estado del perfil de proveedor). */
-  async sendNotice(to: string, subject: string, body: string): Promise<void> {
+  /** Aviso suelto por correo. `cta` lleva a una pantalla de la app (ruta interna); sin ella, a la página principal. */
+  async sendNotice(to: string, subject: string, body: string, cta?: { label: string; path: string }): Promise<void> {
     await this.sendImmediate({
       to,
       template: 'notice',
       subject,
-      content: { title: subject, greeting: 'Hola,', paragraphs: [body], cta: { label: 'Abrir Partly', url: this.config.appUrl } },
+      content: {
+        title: subject,
+        greeting: 'Hola,',
+        paragraphs: [body],
+        cta: cta ? { label: cta.label, url: `${this.config.appUrl}${cta.path}` } : { label: 'Abrir Partly', url: this.config.appUrl },
+      },
     });
   }
 }

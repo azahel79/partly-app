@@ -14,7 +14,7 @@ type GroupWithRelations = Group & {
   _count?: { memberships: number };
   /** Membresías vivas (estado, renovación y fin de periodo): de aquí salen los cupos que se liberan. */
   memberships?: SeatMembership[];
-  sourceProviderOrder?: { id: string; expiresAt: Date | null; renewable: boolean } | null;
+  sourceProviderOrder?: { id: string; expiresAt: Date | null; renewable: boolean; credential?: { panelUrlEncrypted: string | null } | null } | null;
 };
 
 class PlanSummaryDto {
@@ -183,12 +183,16 @@ export class GroupResponseDto {
   @Expose()
   commissionPercentage: string | null;
 
+  @ApiProperty({ enum: ['CREDENTIALS', 'INVITE_LINK'], description: 'Cómo reciben el acceso los miembros: correo y contraseña, o link de invitación.' })
+  @Expose()
+  accessType: 'CREDENTIALS' | 'INVITE_LINK';
+
   @ApiProperty({
     nullable: true,
     description: 'Cuenta de mayoreo de la que salió el grupo: cuándo vence y si se renueva o se repone. Solo la ven el vendedor y Partly.',
   })
   @Expose()
-  wholesaleAccount: { orderId: string; expiresAt: Date | null; renewable: boolean; expired: boolean; coversNextPeriod: boolean } | null;
+  wholesaleAccount: { orderId: string; expiresAt: Date | null; renewable: boolean; expired: boolean; coversNextPeriod: boolean; managedByPartly: boolean } | null;
 
   constructor(group: GroupWithRelations) {
     this.id = group.id;
@@ -229,6 +233,7 @@ export class GroupResponseDto {
     this.createdAt = group.createdAt;
     this.commissionPercentage = group.commissionPercentage?.toString() ?? null;
     this.startedAt = group.startedAt;
+    this.accessType = group.accessType;
     const stats = group.memberships ? seatStats(group.memberships, group.startedAt !== null) : null;
     this.reservedSlots = stats?.reservedSlots ?? group._count?.memberships ?? group.occupiedSlots;
     this.freeingSlots = stats?.freeingSlots ?? 0;
@@ -248,6 +253,8 @@ export class GroupResponseDto {
           renewable: account.renewable,
           expired: !!account.expiresAt && account.expiresAt.getTime() < Date.now(),
           coversNextPeriod: wholesaleCoversNextPeriod(account.expiresAt, group.nextRenewalDate, group.plan.billingPeriod),
+          // Entregada con credenciales: la contraseña la cambia Partly desde su tienda (por panel la maneja el vendedor).
+          managedByPartly: !!account.credential && !account.credential.panelUrlEncrypted,
         }
       : null;
   }

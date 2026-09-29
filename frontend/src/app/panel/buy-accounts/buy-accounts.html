@@ -316,6 +316,10 @@
                     <span class="material-symbols-outlined text-sm">{{ openCredentialOrderId() === order.id ? 'expand_less' : 'key' }}</span>
                     {{ openCredentialOrderId() === order.id ? 'Ocultar' : 'Ver credenciales' }}
                   </button>
+                  <a routerLink="/panel/soporte/nueva" [queryParams]="{ compra: order.id }" class="active:scale-[0.98] hover:bg-slate-200 py-2 px-3 rounded-lg text-on-surface-variant text-xs font-bold transition-all flex items-center gap-1.5" title="Reportar un problema con esta cuenta">
+                    <span class="material-symbols-outlined text-sm">report_problem</span>
+                    Reportar
+                  </a>
                 } @else if (order.status === 'FULFILLED' && order.kind === 'RENEWAL') {
                   <a [routerLink]="['/panel/mayoreo/compras', order.id]" class="active:scale-[0.98] hover:bg-slate-200 py-2 px-4 rounded-lg bg-slate-100 text-ink text-xs font-bold transition-all">Ver</a>
                 }
@@ -355,29 +359,42 @@
                   <p class="text-xs text-on-surface-variant font-medium p-3">Cargando…</p>
                 } @else if (credentialByOrderId()[order.id]; as cred) {
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @if (cred.panelUrl) {
+                      <div class="sm:col-span-2 flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-200/70">
+                        <span class="material-symbols-outlined text-pink shrink-0">dashboard</span>
+                        <div class="min-w-0 flex-1">
+                          <p class="text-xs font-bold text-on-surface-variant">Panel de la cuenta</p>
+                          <p class="text-sm font-bold text-ink truncate">{{ cred.panelUrl }}</p>
+                          <p class="text-xs text-on-surface-variant mt-0.5">Desde el panel das de alta a tus usuarios; pon en tu grupo el acceso que les vas a dar.</p>
+                        </div>
+                        <a [href]="cred.panelUrl" target="_blank" rel="noopener" class="ui-btn ui-btn--primary ui-btn--sm shrink-0"><span class="material-symbols-outlined">open_in_new</span>Abrir panel</a>
+                      </div>
+                    }
+                    @if (cred.username) {
                     <div class="flex items-center justify-between gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-200/70">
                       <div class="min-w-0">
-                        <p class="text-xs font-bold text-on-surface-variant">Usuario</p>
+                        <p class="text-xs font-bold text-on-surface-variant">{{ cred.panelUrl ? 'Usuario del panel' : 'Usuario' }}</p>
                         <p class="text-sm font-bold text-ink truncate">{{ cred.username }}</p>
                       </div>
-                      <button type="button" (click)="copyToClipboard(cred.username, 'username')" class="active:scale-[0.98] shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
+                      <button type="button" (click)="copyToClipboard(cred.username ?? '', 'username')" class="active:scale-[0.98] shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
                         <span class="material-symbols-outlined text-base">{{ copiedField() === 'username' ? 'check' : 'content_copy' }}</span>
                       </button>
                     </div>
                     <div class="flex items-center justify-between gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-200/70">
                       <div class="min-w-0">
-                        <p class="text-xs font-bold text-on-surface-variant">Contraseña</p>
+                        <p class="text-xs font-bold text-on-surface-variant">{{ cred.panelUrl ? 'Contraseña del panel' : 'Contraseña' }}</p>
                         <p class="text-sm font-bold text-ink truncate font-mono">{{ showPasswordOrderId() === order.id ? cred.password : '••••••••••' }}</p>
                       </div>
                       <div class="flex items-center gap-1 shrink-0">
                         <button type="button" (click)="togglePasswordVisibility(order.id)" class="active:scale-[0.98] w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
                           <span class="material-symbols-outlined text-base">{{ showPasswordOrderId() === order.id ? 'visibility_off' : 'visibility' }}</span>
                         </button>
-                        <button type="button" (click)="copyToClipboard(cred.password, 'password')" class="active:scale-[0.98] w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
+                        <button type="button" (click)="copyToClipboard(cred.password ?? '', 'password')" class="active:scale-[0.98] w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white hover:text-ink transition-colors">
                           <span class="material-symbols-outlined text-base">{{ copiedField() === 'password' ? 'check' : 'content_copy' }}</span>
                         </button>
                       </div>
                     </div>
+                    }
                     @if (cred.notes) {
                       <div class="sm:col-span-2 flex items-start gap-2 p-3 rounded-2xl bg-pink/5">
                         <span class="material-symbols-outlined text-pink text-base shrink-0">info</span>

@@ -1,3 +1,4 @@
+import { periodNoun } from '../../shared/billing-period.util';
 import { afterNextRender, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -16,6 +17,7 @@ import { ownerGroupStatus } from '../../shared/status-tag.util';
   templateUrl: './my-groups.html',
 })
 export class MyGroups implements OnInit {
+  protected readonly periodNoun = periodNoun;
   protected readonly seats = seatSegments;
   protected readonly groupStatus = ownerGroupStatus;
 

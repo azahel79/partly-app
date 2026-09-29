@@ -4,6 +4,7 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const BILLING_PERIOD_MONTHS: Record<BillingPeriod, number> = {
   MONTHLY: 1,
+  BIMONTHLY: 2,
   QUARTERLY: 3,
   SEMIANNUAL: 6,
   ANNUAL: 12,

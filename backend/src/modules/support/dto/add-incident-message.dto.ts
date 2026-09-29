@@ -1,9 +1,18 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MinLength } from 'class-validator';
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
+import { IncidentMessageAudience } from '@prisma/client';
+import { IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class AddIncidentMessageDto {
-  @ApiProperty({ example: 'Ya revisé, parece que alguien más cambió el perfil.' })
+  @ApiProperty({ example: 'Ya cambié la contraseña, revisa el grupo.' })
   @IsString()
   @MinLength(1)
   body: string;
+
+  @ApiPropertyOptional({
+    enum: IncidentMessageAudience,
+    description: 'ALL = lo ven todos. REPORTER / ASSIGNEE = privado entre Partly y quien reportó / el responsable.',
+  })
+  @IsOptional()
+  @IsEnum(IncidentMessageAudience)
+  audience?: IncidentMessageAudience;
 }

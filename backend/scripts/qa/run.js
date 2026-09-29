@@ -7,7 +7,7 @@
  */
 const { prisma, createRun, cleanup } = require('./lib');
 
-const SUITES = ['renovacion', 'entrada', 'resenas', 'comision', 'seguridad', 'apartados', 'credenciales'];
+const SUITES = ['renovacion', 'entrada', 'resenas', 'comision', 'seguridad', 'apartados', 'credenciales', 'soporte', 'acceso'];
 
 (async () => {
   const requested = process.argv.slice(2);

@@ -1,15 +1,24 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { GroupAccessType } from '@prisma/client';
 import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
 export class CredentialResponseDto {
-  @ApiProperty({ example: 'cuenta.compartida@example.com' })
+  @ApiProperty({ enum: GroupAccessType, description: 'Credenciales (correo y contraseña) o link de invitación al grupo familiar.' })
   @Expose()
-  username: string;
+  accessType: GroupAccessType;
 
-  @ApiProperty({ example: 'ContraseñaRealDeNetflix123' })
+  @ApiProperty({ nullable: true, example: 'cuenta.compartida@example.com' })
   @Expose()
-  password: string;
+  username: string | null;
+
+  @ApiProperty({ nullable: true, example: 'ContraseñaRealDeNetflix123' })
+  @Expose()
+  password: string | null;
+
+  @ApiProperty({ nullable: true, example: 'https://www.spotify.com/mx/family/join/invite/abc123' })
+  @Expose()
+  inviteLink: string | null;
 
   @ApiProperty({ nullable: true })
   @Expose()

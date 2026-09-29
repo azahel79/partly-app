@@ -22,10 +22,15 @@ export class IncidentMessageResponseDto {
   @Expose()
   createdAt: Date;
 
+  /** ALL = lo ven todos; REPORTER / ASSIGNEE = privado entre Partly y esa persona. */
+  @Expose()
+  audience: IncidentMessage['audience'];
+
   constructor(message: MessageWithAuthor) {
     this.id = message.id;
     this.author = { id: message.author.id, name: message.author.name };
     this.body = message.body;
     this.createdAt = message.createdAt;
+    this.audience = message.audience;
   }
 }

@@ -39,6 +39,8 @@ export interface Group {
   nextRenewalDate: string;
   createdAt: string;
   commissionPercentage: string | null;
+  /** Cómo reciben el acceso los miembros: correo y contraseña, o link de invitación al grupo familiar. */
+  accessType: 'CREDENTIALS' | 'INVITE_LINK';
   /** Cuenta de mayoreo de la que salió el grupo (solo la ven el vendedor y Partly). */
   wholesaleAccount?: {
     orderId: string;
@@ -47,6 +49,8 @@ export interface Group {
     expired: boolean;
     /** false = no se cobra la renovación a los miembros hasta que el vendedor la renueve o la reponga. */
     coversNextPeriod: boolean;
+    /** Entregada con credenciales: la contraseña la cambia Partly (el vendedor se la pide desde un reporte). */
+    managedByPartly: boolean;
   } | null;
   /** Cupos ya apartados (reservados o pagando): el avance hacia el 75% antes de iniciar. */
   reservedSlots: number;
@@ -143,6 +147,10 @@ export interface CreateGroupInput {
   /** Opcional: el día de cobro real se fija cuando el vendedor inicia el grupo. */
   billingDay?: number;
   bankAccountNumber?: string;
+  /** Cada cuánto se cobra (1, 2, 3, 6 o 12 meses). */
+  billingPeriod?: 'MONTHLY' | 'BIMONTHLY' | 'QUARTERLY' | 'SEMIANNUAL' | 'ANNUAL';
+  /** Solo YouTube, Spotify y Canva pueden dar acceso con link de invitación. */
+  accessType?: 'CREDENTIALS' | 'INVITE_LINK';
 }
 
 /** Solo para el panel de staff — `GET /groups/admin/:id`. Trae campos que el endpoint público no expone. */

@@ -1,5 +1,6 @@
+import { BillingPeriod, GroupAccessType } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsNumber, IsOptional, IsPositive, IsString, IsUUID, Max, Min, MinLength } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsPositive, IsString, IsUUID, Max, Min, MinLength, IsEnum } from 'class-validator';
 
 export class CreateGroupDto {
   @ApiPropertyOptional({ description: 'ID de un plan del catálogo (opcional). Si no lo mandas, manda platformName + maxSlots.' })
@@ -61,4 +62,18 @@ export class CreateGroupDto {
   @IsOptional()
   @IsString()
   bankAccountNumber?: string;
+
+  @ApiPropertyOptional({ enum: BillingPeriod, default: BillingPeriod.MONTHLY, description: 'Cada cuánto se cobra: 1, 2, 3, 6 o 12 meses.' })
+  @IsOptional()
+  @IsEnum(BillingPeriod)
+  billingPeriod?: BillingPeriod;
+
+  @ApiPropertyOptional({
+    enum: GroupAccessType,
+    default: GroupAccessType.CREDENTIALS,
+    description: 'INVITE_LINK = los miembros entran con un link al grupo familiar (solo YouTube, Spotify y Canva).',
+  })
+  @IsOptional()
+  @IsEnum(GroupAccessType)
+  accessType?: GroupAccessType;
 }

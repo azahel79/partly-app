@@ -111,7 +111,7 @@
 
               <div class="shrink-0 text-right">
                 <p class="text-xs text-on-surface-variant">Mi parte</p>
-                <p class="text-base font-bold text-ink tabular-nums">{{ group.pricePerSlot | money }} <span class="text-xs font-medium text-on-surface-variant">/mes</span></p>
+                <p class="text-base font-bold text-ink tabular-nums">{{ group.pricePerSlot | money }} <span class="text-xs font-medium text-on-surface-variant">/ {{ periodNoun(group.plan.billingPeriod) }}</span></p>
               </div>
 
               <div class="shrink-0 flex items-center gap-1.5">
@@ -202,7 +202,7 @@
                     <span class="text-xs text-on-surface-variant truncate block">{{ group.plan.tierName }}</span>
                   </div>
                 </div>
-                <span class="text-sm font-black text-ink shrink-0">{{ group.pricePerSlot | money }}<span class="text-xs font-semibold text-on-surface-variant">/mes</span></span>
+                <span class="text-sm font-black text-ink shrink-0">{{ group.pricePerSlot | money }}<span class="text-xs font-semibold text-on-surface-variant"> / {{ periodNoun(group.plan.billingPeriod) }}</span></span>
               </div>
               <span class="flex items-center gap-1 text-xs text-on-surface-variant font-medium">
                 <span class="material-symbols-outlined text-sm">event_repeat</span>

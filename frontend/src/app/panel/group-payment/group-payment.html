@@ -48,7 +48,7 @@
               <div class="hero-meta">
                 <span><i class="material-symbols-outlined">verified_user</i> Grupo verificado</span>
                 <span><i class="material-symbols-outlined">group</i> {{ g.occupiedSlots }}/{{ g.availableSlots + g.occupiedSlots }} cupos ocupados</span>
-                <span><i class="material-symbols-outlined">calendar_month</i> Se cobra cada mes</span>
+                <span><i class="material-symbols-outlined">calendar_month</i> Se cobra {{ perPeriod(g.plan.billingPeriod) }}</span>
               </div>
             </div>
             <div class="hero-brand">
@@ -75,7 +75,7 @@
                 @if (p.includesNextCycle) {
                   <p>Incluye {{ p.proratedDays }} días restantes de este ciclo más el ciclo siguiente completo. Cubre hasta el {{ p.coveredUntil ? formatDate(p.coveredUntil) : '' }}.</p>
                 } @else if (p.proratedDays) {
-                  <p>Entraste con el mes empezado, así que solo pagas los {{ p.proratedDays }} días que quedan de este ciclo{{ p.coveredUntil ? ' (hasta el ' + formatDate(p.coveredUntil) + ')' : '' }}.</p>
+                  <p>Entraste con el periodo empezado, así que solo pagas los {{ p.proratedDays }} días que quedan de este ciclo{{ p.coveredUntil ? ' (hasta el ' + formatDate(p.coveredUntil) + ')' : '' }}.</p>
                 } @else {
                   <p>Ciclo completo{{ p.coveredUntil ? ', hasta el ' + formatDate(p.coveredUntil) : '' }}.</p>
                 }
@@ -134,8 +134,8 @@
             <dl>
               <div><dt><span class="material-symbols-outlined">business_center</span> Plataforma</dt><dd>{{ g.plan.platform.name }}</dd></div>
               <div><dt><span class="material-symbols-outlined">layers</span> Plan</dt><dd>{{ g.plan.tierName }}</dd></div>
-              <div><dt><span class="material-symbols-outlined">paid</span> Precio por cupo</dt><dd>{{ g.pricePerSlot | money }} / mes</dd></div>
-              <div><dt><span class="material-symbols-outlined">calendar_month</span> Cargo</dt><dd>Se cobra cada mes</dd></div>
+              <div><dt><span class="material-symbols-outlined">paid</span> Precio por cupo</dt><dd>{{ g.pricePerSlot | money }} / {{ periodNoun(g.plan.billingPeriod) }}</dd></div>
+              <div><dt><span class="material-symbols-outlined">calendar_month</span> Cargo</dt><dd class="first-letter:uppercase">{{ perPeriod(g.plan.billingPeriod) }}</dd></div>
               <div><dt><span class="material-symbols-outlined">person</span> Vendedor</dt><dd>{{ g.owner.name }}<small><b>★</b> {{ g.owner.ratingAvg }} (reseñas)</small></dd></div>
             </dl>
           </section>

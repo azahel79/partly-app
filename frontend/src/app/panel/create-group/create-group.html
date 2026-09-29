@@ -68,6 +68,32 @@
             <label><strong>Nombre del plan (opcional)</strong><span class="input-shell"><span class="material-symbols-outlined">layers</span><input type="text" [value]="tierName()" (input)="tierName.set($any($event.target).value)" [disabled]="providerOrderId() !== null" placeholder="Ej. Premium 4 pantallas" /></span></label>
           </div>
 
+          @if (!providerOrderId()) {
+            <div class="field-section">
+              <span class="section-icon material-symbols-outlined">event_repeat</span>
+              <div class="field-copy"><strong>¿Cada cuánto se cobra?</strong><small>Lo que dura cada periodo del grupo: al terminar, tus miembros renuevan.</small></div>
+              <div class="period-options" role="radiogroup" aria-label="Duración del periodo">
+                @for (option of billingPeriodOptions; track option.value) {
+                  <button type="button" role="radio" [attr.aria-checked]="billingPeriod() === option.value" [class.selected]="billingPeriod() === option.value" (click)="billingPeriod.set(option.value)">{{ option.label }}</button>
+                }
+              </div>
+            </div>
+          }
+
+          @if (offersInvite()) {
+            <div class="owner-choice access-choice">
+              <span class="material-symbols-outlined">key</span>
+              <div><strong>¿Cómo darás acceso a tus miembros?</strong><small>{{ platformName().trim() }} permite invitarlos a tu grupo familiar en lugar de compartir la contraseña.</small></div>
+              <div class="segmented">
+                <button type="button" (click)="accessType.set('CREDENTIALS')" [class.active]="accessType() === 'CREDENTIALS'"><i></i>Correo y contraseña</button>
+                <button type="button" (click)="accessType.set('INVITE_LINK')" [class.active]="accessType() === 'INVITE_LINK'"><i></i>Invitación al grupo familiar</button>
+              </div>
+            </div>
+            @if (accessType() === 'INVITE_LINK') {
+              <p class="access-note"><span class="material-symbols-outlined">info</span>Cuando apruebes el pago de un miembro, verá el link para unirse a tu grupo familiar en lugar de un correo y contraseña. Lo pegas al enviar el acceso del grupo.</p>
+            }
+          }
+
           <div class="field-section slots-section">
             <span class="section-icon material-symbols-outlined">groups</span>
             <div class="field-copy"><strong>Cupos totales del plan</strong><small>¿Cuántas cuentas o pantallas soporta esta suscripción en total?</small></div>
@@ -85,13 +111,13 @@
 
           <div class="money-row">
             <span class="section-icon material-symbols-outlined">attach_money</span>
-            <div class="field-copy"><strong>Tu costo mensual (opcional)</strong><small>{{ providerOrderId() ? 'Lo que ya pagaste al comprar esta cuenta al por mayor.' : 'Cuánto pagas tú, personalmente, por esta suscripción.' }}</small></div>
+            <div class="field-copy"><strong>Tu costo {{ perPeriod() }} (opcional)</strong><small>{{ providerOrderId() ? 'Lo que ya pagaste al comprar esta cuenta al por mayor.' : 'Cuánto pagas tú, personalmente, por esta suscripción.' }}</small></div>
             <label class="money-input"><b>$</b><input type="number" min="0" [value]="officialPrice()" (input)="officialPrice.set($any($event.target).value ? +$any($event.target).value : null)" [disabled]="providerOrderId() !== null" placeholder="0" /><span>MXN</span></label>
           </div>
 
           <div class="money-row sale-row">
             <span class="section-icon material-symbols-outlined">bar_chart</span>
-            <div class="field-copy"><strong>Precio de venta por cupo (opcional)</strong><small>Cuánto cobrarías cada mes por uno de los cupos.</small></div>
+            <div class="field-copy"><strong>Precio de venta por cupo (opcional)</strong><small>Cuánto cobrarías {{ perPeriod() }} por uno de los cupos.</small></div>
             <label class="money-input"><b>$</b><input type="number" min="0" [value]="pricePerSlot() || ''" (input)="pricePerSlot.set(+$any($event.target).value || 0)" placeholder="0" /><span>MXN</span></label>
             <p class="calculation-note"><span class="material-symbols-outlined">info</span>La vista previa calcula automáticamente tu posible ganancia.</p>
           </div>
@@ -106,12 +132,12 @@
             }
           </div>
           <div class="price-config">
-            <span class="section-icon material-symbols-outlined">paid</span><div class="field-copy"><strong>Precio mensual por cupo</strong><small>Establece cuánto pagará cada miembro.</small></div>
+            <span class="section-icon material-symbols-outlined">paid</span><div class="field-copy"><strong>Precio por cupo ({{ perPeriod() }})</strong><small>Establece cuánto pagará cada miembro.</small></div>
             <label class="money-input price-input"><b>$</b><input type="number" min="1" [value]="pricePerSlot() || ''" (input)="pricePerSlot.set(+$any($event.target).value || 0)" placeholder="0" /><span>MXN</span></label>
             @if (breakEvenPricePerSlot(); as breakEven) { <button type="button" class="price-suggestion" (click)="applyBreakEvenPrice()"><span class="material-symbols-outlined">auto_awesome</span><span><strong>Sugerencia de precio</strong><small>Cubre tu costo ya descontando tu comisión ({{ commissionPct() }}%).</small><b>Usar {{ breakEven | money }}</b></span></button> }
           </div>
           <div class="owner-toggle-row"><span class="section-icon material-symbols-outlined">person</span><div class="field-copy"><strong>¿Quieres un cupo para ti también?</strong><small>Uno de los cupos será tuyo y solo pagarás tu parte.</small></div><button type="button" role="switch" [attr.aria-checked]="ownerUsesSlot()" (click)="setOwnerUsesSlot(!ownerUsesSlot())" class="switch" [class.on]="ownerUsesSlot()"><i></i></button><b>{{ ownerUsesSlot() ? 'Sí, incluir mi cupo' : 'No, ofrecer todos' }}</b></div>
-          <div class="charge-preview"><header><span class="material-symbols-outlined">calculate</span><div><strong>Vista previa del cobro</strong><small>Así se dividirá el costo del grupo.</small></div></header><div class="charge-boxes"><div><small>Precio total a miembros</small><strong>{{ totalCollected() | money }}</strong><span>MXN/mes</span></div><div><small>Cupos ofrecidos</small><strong>{{ availableSlots() }}</strong><span>cupos</span></div><div><small>Cada miembro paga</small><strong>{{ pricePerSlot() | money }}</strong><span>MXN/mes</span></div></div><p [class.loss]="lossLevel() !== 'none'"><span class="material-symbols-outlined">{{ lossLevel() === 'none' ? 'check_circle' : 'warning' }}</span><strong>{{ lossLevel() === 'loss' ? 'Con este precio no cubres tu costo después de la comisión.' : lossLevel() === 'risk' ? 'Con este precio quedas muy justo para cubrir tu costo. Sube un poco el precio.' : 'Recibirías aprox. ' + formatRange(netReceivedRange()) + ' MXN al mes.' }}</strong></p><p class="commission-disclaimer"><span class="material-symbols-outlined">info</span>Calculado con tu comisión fija de Partly: {{ commissionPct() }}% de cada pago que valides.</p></div>
+          <div class="charge-preview"><header><span class="material-symbols-outlined">calculate</span><div><strong>Vista previa del cobro</strong><small>Así se dividirá el costo del grupo.</small></div></header><div class="charge-boxes"><div><small>Precio total a miembros</small><strong>{{ totalCollected() | money }}</strong><span>MXN / {{ periodNoun() }}</span></div><div><small>Cupos ofrecidos</small><strong>{{ availableSlots() }}</strong><span>cupos</span></div><div><small>Cada miembro paga</small><strong>{{ pricePerSlot() | money }}</strong><span>MXN / {{ periodNoun() }}</span></div></div><p [class.loss]="lossLevel() !== 'none'"><span class="material-symbols-outlined">{{ lossLevel() === 'none' ? 'check_circle' : 'warning' }}</span><strong>{{ lossLevel() === 'loss' ? 'Con este precio no cubres tu costo después de la comisión.' : lossLevel() === 'risk' ? 'Con este precio quedas muy justo para cubrir tu costo. Sube un poco el precio.' : 'Recibirías aprox. ' + formatRange(netReceivedRange()) + ' MXN ' + perPeriod() + '.' }}</strong></p><p class="commission-disclaimer"><span class="material-symbols-outlined">info</span>Calculado con tu comisión fija de Partly: {{ commissionPct() }}% de cada pago que valides.</p></div>
         }
 
         @if (step() === 3) {
@@ -146,7 +172,13 @@
             <div><dt><span class="material-symbols-outlined">layers</span>Plan</dt><dd>{{ tierName().trim() || 'Por definir' }}</dd></div>
             <div><dt><span class="material-symbols-outlined">groups</span>Cupos totales</dt><dd>{{ maxSlots() }}</dd></div>
             <div><dt><span class="material-symbols-outlined">person</span>Cupo para ti</dt><dd>{{ ownerUsesSlot() ? 'Sí' : 'No' }}</dd></div>
-            <div><dt><span class="material-symbols-outlined">paid</span>Tu costo mensual</dt><dd>{{ (officialPrice() || 0) | money }}</dd></div>
+            @if (!providerOrderId()) {
+              <div><dt><span class="material-symbols-outlined">event_repeat</span>Se cobra</dt><dd class="first-letter:uppercase">{{ perPeriod() }}</dd></div>
+            }
+            @if (offersInvite()) {
+              <div><dt><span class="material-symbols-outlined">key</span>Acceso</dt><dd>{{ accessType() === 'INVITE_LINK' ? 'Invitación' : 'Credenciales' }}</dd></div>
+            }
+            <div><dt><span class="material-symbols-outlined">paid</span>Tu costo</dt><dd>{{ (officialPrice() || 0) | money }}</dd></div>
             <div><dt><span class="material-symbols-outlined">payments</span>Precio por cupo</dt><dd>{{ pricePerSlot() | money }}</dd></div>
             @if (step() === 3) {
               <div><dt><span class="material-symbols-outlined">calendar_month</span>Día de cobro</dt><dd>Al iniciar</dd></div>
@@ -154,7 +186,7 @@
             }
           </dl>
         </div>
-        <div class="profit-card" [class.loss]="estimatedFullMarginRange().high < 0"><span class="material-symbols-outlined">bar_chart</span><div><small>Ganancia estimada <span class="material-symbols-outlined">info</span></small><strong>{{ formatRange(estimatedFullMarginRange()) }} <b>MXN / mes</b></strong><small class="profit-note">Con tu comisión del {{ commissionPct() }}%</small></div></div>
+        <div class="profit-card" [class.loss]="estimatedFullMarginRange().high < 0"><span class="material-symbols-outlined">bar_chart</span><div><small>Ganancia estimada <span class="material-symbols-outlined">info</span></small><strong>{{ formatRange(estimatedFullMarginRange()) }} <b>MXN / {{ periodNoun() }}</b></strong><small class="profit-note">Con tu comisión del {{ commissionPct() }}%</small></div></div>
         @if (step() === 2) {
           <div class="preview-tip"><span class="material-symbols-outlined">lightbulb</span><div><strong>Tip</strong><p>Entre más cupos compartas, menor será el costo para cada miembro y más fácil será llenar tu grupo.</p></div></div>
         }

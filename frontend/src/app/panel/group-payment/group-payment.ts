@@ -1,3 +1,4 @@
+import { perPeriod, periodNoun } from '../../shared/billing-period.util';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { GroupsService } from '../../shared/groups.service';
@@ -18,6 +19,8 @@ const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pd
   templateUrl: './group-payment.html',
 })
 export class GroupPayment implements OnInit {
+  protected readonly perPeriod = perPeriod;
+  protected readonly periodNoun = periodNoun;
   private readonly route = inject(ActivatedRoute);
   private readonly groupsService = inject(GroupsService);
   private readonly paymentsService = inject(PaymentsService);

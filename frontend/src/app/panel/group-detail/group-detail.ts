@@ -1,3 +1,4 @@
+import { periodNoun } from '../../shared/billing-period.util';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -125,6 +126,14 @@ export class GroupDetail implements OnInit {
   protected readonly credUsername = signal('');
   protected readonly credPassword = signal('');
   protected readonly credNotes = signal('');
+  /** Grupos con acceso por invitación: el link al grupo familiar en lugar de correo y contraseña. */
+  protected readonly credInviteLink = signal('');
+  protected readonly isInviteGroup = computed(() => this.group()?.accessType === 'INVITE_LINK');
+  /** Cuenta de mayoreo entregada con credenciales: la contraseña la administra Partly. */
+  protected readonly credentialsByPartly = computed(() => !!this.group()?.wholesaleAccount?.managedByPartly);
+  protected readonly canSaveCredential = computed(() =>
+    this.isInviteGroup() ? /^https?:\/\/\S+\.\S+/.test(this.credInviteLink().trim()) : !!this.credUsername().trim() && !!this.credPassword(),
+  );
   /** Motivo opcional del cambio: aparece en el aviso que reciben los miembros. */
   protected readonly credReason = signal('');
   /** Alguien que ya conocía la contraseña salió del grupo y el vendedor no la ha cambiado. */
@@ -195,7 +204,7 @@ export class GroupDetail implements OnInit {
   });
 
   protected periodNoun(period: string): string {
-    return period === 'MONTHLY' ? 'mes' : period === 'QUARTERLY' ? 'trimestre' : period === 'SEMIANNUAL' ? 'semestre' : 'año';
+    return periodNoun(period);
   }
 
   protected round(value: string): number {
@@ -232,6 +241,14 @@ export class GroupDetail implements OnInit {
           this.loadPendingPayments(id);
           this.loadMembers(id);
           this.loadProfiles(id);
+          // Desde una incidencia ("Actualizar credenciales"): abre el formulario ya con el motivo.
+          if (this.route.snapshot.queryParamMap.get('accion') === 'credenciales') {
+            setTimeout(() => {
+              this.scrollToCredentials();
+              this.openCredentialForm();
+              this.credReason.set('Un miembro reportó un problema con el acceso');
+            }, 300);
+          }
         } else {
           this.loadAccess(id);
         }
@@ -448,6 +465,28 @@ export class GroupDetail implements OnInit {
     });
   }
 
+  /**
+   * Grupo con invitación: al salir alguien no hay contraseña que cambiar, hay que sacarlo del grupo familiar. Al
+   * confirmarlo se vuelve a guardar el mismo link (sin avisar a los miembros) y el aviso desaparece.
+   */
+  protected confirmRemovedFromFamily(): void {
+    const group = this.group();
+    const cred = this.credential();
+    if (!group || !cred?.inviteLink || this.savingCredential()) return;
+    this.savingCredential.set(true);
+    this.credentialsService.upsert(group.id, { inviteLink: cred.inviteLink, notes: cred.notes ?? undefined, changeReason: 'Sacó del grupo familiar a quien salió' }).subscribe({
+      next: (saved) => {
+        this.savingCredential.set(false);
+        this.credential.set(saved);
+        this.loadRotation(group.id);
+      },
+      error: (message: string) => {
+        this.savingCredential.set(false);
+        this.credentialSaveError.set(message);
+      },
+    });
+  }
+
   /** Desde el aviso de "cambio de contraseña pendiente": abre el formulario ya con un motivo sugerido. */
   protected startRotation(): void {
     this.scrollToCredentials();
@@ -464,6 +503,7 @@ export class GroupDetail implements OnInit {
     const cred = this.credential();
     this.credUsername.set(cred?.username ?? '');
     this.credPassword.set(cred?.password ?? '');
+    this.credInviteLink.set(cred?.inviteLink ?? '');
     this.credNotes.set(cred?.notes ?? '');
     this.credReason.set('');
     this.credentialSaveError.set(null);
@@ -478,15 +518,14 @@ export class GroupDetail implements OnInit {
     const group = this.group();
     const username = this.credUsername().trim();
     const password = this.credPassword();
-    if (!group || this.savingCredential() || !username || !password) {
+    if (!group || this.savingCredential() || !this.canSaveCredential()) {
       return;
     }
     this.savingCredential.set(true);
     this.credentialSaveError.set(null);
     this.credentialsService
       .upsert(group.id, {
-        username,
-        password,
+        ...(this.isInviteGroup() ? { inviteLink: this.credInviteLink().trim() } : { username, password }),
         notes: this.credNotes().trim() || undefined,
         changeReason: group.approvalStatus === 'PENDING' ? 'Enviadas al administrador para revisión' : this.credReason().trim() || undefined,
       })

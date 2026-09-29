@@ -5,7 +5,7 @@ import { ProviderProfilesService } from '../../shared/provider-profiles.service'
 import { ProviderListingsService } from '../../shared/provider-listings.service';
 import { ProviderListing } from '../../shared/provider-listings.models';
 import { ProviderOrdersService } from '../../shared/provider-orders.service';
-import { ProviderOrder } from '../../shared/provider-orders.models';
+import { ProviderOrder, canUpdateCredential } from '../../shared/provider-orders.models';
 import { ConfirmService } from '../../shared/confirm.service';
 import { planFeatures } from '../../shared/plan-features.util';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
@@ -120,6 +120,8 @@ export class ProviderStore implements OnInit {
 
   /** Pedido cuyo modal de "Entregar credenciales" está abierto. */
   protected readonly deliveringOrder = signal<ProviderOrder | null>(null);
+  protected readonly deliverMode = signal<'deliver' | 'update'>('deliver');
+  protected readonly canUpdateCredential = canUpdateCredential;
 
   ngOnInit(): void {
     // Cualquiera que llegue aquí ya pasó el adminGuard de la ruta — activar el perfil de
@@ -271,6 +273,14 @@ export class ProviderStore implements OnInit {
 
   protected openDeliverForm(order: ProviderOrder): void {
     this.menuId.set(null);
+    this.deliverMode.set('deliver');
+    this.deliveringOrder.set(order);
+  }
+
+  /** Corregir o cambiar el acceso de una cuenta ya entregada (p. ej. el vendedor reportó que no entra). */
+  protected openUpdateForm(order: ProviderOrder): void {
+    this.menuId.set(null);
+    this.deliverMode.set('update');
     this.deliveringOrder.set(order);
   }
 

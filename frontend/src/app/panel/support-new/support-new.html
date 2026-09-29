@@ -1,72 +1,66 @@
-<div class="max-w-xl mx-auto space-y-6">
-  <div class="anim-in">
-    <a routerLink="/panel/soporte" class="inline-flex items-center gap-1 text-xs font-bold text-on-surface-variant hover:text-ink transition-colors mb-3">
-      <span class="material-symbols-outlined text-sm">arrow_back</span>
+<div class="max-w-xl mx-auto space-y-5">
+  <div>
+    <a routerLink="/panel/soporte" class="ui-link mb-3">
+      <span class="material-symbols-outlined">arrow_back</span>
       Volver a Soporte
     </a>
-    <h1 class="text-2xl font-extrabold text-ink tracking-tight flex items-center gap-2">
-      <span class="material-symbols-outlined text-pink">report_problem</span>
-      Reportar un problema
-    </h1>
-    <p class="text-sm text-on-surface-variant font-medium mt-1">Tu reporte le llega directo al vendedor de esa suscripción. Si no se resuelve, puedes escalarlo a Partly desde el hilo.</p>
+    <h1 class="flex items-center gap-2"><span class="material-symbols-outlined text-pink">report_problem</span>Reportar un problema</h1>
+    <p class="text-sm text-on-surface-variant mt-1">Elige la suscripción y cuéntanos qué pasa. Si es de un grupo, le llega a su vendedor; si es una cuenta que compraste al mayoreo, le llega al equipo de Partly.</p>
   </div>
 
   @if (errorMessage()) {
-    <div class="p-4 rounded-2xl bg-crema-inset shadow-neu-inset text-xs text-red-600 font-semibold">{{ errorMessage() }}</div>
+    <p class="ui-note ui-note--danger"><span class="material-symbols-outlined">error</span><span>{{ errorMessage() }}</span></p>
   }
 
-  @if (options() === null && !errorMessage()) {
-    <div class="p-8 rounded-2xl bg-crema-inset shadow-neu-inset text-center text-sm text-on-surface-variant font-medium">Cargando tus suscripciones…</div>
-  } @else if (options()!.length === 0) {
-    <div class="p-10 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 text-center">
+  @if (!loaded()) {
+    <div class="ui-skeleton-card"><span class="ui-skeleton w-1/3"></span><span class="ui-skeleton"></span><span class="ui-skeleton w-2/3"></span></div>
+  } @else if (!hasOptions()) {
+    <div class="p-10 rounded-2xl bg-white shadow-neu-raised text-center">
       <span class="material-symbols-outlined text-3xl text-on-surface-variant/50 mb-2 block">group_off</span>
-      <p class="text-sm font-semibold text-ink mb-1">Todavía no perteneces a ningún grupo</p>
-      <p class="text-xs text-on-surface-variant">Solo puedes reportar un problema sobre una suscripción a la que ya te hayas unido.</p>
+      <p class="text-sm font-semibold text-ink mb-1">Todavía no tienes suscripciones</p>
+      <p class="text-xs text-on-surface-variant">Puedes reportar un problema de un grupo al que te hayas unido o de una cuenta que hayas comprado al mayoreo.</p>
     </div>
   } @else {
-    <div class="p-6 rounded-[28px] bg-white/90 shadow-neu-raised border border-white/70 space-y-5">
-      <label class="block">
-        <span class="text-xs font-bold text-ink">¿Sobre qué suscripción?</span>
-        <select
-          [value]="selectedMembershipId()"
-          (change)="selectedMembershipId.set($any($event.target).value)"
-          class="w-full mt-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-colors text-sm text-ink outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink"
-        >
-          @for (opt of options(); track opt.membershipId) {
-            <option [value]="opt.membershipId">{{ opt.group.plan.platform.name }} · {{ opt.group.plan.tierName }}</option>
+    <div class="p-5 sm:p-6 rounded-2xl bg-white shadow-neu-raised space-y-5">
+      <label class="ui-field">
+        <span>¿Sobre qué suscripción?</span>
+        <select class="ui-input" [value]="selectedKey()" (change)="selectedKey.set($any($event.target).value)">
+          @if (groupOptions()!.length) {
+            <optgroup label="Grupos a los que perteneces">
+              @for (opt of groupOptions(); track opt.key) {
+                <option [value]="opt.key">{{ opt.label }}</option>
+              }
+            </optgroup>
+          }
+          @if (wholesaleOptions()!.length) {
+            <optgroup label="Cuentas que compraste al mayoreo">
+              @for (opt of wholesaleOptions(); track opt.key) {
+                <option [value]="opt.key">{{ opt.label }}</option>
+              }
+            </optgroup>
           }
         </select>
       </label>
 
-      <label class="block">
-        <span class="text-xs font-bold text-ink">Asunto</span>
-        <input
-          type="text"
-          placeholder="Ej. No puedo iniciar sesión en la cuenta"
-          [value]="subject()"
-          (input)="subject.set($any($event.target).value)"
-          class="w-full mt-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-colors text-sm text-ink placeholder:text-on-surface-variant/50 outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink"
-        />
+      @if (selected(); as opt) {
+        <p class="ui-note ui-note--info -mt-2">
+          <span class="material-symbols-outlined">{{ opt.kind === 'WHOLESALE' ? 'support_agent' : 'storefront' }}</span>
+          <span>Tu reporte le llega <strong>{{ opt.recipient }}</strong>{{ opt.kind === 'WHOLESALE' ? ', que te vendió la cuenta.' : '. Si no se resuelve, desde la conversación puedes pedir ayuda a Partly.' }}</span>
+        </p>
+      }
+
+      <label class="ui-field">
+        <span>Asunto</span>
+        <input class="ui-input" type="text" maxlength="120" [placeholder]="selected()?.kind === 'WHOLESALE' ? 'Ej. La cuenta que compré no deja iniciar sesión' : 'Ej. No puedo iniciar sesión en la cuenta'" [value]="subject()" (input)="subject.set($any($event.target).value)" />
       </label>
 
-      <label class="block">
-        <span class="text-xs font-bold text-ink">Cuéntanos qué pasó</span>
-        <textarea
-          rows="5"
-          placeholder="Desde ayer me sale contraseña incorrecta aunque no la he cambiado…"
-          [value]="message()"
-          (input)="message.set($any($event.target).value)"
-          class="w-full mt-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-colors text-sm text-ink placeholder:text-on-surface-variant/50 outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink resize-none"
-        ></textarea>
+      <label class="ui-field">
+        <span>Cuéntanos qué pasó</span>
+        <textarea class="ui-input" rows="5" placeholder="Desde ayer me sale contraseña incorrecta aunque no la he cambiado…" [value]="message()" (input)="message.set($any($event.target).value)"></textarea>
       </label>
 
-      <button
-        type="button"
-        [disabled]="!selectedMembershipId() || !subject().trim() || !message().trim() || submitting()"
-        (click)="submit()"
-        class="active:scale-[0.98] hover:bg-[#065f46] w-full py-3.5 rounded-lg bg-pink text-white text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50"
-      >
-        {{ submitting() ? 'Enviando…' : 'Enviar reporte' }}
+      <button type="button" class="ui-btn ui-btn--primary w-full" [disabled]="!selected() || subject().trim().length < 3 || !message().trim() || submitting()" (click)="submit()">
+        <span class="material-symbols-outlined">send</span>{{ submitting() ? 'Enviando…' : 'Enviar reporte' }}
       </button>
     </div>
   }

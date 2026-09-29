@@ -1,83 +1,165 @@
-<div class="max-w-2xl mx-auto space-y-6">
-  <a routerLink="/panel/soporte" class="anim-in inline-flex items-center gap-1 text-xs font-bold text-on-surface-variant hover:text-ink transition-colors">
-    <span class="material-symbols-outlined text-sm">arrow_back</span>
+<div class="max-w-2xl mx-auto space-y-5">
+  <a routerLink="/panel/soporte" class="ui-link">
+    <span class="material-symbols-outlined">arrow_back</span>
     Volver a Soporte
   </a>
 
   @if (errorMessage()) {
-    <div class="p-4 rounded-2xl bg-crema-inset shadow-neu-inset text-xs text-red-600 font-semibold">{{ errorMessage() }}</div>
+    <p class="ui-note ui-note--danger"><span class="material-symbols-outlined">error</span><span>{{ errorMessage() }}</span></p>
   }
 
   @if (incident() === null && !errorMessage()) {
-    <div class="p-8 rounded-2xl bg-crema-inset shadow-neu-inset text-center text-sm text-on-surface-variant font-medium">Cargando…</div>
+    <div class="ui-skeleton-card"><span class="ui-skeleton w-1/2"></span><span class="ui-skeleton w-1/3"></span><span class="ui-skeleton"></span></div>
   }
 
   @if (incident(); as inc) {
-    <div class="p-6 rounded-[28px] bg-white/90 shadow-neu-raised border border-white/70">
-      <div class="flex items-start justify-between gap-3 mb-2">
-        <h1 class="text-lg font-extrabold text-ink">{{ inc.subject }}</h1>
-        <span class="shrink-0 px-2.5 py-1 rounded-full text-xs font-bold" [class]="statusClass(inc.status)">{{ statusLabel(inc.status) }}</span>
-      </div>
-      <p class="text-xs text-on-surface-variant">Reportada por {{ inc.reportedBy.name }} · Responsable: {{ inc.assignedTo.name }}</p>
-
-      @if (inc.status === 'ESCALATED') {
-        <div class="mt-4 p-3.5 rounded-xl bg-red-50 text-red-700 text-xs font-semibold flex items-center gap-2">
-          <span class="material-symbols-outlined text-base">shield_person</span>
-          Escalada a Partly — nuestro equipo la está revisando y solo ellos pueden cerrarla.
-        </div>
-      } @else if (inc.status !== 'RESOLVED') {
-        <div class="mt-4 flex items-center gap-2 flex-wrap">
-          <button type="button" [disabled]="updatingStatus()" (click)="setStatus('RESOLVED')" class="active:scale-[0.98] hover:bg-slate-200 px-3.5 py-2 rounded-lg bg-slate-100 text-emerald-700 text-xs font-bold transition-all disabled:opacity-50">
-            Marcar como resuelta
-          </button>
-          <button type="button" [disabled]="updatingStatus()" (click)="setStatus('ESCALATED')" class="active:scale-[0.98] hover:bg-slate-200 px-3.5 py-2 rounded-lg bg-slate-100 text-red-600 text-xs font-bold transition-all disabled:opacity-50">
-            Escalar a Partly
-          </button>
-        </div>
-      } @else {
-        <div class="mt-4 p-3.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-semibold flex items-center gap-2">
-          <span class="material-symbols-outlined text-base">check_circle</span>
-          Resuelta el {{ inc.resolvedAt ? formatDateTime(inc.resolvedAt) : '' }}
+    <section class="p-5 sm:p-6 rounded-2xl bg-white shadow-neu-raised space-y-4">
+      <!-- De qué se trata -->
+      @if (inc.about; as about) {
+        <div class="flex items-center gap-3">
+          <app-platform-logo class="w-11 h-11 rounded-xl font-black text-sm shrink-0" [name]="about.platformName" [logoUrl]="about.platformLogoUrl" />
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-bold text-ink truncate">{{ about.platformName }} · {{ about.tierName }}</p>
+            <p class="text-xs text-on-surface-variant">
+              {{ about.kind === 'WHOLESALE' ? 'Compra al mayoreo' : (isReporter() ? 'Tu grupo' : 'Grupo de ' + inc.reportedBy.name) }}{{ about.profileLabel ? ' · ' + about.profileLabel : '' }}
+            </p>
+          </div>
+          @if (about.groupId) {
+            <a [routerLink]="['/panel/grupos', about.groupId]" class="ui-link shrink-0">{{ isAssignee() ? 'Ver mi grupo' : 'Ver el grupo' }}<span class="material-symbols-outlined">arrow_forward</span></a>
+          } @else if (about.providerOrderId && isReporter()) {
+            <a [routerLink]="['/panel/mayoreo/compras', about.providerOrderId]" class="ui-link shrink-0">Ver mi compra<span class="material-symbols-outlined">arrow_forward</span></a>
+          }
         </div>
       }
-    </div>
 
+      <div class="flex items-start justify-between gap-3 pt-4 border-t border-slate-100">
+        <div class="min-w-0">
+          <h1 class="text-xl! font-extrabold text-ink wrap-break-word">{{ inc.subject }}</h1>
+          <p class="text-xs text-on-surface-variant mt-1">
+            Reportó {{ isReporter() ? 'tú' : inc.reportedBy.name }} · Responsable: {{ isAssignee() ? 'tú' : (isWholesale() ? 'Partly' : inc.assignedTo.name) }} · {{ formatDateTime(inc.createdAt) }}
+          </p>
+        </div>
+        <span class="ui-pill shrink-0" [class]="statusPill(inc.status)">{{ statusLabel(inc.status) }}</span>
+      </div>
+
+      <!-- Qué pasa ahora, según quién mira -->
+      @switch (inc.status) {
+        @case ('ESCALATED') {
+          <p class="ui-note ui-note--danger"><span class="material-symbols-outlined">shield_person</span><span>Escalada a Partly: nuestro equipo está revisando la conversación y es quien la cierra. Puedes seguir escribiendo aquí si tienes algo más que agregar.</span></p>
+        }
+        @case ('RESOLVED') {
+          <p class="ui-note ui-note--info"><span class="material-symbols-outlined">check_circle</span><span>Resuelta el {{ inc.resolvedAt ? formatDateTime(inc.resolvedAt) : '' }}. Si el problema vuelve, abre un reporte nuevo desde Soporte.</span></p>
+        }
+        @default {
+          @if (isReporter()) {
+            <p class="ui-note" [class]="inc.status === 'OPEN' ? 'ui-note--warn' : 'ui-note--info'">
+              <span class="material-symbols-outlined">{{ inc.status === 'OPEN' ? 'hourglass_top' : 'support_agent' }}</span>
+              <span>
+                @if (inc.status === 'OPEN') {
+                  @if (isWholesale()) {
+                    El equipo de Partly ya recibió tu reporte y te responderá aquí. Te avisamos por correo en cuanto conteste.
+                  } @else {
+                    Esperando la respuesta de {{ responsibleName() }}; ya le avisamos por correo. Si no te responde o no se arregla, puedes pedir ayuda a Partly.
+                  }
+                } @else {
+                  {{ isWholesale() ? 'El equipo de Partly' : responsibleName() }} ya está atendiendo tu reporte. Cuando vuelva a funcionar, ciérralo con "Ya quedó".
+                }
+              </span>
+            </p>
+          } @else if (isAssignee()) {
+            <p class="ui-note" [class]="inc.status === 'OPEN' ? 'ui-note--warn' : 'ui-note--info'">
+              <span class="material-symbols-outlined">{{ inc.status === 'OPEN' ? 'priority_high' : 'hourglass_top' }}</span>
+              <span>
+                @if (inc.status === 'OPEN') {
+                  {{ firstName(inc.reportedBy.name) }}{{ inc.about?.profileLabel ? ' (' + inc.about!.profileLabel + ')' : '' }} reportó un problema. Respóndele aquí{{ inc.about?.kind === 'GROUP' ? '; si cambiaste la contraseña, actualízala en tu grupo para que le llegue el aviso' : '' }}.
+                } @else {
+                  Esperando que {{ firstName(inc.reportedBy.name) }} confirme que ya quedó. Si ya lo arreglaste, díselo en la conversación: solo quien reportó puede cerrar el reporte.
+                }
+              </span>
+            </p>
+          }
+        }
+      }
+
+      <!-- Partly le pidió respuesta al responsable -->
+      @if (inc.responseDueAt && inc.status !== 'RESOLVED') {
+        @if (isAssignee()) {
+          <p class="ui-note ui-note--danger"><span class="material-symbols-outlined">alarm</span><span>Partly te pidió responder este reporte antes del <strong>{{ formatDateTime(inc.responseDueAt) }}</strong>. Si no contestas, Partly decidirá con la información que tenga.</span></p>
+        } @else if (isReporter()) {
+          <p class="ui-note ui-note--info"><span class="material-symbols-outlined">alarm</span><span>Partly le pidió a {{ firstName(inc.assignedTo.name) }} que te responda antes del {{ formatDateTime(inc.responseDueAt) }}.</span></p>
+        }
+      }
+
+      <!-- Acciones -->
+      @if (isOpenForActions()) {
+        <div class="flex flex-wrap items-center gap-2">
+          @if (isReporter()) {
+            <button type="button" class="ui-btn ui-btn--primary ui-btn--sm" [disabled]="updatingStatus()" (click)="resolve()"><span class="material-symbols-outlined">check</span>Ya quedó, cerrar reporte</button>
+            @if (!isWholesale()) {
+              <button type="button" class="ui-btn ui-btn--ghost-danger ui-btn--sm" [disabled]="updatingStatus()" (click)="escalate()"><span class="material-symbols-outlined">shield_person</span>Pedir ayuda a Partly</button>
+            }
+          } @else if (isAssignee()) {
+            @if (inc.about?.credentialsManagedByPartly && inc.about?.providerOrderId) {
+              <!-- La cuenta es de Mi tienda: la contraseña la cambia Partly y aquí se deja su respuesta al guardarla. -->
+              <a routerLink="/panel/soporte/nueva" [queryParams]="{ compra: inc.about!.providerOrderId }" class="ui-btn ui-btn--primary ui-btn--sm"><span class="material-symbols-outlined">key</span>Pedir cambio a Partly</a>
+            } @else if (inc.about?.kind === 'GROUP' && inc.about?.groupId) {
+              <a [routerLink]="['/panel/grupos', inc.about!.groupId]" [queryParams]="{ accion: 'credenciales' }" class="ui-btn ui-btn--primary ui-btn--sm"><span class="material-symbols-outlined">key</span>Actualizar credenciales</a>
+            }
+            <button type="button" class="ui-btn ui-btn--secondary ui-btn--sm" (click)="prepareFixedMessage()"><span class="material-symbols-outlined">task_alt</span>Ya lo arreglé</button>
+            @if (!isWholesale()) {
+              <button type="button" class="ui-btn ui-btn--ghost-danger ui-btn--sm" [disabled]="updatingStatus()" (click)="escalate()"><span class="material-symbols-outlined">shield_person</span>Pedir ayuda a Partly</button>
+            }
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Conversación -->
     <div class="space-y-3">
       @if (messages() === null) {
-        <div class="p-6 rounded-2xl bg-crema-inset shadow-neu-inset text-center text-xs text-on-surface-variant font-medium">Cargando mensajes…</div>
+        <div class="ui-skeleton-card"><span class="ui-skeleton w-2/3"></span><span class="ui-skeleton w-1/2"></span></div>
       } @else {
         @for (msg of messages(); track msg.id) {
-          <div
-            class="max-w-[85%] p-4 rounded-2xl"
-            [class]="msg.author.id === authService.currentUser()?.id ? 'ml-auto bg-pink/10 border border-pink/20' : 'bg-white/90 shadow-neu-raised border border-white/70'"
-          >
+          @let mine = msg.author.id === authService.currentUser()?.id;
+          <div class="max-w-[85%] p-4 rounded-2xl" [class]="mine ? 'ml-auto bg-emerald-50 border border-emerald-200/70' : 'bg-white shadow-neu-raised'">
             <div class="flex items-center justify-between gap-3 mb-1">
-              <strong class="text-xs font-bold text-ink">{{ msg.author.name }}</strong>
+              <strong class="text-xs font-bold text-ink">
+                {{ mine ? 'Tú' : msg.author.name }}
+                @if (msg.audience !== 'ALL') {
+                  <span class="ui-pill ui-pill--violet no-dot ml-1"><span class="material-symbols-outlined text-sm!">lock</span>Solo tú y Partly</span>
+                }
+                @if (!mine && ((msg.author.id !== inc.reportedBy.id && msg.author.id !== inc.assignedTo.id) || (isWholesale() && msg.author.id === inc.assignedTo.id))) { <span class="ui-pill ui-pill--info no-dot ml-1">Partly</span> }
+              </strong>
               <span class="text-xs text-on-surface-variant">{{ formatDateTime(msg.createdAt) }}</span>
             </div>
-            <p class="text-sm text-ink/90 whitespace-pre-wrap">{{ msg.body }}</p>
+            <p class="text-sm text-ink/90 whitespace-pre-wrap wrap-break-word">{{ msg.body }}</p>
           </div>
         }
       }
     </div>
 
     @if (inc.status !== 'RESOLVED') {
-      <div class="p-4 rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 flex items-end gap-2.5">
+      <div class="p-3 sm:p-4 rounded-2xl bg-white shadow-neu-raised space-y-3">
+        @if (partlyInvolved()) {
+          <label class="flex items-center gap-2 text-xs font-semibold text-on-surface-variant cursor-pointer select-none">
+            <input type="checkbox" class="accent-emerald-700 w-4 h-4" [checked]="privateToPartly()" (change)="privateToPartly.set($any($event.target).checked)" />
+            <span class="material-symbols-outlined text-base">lock</span>
+            Enviar solo a Partly ({{ isReporter() ? firstName(inc.assignedTo.name) : firstName(inc.reportedBy.name) }} no lo verá)
+          </label>
+        }
+        <div class="flex items-end gap-2.5">
         <textarea
+          #replyBox
           rows="2"
-          placeholder="Escribe una respuesta…"
+          class="ui-input flex-1 py-2.5! resize-none"
+          [placeholder]="isAssignee() ? 'Escribe tu respuesta a ' + firstName(inc.reportedBy.name) + '…' : 'Escribe un mensaje…'"
           [value]="reply()"
           (input)="reply.set($any($event.target).value)"
-          class="flex-1 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-colors text-sm text-ink placeholder:text-on-surface-variant/50 outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink resize-none"
         ></textarea>
-        <button
-          type="button"
-          [disabled]="!reply().trim() || sending()"
-          (click)="sendReply()"
-          class="active:scale-[0.98] hover:bg-[#065f46] shrink-0 px-4 py-2.5 rounded-lg bg-pink text-white text-xs font-bold hover:opacity-90 transition-all disabled:opacity-50"
-        >
-          {{ sending() ? 'Enviando…' : 'Enviar' }}
+        <button type="button" class="ui-btn ui-btn--primary shrink-0" [disabled]="!reply().trim() || sending()" (click)="sendReply()">
+          <span class="material-symbols-outlined">send</span>{{ sending() ? 'Enviando…' : 'Enviar' }}
         </button>
+        </div>
       </div>
     }
   }

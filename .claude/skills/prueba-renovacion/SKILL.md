@@ -33,6 +33,8 @@ Elige las pruebas según lo que cambió, para no esperar de más:
 | Reseñas o su recordatorio | `resenas` |
 | Comisiones, restricciones del vendedor | `comision` |
 | Permisos, datos privados, credenciales, validación de archivos | `seguridad` |
+| Incidencias de soporte: privados, pedir respuesta, recordatorios y escalada automática | `soporte` |
+| Acceso por invitación, duración del periodo, mayoreo por panel o credenciales que actualiza Partly | `acceso` |
 | Comisión fija o reducida, apartar/soltar lugares, aviso de misma plataforma | `apartados` |
 | Salidas del grupo y cambio de contraseña (avisos al vendedor y a los miembros) | `credenciales` |
 | Antes de un commit grande o de publicar | todas |

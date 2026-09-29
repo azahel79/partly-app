@@ -89,19 +89,22 @@
               <h2 class="text-sm font-extrabold text-ink">Entrega de credenciales</h2>
               <p class="text-xs text-on-surface-variant">Ya validaste su pago{{ o.paidAt ? ' el ' + formatDate(o.paidAt) : '' }}. Entrégale el usuario y contraseña de la cuenta.{{ o.kind === 'REPLACEMENT' ? ' Es una reposición: al entregarla se actualiza sola la credencial de su grupo.' : '' }}</p>
               <div class="flex flex-wrap items-center gap-2">
-                <button type="button" (click)="delivering.set(true)" class="hover:bg-[#065f46] py-2.5 px-6 rounded-lg bg-pink text-white text-xs font-bold active:scale-95 transition-all">Entregar credenciales</button>
+                <button type="button" (click)="openDelivery('deliver')" class="hover:bg-[#065f46] py-2.5 px-6 rounded-lg bg-pink text-white text-xs font-bold active:scale-95 transition-all">Entregar credenciales</button>
                 <button type="button" [disabled]="working()" (click)="cancelPaid()" class="active:scale-[0.98] transition-colors hover:bg-red-50 py-2.5 px-5 rounded-lg bg-white border border-red-200 text-red-600 text-xs font-bold disabled:opacity-60">Cancelar y reembolsar</button>
               </div>
             </section>
           }
 
           @case ('FULFILLED') {
-            <section class="p-5 rounded-[28px] bg-emerald-50 text-emerald-900 flex items-center gap-3">
+            <section class="p-5 rounded-[28px] bg-emerald-50 text-emerald-900 flex flex-wrap items-center gap-3">
               <span class="material-symbols-outlined text-2xl">check_circle</span>
               <p class="text-sm font-semibold">
                 @if (o.kind === 'RENEWAL') { Renovación aplicada: la cuenta original queda vigente hasta el {{ o.expiresAt ? formatDate(o.expiresAt) : '—' }}. }
                 @else { Credenciales entregadas. {{ o.resultingGroupId ? 'El vendedor ya creó su grupo con esta cuenta.' : 'El vendedor todavía no crea su grupo con esta cuenta.' }} }
               </p>
+              @if (canUpdateCredential(o)) {
+                <button type="button" (click)="openDelivery('update')" class="ml-auto shrink-0 inline-flex items-center gap-1.5 py-2 px-4 rounded-lg bg-white border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-bold transition-colors"><span class="material-symbols-outlined text-base">key</span>Actualizar credenciales</button>
+              }
             </section>
           }
 
@@ -147,7 +150,7 @@
       </aside>
     </div>
     @if (delivering()) {
-      <app-deliver-credentials-modal [order]="o" (delivered)="onDelivered($event)" (closed)="delivering.set(false)" />
+      <app-deliver-credentials-modal [order]="o" [mode]="deliverMode()" (delivered)="onDelivered($event)" (closed)="delivering.set(false)" />
     }
   }
 </div>

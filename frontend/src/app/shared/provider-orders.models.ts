@@ -67,19 +67,30 @@ export interface PaginatedProviderOrders {
 }
 
 export interface ProviderOrderCredential {
-  username: string;
-  password: string;
+  username: string | null;
+  password: string | null;
+  /** Entrega por panel: link donde el vendedor administra el acceso de sus usuarios. */
+  panelUrl: string | null;
   notes: string | null;
   deliveredAt: string;
 }
 
+/** Entrega con credenciales (correo y contraseña) o por panel (link, y usuario y contraseña del panel si los pide). */
 export interface DeliverProviderOrderCredentialInput {
-  username: string;
-  password: string;
+  username?: string;
+  password?: string;
+  panelUrl?: string;
   notes?: string;
+  /** Solo al actualizar una cuenta ya entregada: se le muestra al vendedor y a sus miembros. */
+  changeReason?: string;
 }
 
 /** Compra entregada que todavía se puede publicar como grupo (no es renovación ni fue sustituida por una reposición). */
 export function isPublishable(order: ProviderOrder): boolean {
   return order.status === 'FULFILLED' && !order.resultingGroupId && order.kind !== 'RENEWAL' && !order.replaced;
+}
+
+/** Cuenta entregada cuyo acceso Partly todavía puede corregir o cambiar (la vigente, no una renovación ni una sustituida). */
+export function canUpdateCredential(order: ProviderOrder): boolean {
+  return order.status === 'FULFILLED' && order.kind !== 'RENEWAL' && !order.replaced;
 }

@@ -1,3 +1,5 @@
+import { BILLING_PERIOD_OPTIONS, BillingPeriod, perPeriod, periodNoun } from '../../shared/billing-period.util';
+import { GroupAccessType, supportsInviteLink } from '../../shared/access-type.util';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -46,6 +48,16 @@ export class CreateGroup implements OnInit {
   protected readonly maxSlots = signal(4);
   protected readonly officialPrice = signal<number | null>(null);
   protected readonly totalSalePrice = signal<number | null>(null);
+
+  /** Cada cuánto se cobra: 1, 2, 3, 6 o 12 meses (en el mayoreo lo define la cuenta comprada). */
+  protected readonly billingPeriod = signal<BillingPeriod>('MONTHLY');
+  protected readonly billingPeriodOptions = BILLING_PERIOD_OPTIONS;
+  protected readonly periodNoun = computed(() => periodNoun(this.billingPeriod()));
+  protected readonly perPeriod = computed(() => perPeriod(this.billingPeriod()));
+  /** YouTube, Spotify y Canva: el acceso puede ser con correo y contraseña o con invitación al grupo familiar. */
+  protected readonly accessType = signal<GroupAccessType>('CREDENTIALS');
+  protected readonly offersInvite = computed(() => !this.providerOrderId() && supportsInviteLink(this.platformName()));
+  protected readonly effectiveAccessType = computed<GroupAccessType>(() => (this.offersInvite() ? this.accessType() : 'CREDENTIALS'));
 
   protected readonly ownerUsesSlot = signal(true);
   protected readonly availableSlots = signal(1);
@@ -344,6 +356,8 @@ export class CreateGroup implements OnInit {
           pricePerSlot: this.pricePerSlot(),
           availableSlots: this.availableSlots(),
           bankAccountNumber,
+          billingPeriod: this.billingPeriod(),
+          accessType: this.effectiveAccessType(),
         });
 
     request$.subscribe({

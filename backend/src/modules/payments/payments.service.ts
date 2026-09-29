@@ -13,7 +13,7 @@ import { PaymentResponseDto } from './dto/payment-response.dto';
 import { ListPendingPaymentsQueryDto } from './dto/list-pending-payments-query.dto';
 import { ReviewPaymentReceiptDto } from './dto/review-payment-receipt.dto';
 import { ListAdminPaymentsQueryDto, ReceiptFilter } from './dto/list-admin-payments-query.dto';
-import { memberLeftNotice } from '../../common/utils/member-left.util';
+import { memberLeftContext, memberLeftNotice, wholesaleRotationNotice } from '../../common/utils/member-left.util';
 import { wholesaleCoversNextPeriod } from '../../common/utils/wholesale-coverage.util';
 
 const GRACE_PERIOD_MS = 48 * 60 * 60 * 1000; // 48 horas de gracia tras la fecha de corte
@@ -778,16 +778,21 @@ export class PaymentsService {
           userId: membership.userId,
           type: NotificationType.MEMBERSHIP_CANCELLED,
           groupId: membership.groupId,
-          payload: 'Se te removió del grupo por no confirmar tu pago dentro de las 48 horas de gracia.',
+          payload: `Se te removió del grupo de ${payment.membership.group.plan.platform.name} porque no recibimos tu pago dentro de las 48 horas de gracia.`,
         });
         // Si ya tenía acceso (era una renovación), vio la contraseña: se le pide al vendedor cambiarla.
         const hadAccess = payment.membership.status === MembershipStatus.ACTIVE || payment.membership.status === MembershipStatus.SUSPENDED;
+        const access = await memberLeftContext(tx, membership.groupId);
+        const platformName = payment.membership.group.plan.platform.name;
         await this.notificationsService.create(tx, {
           userId: payment.membership.group.ownerId,
           type: hadAccess ? NotificationType.MEMBER_LEFT : NotificationType.SYSTEM,
           groupId: membership.groupId,
-          payload: memberLeftNotice({ memberName: payment.membership.user.name, platform: payment.membership.group.plan.platform.name, reason: 'unpaid', hadAccess }),
+          payload: memberLeftNotice({ memberName: payment.membership.user.name, platform: platformName, reason: 'unpaid', hadAccess, ...access }),
         });
+        if (hadAccess && access.wholesale) {
+          await this.notificationsService.notifyAdmins(tx, { type: NotificationType.SYSTEM, groupId: membership.groupId, payload: wholesaleRotationNotice({ memberName: payment.membership.user.name, platform: platformName, sellerName: access.sellerName }) });
+        }
       });
 
       this.logger.log(`Membresía ${payment.membershipId} cancelada por falta de pago (gracia vencida).`);
@@ -828,12 +833,16 @@ export class PaymentsService {
           payload: `Terminó tu periodo en el grupo de ${platform}. Como desactivaste la renovación, tu lugar quedó libre y ya no se te cobrará. Si quieres volver, puedes entrar de nuevo cuando quieras.`,
           groupId: membership.groupId,
         });
+        const access = await memberLeftContext(tx, membership.groupId);
         await this.notificationsService.create(tx, {
           userId: membership.group.ownerId,
           type: NotificationType.MEMBER_LEFT,
-          payload: memberLeftNotice({ memberName: membership.user.name, platform, reason: 'not_renewed', hadAccess: true }),
+          payload: memberLeftNotice({ memberName: membership.user.name, platform, reason: 'not_renewed', hadAccess: true, ...access }),
           groupId: membership.groupId,
         });
+        if (access.wholesale) {
+          await this.notificationsService.notifyAdmins(tx, { type: NotificationType.SYSTEM, groupId: membership.groupId, payload: wholesaleRotationNotice({ memberName: membership.user.name, platform, sellerName: access.sellerName }) });
+        }
       });
       this.logger.log(`Membresía ${membership.id} cerrada al terminar su periodo (sin renovación).`);
     }

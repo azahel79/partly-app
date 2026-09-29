@@ -1,3 +1,4 @@
+import { periodAdjective } from '../../shared/billing-period.util';
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
@@ -270,7 +271,7 @@ export class BuyAccounts implements OnInit, OnDestroy {
   }
 
   protected billingPeriodLabel(period: string): string {
-    return period === 'MONTHLY' ? 'mensual' : period === 'QUARTERLY' ? 'trimestral' : period === 'SEMIANNUAL' ? 'semestral' : 'anual';
+    return periodAdjective(period);
   }
 
   protected formatDate(iso: string): string {

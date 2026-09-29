@@ -1,3 +1,4 @@
+import { periodAdjective } from '../../shared/billing-period.util';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProviderListingsService } from '../../shared/provider-listings.service';
@@ -59,7 +60,7 @@ export class BuyAccountDetail implements OnInit {
   }
 
   protected billingPeriodLabel(period: string): string {
-    return period === 'MONTHLY' ? 'mensual' : period === 'QUARTERLY' ? 'trimestral' : period === 'SEMIANNUAL' ? 'semestral' : 'anual';
+    return periodAdjective(period);
   }
 
   /** Reserva la cuenta y lleva al comprador a la pantalla de pago (transferencia + comprobante). */

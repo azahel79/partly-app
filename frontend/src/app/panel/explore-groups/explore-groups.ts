@@ -1,3 +1,4 @@
+import { periodNoun } from '../../shared/billing-period.util';
 import { afterNextRender, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { GroupsService } from '../../shared/groups.service';
@@ -29,6 +30,7 @@ export const QUICK_SEARCH_PLATFORMS = ['Netflix', 'Disney+', 'HBO Max', 'Spotify
   templateUrl: './explore-groups.html',
 })
 export class ExploreGroups implements OnInit {
+  protected readonly periodNoun = periodNoun;
   private readonly groupsService = inject(GroupsService);
   private readonly categoriesService = inject(CategoriesService);
   private readonly authService = inject(AuthService);

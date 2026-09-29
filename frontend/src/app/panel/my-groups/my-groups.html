@@ -81,7 +81,7 @@
               </div>
               <div class="px-3.5 py-3 rounded-xl bg-crema-inset">
                 <p class="text-xs text-on-surface-variant">Precio por lugar</p>
-                <p class="text-base font-bold text-ink tabular-nums">{{ group.pricePerSlot | money }}<span class="text-xs font-medium text-on-surface-variant"> /mes</span></p>
+                <p class="text-base font-bold text-ink tabular-nums">{{ group.pricePerSlot | money }}<span class="text-xs font-medium text-on-surface-variant"> / {{ periodNoun(group.plan.billingPeriod) }}</span></p>
               </div>
             </div>
             <div class="ui-seats" aria-hidden="true">
@@ -194,7 +194,7 @@
             </div>
 
             <div class="flex items-baseline justify-between gap-3">
-              <p class="text-ink"><span class="text-lg font-extrabold tabular-nums">{{ group.pricePerSlot | money }}</span><span class="text-xs text-on-surface-variant"> /mes</span></p>
+              <p class="text-ink"><span class="text-lg font-extrabold tabular-nums">{{ group.pricePerSlot | money }}</span><span class="text-xs text-on-surface-variant"> / {{ periodNoun(group.plan.billingPeriod) }}</span></p>
               <span class="ui-pill ui-pill--ok">Miembro</span>
             </div>
             <div>

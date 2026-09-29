@@ -1,3 +1,4 @@
+import { periodNoun } from '../../shared/billing-period.util';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
@@ -17,6 +18,7 @@ const PAGE_SIZE = 10;
   templateUrl: './group-requests.html',
 })
 export class GroupRequests implements OnInit {
+  protected readonly periodNoun = periodNoun;
   private readonly groupsService = inject(GroupsService);
   private readonly router = inject(Router);
 

@@ -1,85 +1,128 @@
-<div class="space-y-6">
-  <a routerLink="/admin/incidencias" class="inline-flex items-center gap-1 text-xs font-bold text-crema/60 hover:text-crema transition-colors">
-    <span class="material-symbols-outlined text-sm">arrow_back</span>
+<div class="max-w-3xl space-y-5">
+  <a routerLink="/admin/incidencias" class="ui-link">
+    <span class="material-symbols-outlined">arrow_back</span>
     Volver a incidencias
   </a>
 
   @if (errorMessage()) {
-    <div class="p-4 rounded-2xl bg-white/5 text-xs text-red-400 font-semibold">{{ errorMessage() }}</div>
+    <p class="ui-note ui-note--danger"><span class="material-symbols-outlined">error</span><span>{{ errorMessage() }}</span></p>
   }
 
-  @if (incident(); as incident) {
-    <div class="p-6 rounded-[28px] bg-ink-card border border-white/10">
-      <div class="flex items-start justify-between gap-4 flex-wrap mb-4">
-        <div>
-          <h1 class="text-lg font-extrabold text-crema">{{ incident.subject }}</h1>
-          <p class="text-xs text-crema/50 font-medium mt-1">
-            {{ incident.context === 'GROUP_MEMBERSHIP' ? 'Membresía de grupo' : 'Compra a proveedor' }} · reportó {{ incident.reportedBy.name }} · asignado a {{ incident.assignedTo.name }}
-          </p>
+  @if (incident(); as inc) {
+    <section class="p-5 sm:p-6 rounded-2xl bg-white shadow-neu-raised space-y-4">
+      @if (inc.about; as about) {
+        <div class="flex items-center gap-3">
+          <app-platform-logo class="w-11 h-11 rounded-xl font-black text-sm shrink-0" [name]="about.platformName" [logoUrl]="about.platformLogoUrl" />
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-bold text-ink truncate">{{ about.platformName }} · {{ about.tierName }}</p>
+            <p class="text-xs text-on-surface-variant">{{ about.kind === 'WHOLESALE' ? 'Compra al mayoreo' : 'Grupo' }}{{ about.profileLabel ? ' · perfil de quien reportó: ' + about.profileLabel : '' }}</p>
+          </div>
+          @if (about.groupId) {
+            <a [routerLink]="['/admin/grupos', about.groupId]" class="ui-link shrink-0">Ver el grupo<span class="material-symbols-outlined">arrow_forward</span></a>
+          } @else if (about.providerOrderId) {
+            <a [routerLink]="['/admin/mi-tienda/pedidos', about.providerOrderId]" class="ui-link shrink-0">Ver el pedido<span class="material-symbols-outlined">arrow_forward</span></a>
+          }
         </div>
-        <span
-          class="px-2.5 py-1 rounded-full text-xs font-bold shrink-0"
-          [class]="incident.status === 'OPEN' ? 'bg-amber-400/20 text-amber-300' : incident.status === 'IN_REVIEW' ? 'bg-blue-400/20 text-blue-300' : incident.status === 'ESCALATED' ? 'bg-red-400/20 text-red-300' : 'bg-emerald-400/20 text-emerald-300'"
-        >
-          {{ incident.status }}
-        </span>
-      </div>
-
-      <div class="flex items-center gap-2 flex-wrap pt-4 border-t border-white/10">
-        <span class="text-xs text-crema/50 font-bold mr-1">Cambiar estado</span>
-        @for (status of statusOptions; track status) {
-          <button
-            type="button"
-            [disabled]="updatingStatus() || status === incident.status"
-            (click)="changeStatus(status)"
-            [class]="status === incident.status ? 'bg-white/15 text-crema' : 'bg-white/5 text-crema/60 hover:bg-white/10'"
-            class="active:scale-[0.98] px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
-          >
-            {{ status }}
-          </button>
+        @if (canFixCredentials()) {
+          <div class="ui-note ui-note--info flex-wrap">
+            <span class="material-symbols-outlined">key</span>
+            <span class="flex-1 min-w-48">{{ about.kind === 'WHOLESALE' ? 'Es una cuenta de Mi tienda: si el acceso falla, corrígelo tú.' : 'Este grupo usa una cuenta de Mi tienda: la contraseña la administra Partly.' }} Al guardar le dejamos la respuesta en esta conversación y avisamos {{ about.kind === 'WHOLESALE' ? 'al vendedor' : 'al vendedor y a los miembros del grupo' }}.</span>
+            <button type="button" class="ui-btn ui-btn--secondary ui-btn--sm" [disabled]="loadingOrder()" (click)="openCredentialUpdate(about.providerOrderId!)">
+              <span class="material-symbols-outlined">key</span>{{ loadingOrder() ? 'Abriendo…' : 'Actualizar credenciales' }}
+            </button>
+          </div>
         }
+      }
+
+      <div class="flex items-start justify-between gap-3 pt-4 border-t border-slate-100">
+        <div class="min-w-0">
+          <h1 class="text-xl! font-extrabold text-ink wrap-break-word">{{ inc.subject }}</h1>
+          <p class="text-xs text-on-surface-variant mt-1">Reportó {{ inc.reportedBy.name }} · Responsable: {{ inc.assignedTo.name }} · {{ formatDateTime(inc.createdAt) }}</p>
+        </div>
+        <span class="ui-pill shrink-0" [class]="statusPill(inc.status)">{{ statusLabel(inc.status) }}</span>
       </div>
-    </div>
 
-    <div class="p-6 rounded-[28px] bg-ink-card border border-white/10">
-      <h2 class="text-sm font-extrabold text-crema mb-4">Hilo de mensajes</h2>
+      @if (inc.status === 'ESCALATED') {
+        <p class="ui-note ui-note--danger"><span class="material-symbols-outlined">shield_person</span><span>Pidieron ayuda a Partly: solo tú puedes resolverla o regresársela al responsable. Explícales en la conversación qué se decidió.</span></p>
+      } @else if (inc.status === 'RESOLVED') {
+        <p class="ui-note ui-note--info"><span class="material-symbols-outlined">check_circle</span><span>Resuelta el {{ inc.resolvedAt ? formatDateTime(inc.resolvedAt) : '' }}.</span></p>
+      }
 
-      @if (messages() === null) {
-        <p class="text-xs text-crema/50 font-medium">Cargando…</p>
-      } @else if (messages()!.length === 0) {
-        <p class="text-xs text-crema/50 font-medium">Todavía no hay mensajes.</p>
-      } @else {
-        <div class="space-y-3 mb-4">
-          @for (message of messages(); track message.id) {
-            <div class="p-3.5 rounded-xl bg-white/5">
-              <div class="flex items-center justify-between gap-2 mb-1">
-                <span class="text-xs font-bold text-crema">{{ message.author.name }}</span>
-                <span class="text-xs text-crema/40 font-medium">{{ message.createdAt | date: 'short' }}</span>
-              </div>
-              <p class="text-sm text-crema/80 font-medium whitespace-pre-wrap">{{ message.body }}</p>
-            </div>
+      @switch (responseState()) {
+        @case ('pending') {
+          <p class="ui-note ui-note--warn"><span class="material-symbols-outlined">schedule</span><span>Le pediste respuesta a {{ inc.assignedTo.name }} el {{ formatDateTime(inc.responseRequestedAt!) }}. Tiene hasta el <strong>{{ formatDateTime(inc.responseDueAt!) }}</strong>; si no contesta, te avisamos.</span></p>
+        }
+        @case ('overdue') {
+          <p class="ui-note ui-note--danger"><span class="material-symbols-outlined">timer_off</span><span>{{ inc.assignedTo.name }} <strong>no respondió a tiempo</strong> (se lo pediste el {{ formatDateTime(inc.responseRequestedAt!) }}). Decide con la información que tienes o vuelve a pedírselo.</span></p>
+        }
+        @case ('answered') {
+          <p class="ui-note ui-note--info"><span class="material-symbols-outlined">mark_chat_read</span><span>{{ inc.assignedTo.name }} respondió el {{ formatDateTime(inc.lastAssigneeReplyAt!) }}, después de que le pediste respuesta.</span></p>
+        }
+      }
+
+      @if (actions().length) {
+        <div class="flex flex-wrap items-center gap-2">
+          @for (action of actions(); track action.status) {
+            <button type="button" class="ui-btn ui-btn--sm" [class.ui-btn--primary]="action.tone === 'primary'" [class.ui-btn--secondary]="action.tone !== 'primary'" [disabled]="updatingStatus()" (click)="changeStatus(action.status)">
+              <span class="material-symbols-outlined">{{ action.icon }}</span>{{ action.label }}
+            </button>
+          }
+          @if (canWritePrivately() && responseState() !== 'pending') {
+            <button type="button" class="ui-btn ui-btn--secondary ui-btn--sm" [disabled]="requesting()" (click)="requestResponse()">
+              <span class="material-symbols-outlined">alarm</span>{{ requesting() ? 'Enviando…' : 'Pedir respuesta a ' + inc.assignedTo.name }}
+            </button>
           }
         </div>
       }
+    </section>
 
-      <div class="flex items-end gap-2 pt-2 border-t border-white/10">
-        <textarea
-          #messageInput
-          rows="2"
-          placeholder="Escribe una respuesta…"
-          class="flex-1 px-3.5 py-2.5 rounded-xl bg-white/5 text-sm text-crema placeholder:text-crema/30 outline-none focus:ring-2 focus:ring-pink/50 resize-none"
-        ></textarea>
-        <button
-          type="button"
-          [disabled]="sending()"
-          (click)="sendMessage(messageInput)"
-          class="active:scale-[0.98] hover:bg-[#065f46] shrink-0 h-10 px-4 rounded-lg bg-pink text-white text-xs font-bold hover:opacity-90 transition-all disabled:opacity-50"
-        >
-          Enviar
-        </button>
-      </div>
-    </div>
+    <section class="space-y-3">
+      <h2 class="text-sm font-bold text-ink">Conversación</h2>
+      @if (messages() === null) {
+        <div class="ui-skeleton-card"><span class="ui-skeleton w-2/3"></span><span class="ui-skeleton w-1/2"></span></div>
+      } @else if (messages()!.length === 0) {
+        <p class="text-sm text-on-surface-variant">Todavía no hay mensajes.</p>
+      } @else {
+        @for (message of messages(); track message.id) {
+          @let role = roleOf(message.author.id);
+          <div class="max-w-[85%] p-4 rounded-2xl" [class]="role === 'Partly' ? 'ml-auto bg-emerald-50 border border-emerald-200/70' : 'bg-white shadow-neu-raised'">
+            <div class="flex items-center justify-between gap-3 mb-1">
+              <strong class="text-xs font-bold text-ink">
+                {{ message.author.name }} <span class="ui-pill no-dot ml-1" [class.ui-pill--info]="role === 'Partly'">{{ role }}</span>
+                @if (privateWith(message); as who) {
+                  <span class="ui-pill ui-pill--violet no-dot ml-1"><span class="material-symbols-outlined text-sm!">lock</span>Privado con {{ who }}</span>
+                }
+              </strong>
+              <span class="text-xs text-on-surface-variant">{{ formatDateTime(message.createdAt) }}</span>
+            </div>
+            <p class="text-sm text-ink/90 whitespace-pre-wrap wrap-break-word">{{ message.body }}</p>
+          </div>
+        }
+      }
+
+      @if (inc.status !== 'RESOLVED') {
+        <div class="p-3 sm:p-4 rounded-2xl bg-white shadow-neu-raised space-y-3">
+          @if (canWritePrivately()) {
+            <div class="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="A quién va el mensaje">
+              <span class="text-xs font-semibold text-on-surface-variant mr-1">Enviar a:</span>
+              <button type="button" class="ui-chip" [class.is-active]="audience() === 'ALL'" (click)="audience.set('ALL')"><span class="material-symbols-outlined">groups</span>Los dos</button>
+              <button type="button" class="ui-chip" [class.is-active]="audience() === 'REPORTER'" (click)="audience.set('REPORTER')"><span class="material-symbols-outlined">lock</span>Solo a {{ inc.reportedBy.name }}</button>
+              <button type="button" class="ui-chip" [class.is-active]="audience() === 'ASSIGNEE'" (click)="audience.set('ASSIGNEE')"><span class="material-symbols-outlined">lock</span>Solo a {{ inc.assignedTo.name }}</button>
+            </div>
+          }
+          <div class="flex items-end gap-2.5">
+            <textarea rows="2" class="ui-input flex-1 py-2.5! resize-none" [placeholder]="audience() === 'ALL' ? 'Escribe como Partly; les llega a los dos…' : 'Mensaje privado: solo lo ve ' + (audience() === 'REPORTER' ? inc.reportedBy.name : inc.assignedTo.name) + '…'" [value]="reply()" (input)="reply.set($any($event.target).value)"></textarea>
+            <button type="button" class="ui-btn ui-btn--primary shrink-0" [disabled]="!reply().trim() || sending()" (click)="sendMessage()">
+              <span class="material-symbols-outlined">send</span>{{ sending() ? 'Enviando…' : 'Enviar' }}
+            </button>
+          </div>
+        </div>
+      }
+    </section>
   } @else if (!errorMessage()) {
-    <div class="p-8 rounded-2xl bg-white/5 text-center text-sm text-crema/60 font-medium">Cargando…</div>
+    <div class="ui-skeleton-card"><span class="ui-skeleton w-1/2"></span><span class="ui-skeleton"></span></div>
   }
 </div>
+@if (updatingOrder(); as order) {
+  <app-deliver-credentials-modal [order]="order" mode="update" (delivered)="onCredentialsUpdated()" (closed)="updatingOrder.set(null)" />
+}

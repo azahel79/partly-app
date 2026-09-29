@@ -1,7 +1,8 @@
+import { supportsInviteLink } from '../../common/utils/access-type.util';
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
-import { BillingPeriod, CredentialReviewStatus, GroupApprovalStatus, GroupStatus, MembershipStatus, NotificationType, PaymentStatus, Prisma, ProviderOrderStatus, Role } from '@prisma/client';
+import { BillingPeriod, CredentialReviewStatus, GroupApprovalStatus, GroupStatus, MembershipStatus, NotificationType, PaymentStatus, Prisma, ProviderOrderStatus, Role, GroupAccessType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { addBillingPeriod, computeJoinPricing, minEntryDays, nextOccurrenceOfDay } from '../../common/utils/billing.util';
 import { decrypt, encrypt } from '../../common/utils/crypto.util';
@@ -23,7 +24,7 @@ import { CredentialResponseDto } from './dto/credential-response.dto';
 import { UpsertGroupProfileDto } from './dto/upsert-group-profile.dto';
 import { GroupProfileResponseDto } from './dto/group-profile-response.dto';
 import { CreateGroupFromProviderOrderDto } from '../providers/dto/create-group-from-provider-order.dto';
-import { memberLeftNotice } from '../../common/utils/member-left.util';
+import { memberLeftContext, memberLeftNotice, wholesaleRotationNotice } from '../../common/utils/member-left.util';
 
 const WITH_RELATIONS = {
   plan: {
@@ -37,7 +38,7 @@ const WITH_RELATIONS = {
   // Solo para derivar hasCredentials (GroupResponseDto) — nunca se exponen los valores cifrados aquí.
   credential: { select: { id: true } },
   // Cuenta de mayoreo de la que salió el grupo (si aplica): su vencimiento se le muestra al vendedor.
-  sourceProviderOrder: { select: { id: true, expiresAt: true, renewable: true } },
+  sourceProviderOrder: { select: { id: true, expiresAt: true, renewable: true, credential: { select: { panelUrlEncrypted: true } } } },
   // Cupos apartados (reservados o pagando), para mostrar el avance antes de iniciar.
   _count: { select: { memberships: { where: { status: { in: ['RESERVED', 'ACTIVE', 'PENDING_PAYMENT', 'SUSPENDED'] } } } } },
   // Para saber cuántos lugares se liberan al terminar el ciclo (miembros que no renovarán) y cuántos ya los apartaron.
@@ -93,7 +94,20 @@ export class GroupsService {
 
   async create(ownerId: string, dto: CreateGroupDto) {
     await this.commissionsService.assertNotRestricted(ownerId, 'crear grupos nuevos');
-    const { planId, maxSlots, billingPeriod } = await this.resolvePlanId(dto);
+    const accessType = dto.accessType ?? GroupAccessType.CREDENTIALS;
+    const inviteNotAllowed = (name: string) => accessType === GroupAccessType.INVITE_LINK && !supportsInviteLink(name);
+    const INVITE_ONLY_FOR = 'El acceso con link de invitación solo está disponible para YouTube, Spotify y Canva.';
+    // Con un plan personalizado se valida antes de guardarlo: si no, un rechazo dejaría un plan huérfano.
+    if (!dto.planId) {
+      if (inviteNotAllowed(dto.platformName ?? '')) throw new BadRequestException(INVITE_ONLY_FOR);
+      if (dto.maxSlots && dto.availableSlots > dto.maxSlots) {
+        throw new BadRequestException(`Este plan permite ${dto.maxSlots} cupos en total; no puedes ofrecer más de esos.`);
+      }
+    }
+    const { planId, maxSlots, billingPeriod, platformName } = await this.resolvePlanId(dto);
+    if (inviteNotAllowed(platformName)) {
+      throw new BadRequestException(INVITE_ONLY_FOR);
+    }
 
     // availableSlots son los que se ofrecen a OTROS. No forzamos que el owner se reserve un
     // cupo: hay vendedores que solo administran (reventa al mayoreo) y ofrecen el plan
@@ -117,6 +131,7 @@ export class GroupsService {
         billingDay: 1,
         nextRenewalDate: addBillingPeriod(new Date(), billingPeriod),
         bankAccountNumber: dto.bankAccountNumber,
+        accessType,
         // Todo grupo nuevo nace PENDING: no aparece en el marketplace público (findMany lo
         // filtra) hasta que un ADMIN lo revise vía PUT /groups/:id/review.
         approvalStatus: GroupApprovalStatus.PENDING,
@@ -188,6 +203,7 @@ export class GroupsService {
       throw new BadRequestException('El plan de esta cuenta ya no está activo.');
     }
     const maxSlots = order.listing.plan.maxSlots;
+    const byPanel = !!order.credential.panelUrlEncrypted || !order.credential.usernameEncrypted;
     if (dto.availableSlots > maxSlots) {
       throw new BadRequestException(`Este plan permite ${maxSlots} cupos en total; no puedes ofrecer más de esos.`);
     }
@@ -204,22 +220,27 @@ export class GroupsService {
           nextRenewalDate: addBillingPeriod(new Date(), BillingPeriod.MONTHLY),
           bankAccountNumber: dto.bankAccountNumber,
           approvalStatus: GroupApprovalStatus.PENDING,
-          credentialReviewStatus: CredentialReviewStatus.SUBMITTED,
-          credentialsSubmittedAt: new Date(),
+          // Entregada con credenciales: se copian y quedan listas para revisión. Por panel: el vendedor da el acceso,
+          // así que Partly le pide las credenciales como en cualquier grupo.
+          credentialReviewStatus: byPanel ? CredentialReviewStatus.REQUESTED : CredentialReviewStatus.SUBMITTED,
+          credentialsRequestedAt: byPanel ? new Date() : null,
+          credentialsSubmittedAt: byPanel ? null : new Date(),
         },
       });
 
-      await tx.credential.create({
-        data: {
-          groupId: created.id,
-          usernameEncrypted: order.credential!.usernameEncrypted,
-          passwordEncrypted: order.credential!.passwordEncrypted,
-          notesEncrypted: order.credential!.notesEncrypted,
-        },
-      });
-      await tx.credentialHistory.create({
-        data: { groupId: created.id, changedByUserId: ownerId, changeReason: 'Importado automáticamente desde una compra de mayoreo' },
-      });
+      if (!byPanel) {
+        await tx.credential.create({
+          data: {
+            groupId: created.id,
+            usernameEncrypted: order.credential!.usernameEncrypted,
+            passwordEncrypted: order.credential!.passwordEncrypted,
+            notesEncrypted: order.credential!.notesEncrypted,
+          },
+        });
+        await tx.credentialHistory.create({
+          data: { groupId: created.id, changedByUserId: ownerId, changeReason: 'Importado automáticamente desde una compra de mayoreo' },
+        });
+      }
       await tx.groupProfile.createMany({
         data: Array.from({ length: dto.availableSlots }, (_, i) => ({ groupId: created.id, label: `Perfil ${i + 1}` })),
       });
@@ -251,16 +272,16 @@ export class GroupsService {
    * verificación de ADMIN sobre ese plan específico (el resto de las protecciones — pago en
    * custodia, credenciales cifradas — siguen aplicando igual).
    */
-  private async resolvePlanId(dto: CreateGroupDto): Promise<{ planId: string; maxSlots: number; billingPeriod: BillingPeriod }> {
+  private async resolvePlanId(dto: CreateGroupDto): Promise<{ planId: string; maxSlots: number; billingPeriod: BillingPeriod; platformName: string }> {
     if (dto.planId) {
-      const plan = await this.prisma.plan.findUnique({ where: { id: dto.planId } });
+      const plan = await this.prisma.plan.findUnique({ where: { id: dto.planId }, include: { platform: { select: { name: true } } } });
       if (!plan) {
         throw new NotFoundException('El plan indicado no existe.');
       }
       if (!plan.active) {
         throw new BadRequestException('Este plan no está activo.');
       }
-      return { planId: plan.id, maxSlots: plan.maxSlots, billingPeriod: plan.billingPeriod };
+      return { planId: plan.id, maxSlots: plan.maxSlots, billingPeriod: plan.billingPeriod, platformName: plan.platform.name };
     }
 
     if (!dto.platformName || !dto.maxSlots) {
@@ -281,10 +302,11 @@ export class GroupsService {
         officialPrice: dto.officialPrice ?? dto.pricePerSlot * (dto.availableSlots + 1),
         maxSlots: dto.maxSlots,
         commissionPercentage: DEFAULT_COMMISSION_PCT,
+        billingPeriod: dto.billingPeriod ?? BillingPeriod.MONTHLY,
         active: true,
       },
     });
-    return { planId: plan.id, maxSlots: plan.maxSlots, billingPeriod: plan.billingPeriod };
+    return { planId: plan.id, maxSlots: plan.maxSlots, billingPeriod: plan.billingPeriod, platformName: platform.name };
   }
 
   async findMany(query: ListGroupsQueryDto, viewerUserId: string) {
@@ -327,7 +349,7 @@ export class GroupsService {
         ? {
             startedAt: { not: null },
             // solo los que hoy admiten entrada: les quedan al menos los días mínimos de su ciclo
-            OR: (['MONTHLY', 'QUARTERLY', 'SEMIANNUAL', 'ANNUAL'] as BillingPeriod[]).map((period) => ({
+            OR: Object.values(BillingPeriod).map((period) => ({
               plan: { billingPeriod: period },
               nextRenewalDate: { gte: new Date(Date.now() + minEntryDays(period) * 86_400_000) },
             })),
@@ -886,14 +908,19 @@ export class GroupsService {
     await this.evaluateStartThreshold(tx, groupId);
 
     const wasReserved = membership.status === MembershipStatus.RESERVED || membership.status === MembershipStatus.PENDING_PAYMENT;
+    const platform = membership.group.plan.platform.name;
+    const access = await memberLeftContext(tx, groupId);
     await this.notificationsService.create(tx, {
       userId: membership.group.ownerId,
       type: wasReserved ? NotificationType.SYSTEM : NotificationType.MEMBER_LEFT,
       groupId,
       payload: wasReserved
-        ? `${membership.user.name} soltó el lugar que había apartado en tu grupo de ${membership.group.plan.platform.name}. Ya quedó libre para otra persona.`
-        : memberLeftNotice({ memberName: membership.user.name, platform: membership.group.plan.platform.name, reason: 'left', hadAccess: true }),
+        ? `${membership.user.name} soltó el lugar que había apartado en tu grupo de ${platform}. Ya quedó libre para otra persona.`
+        : memberLeftNotice({ memberName: membership.user.name, platform, reason: 'left', hadAccess: true, ...access }),
     });
+    if (!wasReserved && access.wholesale) {
+      await this.notificationsService.notifyAdmins(tx, { type: NotificationType.SYSTEM, groupId, payload: wholesaleRotationNotice({ memberName: membership.user.name, platform, sellerName: access.sellerName }) });
+    }
   }
 
   /**
@@ -1465,24 +1492,35 @@ export class GroupsService {
     if (group.ownerId !== requester.id) {
       throw new ForbiddenException('Solo el owner de este grupo puede establecer la credencial compartida.');
     }
+    // Las cuentas de mayoreo que Partly entregó con credenciales son de Partly: se cambian desde su tienda (y se
+    // copian aquí). Las que se entregan por panel las administra el vendedor.
+    if ((await memberLeftContext(this.prisma, groupId)).wholesale) {
+      throw new ForbiddenException('Las credenciales de una cuenta de mayoreo las administra Partly. Si necesitas cambiarlas, pídelo desde Mayoreo → Mis compras → Reportar.');
+    }
     // Con el grupo en revisión, las credenciales solo se envían cuando Partly las pide (o para corregir unas
     // ya enviadas): antes de eso el vendedor todavía no sabe si acepta la comisión.
     if (group.approvalStatus === GroupApprovalStatus.PENDING && group.credentialReviewStatus === CredentialReviewStatus.NOT_REQUESTED) {
       throw new ForbiddenException('Partly todavía no te pide las credenciales. Te avisaremos cuando definan tu comisión y puedas enviarlas.');
     }
     const key = this.configService.get<string>('credentialsEncryptionKey')!;
+    const byInvite = group.accessType === GroupAccessType.INVITE_LINK;
+    const inviteLink = dto.inviteLink?.trim();
+    if (byInvite ? !inviteLink : !dto.username || !dto.password) {
+      throw new BadRequestException(byInvite ? 'Pega el link de invitación a tu grupo familiar.' : 'Escribe el correo (o usuario) y la contraseña de la cuenta.');
+    }
     const data = {
-      usernameEncrypted: encrypt(dto.username, key),
-      passwordEncrypted: encrypt(dto.password, key),
+      usernameEncrypted: byInvite ? null : encrypt(dto.username!, key),
+      passwordEncrypted: byInvite ? null : encrypt(dto.password!, key),
+      inviteLinkEncrypted: byInvite ? encrypt(inviteLink!, key) : null,
       notesEncrypted: dto.notes ? encrypt(dto.notes, key) : null,
     };
+    const plain = (value: string | null) => (value ? decrypt(value, key) : null);
 
     // ¿Cambió de verdad el acceso? (solo las notas no amerita avisar a todos)
     const previous = await this.prisma.credential.findUnique({ where: { groupId } });
     const accessChanged =
       !previous ||
-      decrypt(previous.usernameEncrypted, key) !== dto.username ||
-      decrypt(previous.passwordEncrypted, key) !== dto.password;
+      (byInvite ? plain(previous.inviteLinkEncrypted) !== inviteLink : plain(previous.usernameEncrypted) !== dto.username || plain(previous.passwordEncrypted) !== dto.password);
 
     const credential = await this.prisma.$transaction(async (tx) => {
       const savedCredential = await tx.credential.upsert({
@@ -1508,7 +1546,9 @@ export class GroupsService {
             userId: member.userId,
             type: NotificationType.CREDENTIAL_UPDATED,
             groupId,
-            payload: `El vendedor actualizó el acceso de tu cuenta de ${platform}${reason ? ` (${reason})` : ''}. Entra a tu grupo para ver la contraseña nueva.`,
+            payload: byInvite
+              ? `El vendedor actualizó el link de invitación de tu grupo de ${platform}${reason ? ` (${reason})` : ''}. Entra a tu grupo para ver el nuevo.`
+              : `El vendedor actualizó el acceso de tu cuenta de ${platform}${reason ? ` (${reason})` : ''}. Entra a tu grupo para ver la contraseña nueva.`,
           });
         }
       }
@@ -1536,8 +1576,10 @@ export class GroupsService {
     await this.ensureDefaultProfiles(groupId, group.availableSlots);
 
     return new CredentialResponseDto({
-      username: dto.username,
-      password: dto.password,
+      accessType: group.accessType,
+      username: byInvite ? null : dto.username!,
+      password: byInvite ? null : dto.password!,
+      inviteLink: byInvite ? inviteLink! : null,
       notes: dto.notes ?? null,
       updatedAt: credential.updatedAt,
     });
@@ -1663,10 +1705,13 @@ export class GroupsService {
     }
 
     const key = this.configService.get<string>('credentialsEncryptionKey')!;
+    const plain = (value: string | null) => (value ? decrypt(value, key) : null);
     return new CredentialResponseDto({
-      username: decrypt(credential.usernameEncrypted, key),
-      password: decrypt(credential.passwordEncrypted, key),
-      notes: credential.notesEncrypted ? decrypt(credential.notesEncrypted, key) : null,
+      accessType: group.accessType,
+      username: plain(credential.usernameEncrypted),
+      password: plain(credential.passwordEncrypted),
+      inviteLink: plain(credential.inviteLinkEncrypted),
+      notes: plain(credential.notesEncrypted),
       updatedAt: credential.updatedAt,
     });
   }

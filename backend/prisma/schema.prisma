@@ -24,9 +24,17 @@ enum AuthProvider {
 
 enum BillingPeriod {
   MONTHLY
+  BIMONTHLY
   QUARTERLY
   SEMIANNUAL
   ANNUAL
+}
+
+/// Cómo reciben el acceso los miembros: correo y contraseña, o un link de invitación al grupo familiar
+/// (solo YouTube, Spotify y Canva).
+enum GroupAccessType {
+  CREDENTIALS
+  INVITE_LINK
 }
 
 enum GroupStatus {
@@ -198,6 +206,12 @@ enum ProviderOrderStatus {
 enum IncidentContext {
   GROUP_MEMBERSHIP
   PROVIDER_ORDER
+}
+
+enum IncidentMessageAudience {
+  ALL
+  REPORTER
+  ASSIGNEE
 }
 
 enum IncidentStatus {
@@ -374,6 +388,8 @@ model Group {
   occupiedSlots     Int         @default(0) @map("occupied_slots")
   pricePerSlot      Decimal     @map("price_per_slot") @db.Decimal(10, 2)
   status            GroupStatus @default(SEARCHING_MEMBERS)
+  /// Cómo reciben el acceso los miembros (el link de invitación solo aplica a YouTube, Spotify y Canva).
+  accessType        GroupAccessType @default(CREDENTIALS) @map("access_type")
   billingDay        Int         @map("billing_day")
   nextRenewalDate   DateTime    @map("next_renewal_date")
   bankAccountNumber String?     @map("bank_account_number")
@@ -427,8 +443,11 @@ model Group {
 model Credential {
   id                String   @id @default(uuid())
   groupId           String   @unique @map("group_id")
-  usernameEncrypted String   @map("username_encrypted")
-  passwordEncrypted String   @map("password_encrypted")
+  /// Correo y contraseña (grupos con acceso por credenciales).
+  usernameEncrypted String?  @map("username_encrypted")
+  passwordEncrypted String?  @map("password_encrypted")
+  /// Link de invitación al grupo familiar (grupos con acceso por invitación).
+  inviteLinkEncrypted String? @map("invite_link_encrypted")
   notesEncrypted    String?  @map("notes_encrypted")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
@@ -926,8 +945,11 @@ model WholesaleAccess {
 model ProviderOrderCredential {
   id                String   @id @default(uuid())
   orderId           String   @unique @map("order_id")
-  usernameEncrypted String   @map("username_encrypted")
-  passwordEncrypted String   @map("password_encrypted")
+  /// Datos de acceso a la cuenta (en una entrega por panel, los de entrar al panel, si los hay).
+  usernameEncrypted String?  @map("username_encrypted")
+  passwordEncrypted String?  @map("password_encrypted")
+  /// Link del panel del proveedor donde el vendedor administra el acceso de sus usuarios.
+  panelUrlEncrypted String?  @map("panel_url_encrypted")
   notesEncrypted    String?  @map("notes_encrypted")
   deliveredAt       DateTime @default(now()) @map("delivered_at")
 
@@ -953,6 +975,13 @@ model Incident {
   status            IncidentStatus  @default(OPEN)
   createdAt         DateTime        @default(now()) @map("created_at")
   resolvedAt        DateTime?       @map("resolved_at")
+  /// Última vez que escribió el responsable (para los recordatorios y la escalada automática).
+  lastAssigneeReplyAt DateTime? @map("last_assignee_reply_at")
+  /// Partly le pidió respuesta al responsable: cuándo y hasta cuándo tiene. Se limpia en cuanto responde.
+  responseRequestedAt DateTime? @map("response_requested_at")
+  responseDueAt       DateTime? @map("response_due_at")
+  /// 0 = nada · 1 = se le recordó al responsable (24 h) · 2 = se escaló sola (72 h).
+  followUpStage       Int       @default(0) @map("follow_up_stage")
 
   groupMembership GroupMembership?  @relation(fields: [groupMembershipId], references: [id], onDelete: Cascade)
   providerOrder   ProviderOrder?    @relation(fields: [providerOrderId], references: [id], onDelete: Cascade)
@@ -972,6 +1001,8 @@ model IncidentMessage {
   incidentId   String   @map("incident_id")
   authorUserId String   @map("author_user_id")
   body         String
+  /// Quién lo ve además de Partly: todos, o solo quien reportó / solo el responsable (mensaje privado).
+  audience     IncidentMessageAudience @default(ALL)
   createdAt    DateTime @default(now()) @map("created_at")
 
   incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)

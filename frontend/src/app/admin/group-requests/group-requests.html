@@ -147,7 +147,7 @@
                     <p class="text-xs text-on-surface-variant font-medium">{{ group.plan.tierName }}</p>
                   </td>
                   <td>
-                    <p class="text-sm font-bold text-ink">{{ group.pricePerSlot | money }}/mes</p>
+                    <p class="text-sm font-bold text-ink">{{ group.pricePerSlot | money }} / {{ periodNoun(group.plan.billingPeriod) }}</p>
                     <p class="text-xs text-on-surface-variant font-medium">{{ group.availableSlots }} cupos</p>
                   </td>
                   <td>

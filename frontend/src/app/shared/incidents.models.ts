@@ -17,6 +17,28 @@ export interface Incident {
   status: IncidentStatus;
   createdAt: string;
   resolvedAt: string | null;
+  /** De qué se trata: el grupo (con el perfil de quien reportó) o la compra de mayoreo. */
+  about: IncidentAbout | null;
+  /** Última vez que escribió el responsable. */
+  lastAssigneeReplyAt: string | null;
+  /** Partly le pidió respuesta al responsable: cuándo, y hasta cuándo tiene (null si ya contestó o venció). */
+  responseRequestedAt: string | null;
+  responseDueAt: string | null;
+}
+
+/** ALL = lo ven todos; REPORTER / ASSIGNEE = privado entre Partly y esa persona. */
+export type IncidentMessageAudience = 'ALL' | 'REPORTER' | 'ASSIGNEE';
+
+export interface IncidentAbout {
+  kind: 'GROUP' | 'WHOLESALE';
+  platformName: string;
+  platformLogoUrl: string | null;
+  tierName: string;
+  groupId: string | null;
+  profileLabel: string | null;
+  providerOrderId: string | null;
+  /** El grupo usa una cuenta de mayoreo cuya contraseña administra Partly. */
+  credentialsManagedByPartly: boolean;
 }
 
 export interface IncidentMessage {
@@ -24,6 +46,7 @@ export interface IncidentMessage {
   author: IncidentParty;
   body: string;
   createdAt: string;
+  audience: IncidentMessageAudience;
 }
 
 export interface PaginatedIncidents {

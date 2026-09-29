@@ -1,3 +1,4 @@
+import { periodNoun } from '../../shared/billing-period.util';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../shared/auth.service';
@@ -21,6 +22,7 @@ const OCCUPYING_STATUSES = new Set(['ACTIVE', 'SUSPENDED']);
   templateUrl: './panel-home.html',
 })
 export class PanelHome implements OnInit {
+  protected readonly periodNoun = periodNoun;
   protected readonly authService = inject(AuthService);
   private readonly groupsService = inject(GroupsService);
   private readonly commissionsService = inject(CommissionsService);

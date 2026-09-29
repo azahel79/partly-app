@@ -301,6 +301,9 @@
                       @if (order.status === 'AWAITING_PAYMENT' || order.status === 'PENDING_APPROVAL') {
                         <button type="button" (click)="rejectOrder(order)" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 text-left text-red-600"><span class="material-symbols-outlined text-base">block</span>Rechazar solicitud</button>
                       }
+                      @if (canUpdateCredential(order)) {
+                        <button type="button" (click)="openUpdateForm(order)" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 text-left"><span class="material-symbols-outlined text-base text-on-surface-variant">key</span>Actualizar credenciales</button>
+                      }
                       @if (order.status === 'PENDING_DELIVERY') {
                         <button type="button" (click)="cancelPaidOrder(order)" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 text-left text-red-600"><span class="material-symbols-outlined text-base">undo</span>Cancelar y reembolsar</button>
                       }
@@ -320,6 +323,6 @@
     </section>
   }
   @if (deliveringOrder(); as order) {
-    <app-deliver-credentials-modal [order]="order" (delivered)="onDelivered($event)" (closed)="deliveringOrder.set(null)" />
+    <app-deliver-credentials-modal [order]="order" [mode]="deliverMode()" (delivered)="onDelivered($event)" (closed)="deliveringOrder.set(null)" />
   }
 </div>

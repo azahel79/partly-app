@@ -21,7 +21,7 @@
           <div class="hero-copy">
             <div class="hero-title-row"><h2>{{ g.plan.platform.name }} {{ g.plan.tierName }}</h2><span class="approval-pill" [attr.data-status]="g.approvalStatus">{{ g.approvalStatus === 'PENDING' ? 'Pendiente' : g.approvalStatus === 'APPROVED' ? 'Aprobado' : 'Rechazado' }}</span></div>
             <p class="hero-meta">{{ g.plan.tierName }} · #{{ g.id.slice(0, 8) }}</p><p class="hero-description">{{ brand().description }}</p>
-            <div class="hero-tags">@if (g.plan.platform.categoryName) { <span>{{ g.plan.platform.categoryName }}</span> }<span>{{ g.plan.billingPeriod === 'MONTHLY' ? 'Mensual' : g.plan.billingPeriod === 'QUARTERLY' ? 'Trimestral' : g.plan.billingPeriod === 'SEMIANNUAL' ? 'Semestral' : 'Anual' }}</span><span>{{ groupStatusLabel(g.status) }}</span></div>
+            <div class="hero-tags">@if (g.plan.platform.categoryName) { <span>{{ g.plan.platform.categoryName }}</span> }<span class="capitalize">{{ periodAdjective(g.plan.billingPeriod) }}</span><span>{{ groupStatusLabel(g.status) }}</span></div>
           </div>
         </section>
 
@@ -37,7 +37,7 @@
             <div class="card-heading"><span class="heading-icon"><span class="material-symbols-outlined">description</span></span><div><h3>Información del grupo</h3><p>Datos principales de la solicitud.</p></div>@if (!editingInfo()) { <button type="button" class="outline-button" (click)="startEditInfo()"><span class="material-symbols-outlined">edit</span>Editar</button> }</div>
             @if (!editingInfo()) {
               <div class="info-grid">
-                <article><span class="info-icon material-symbols-outlined">attach_money</span><div><strong>{{ g.pricePerSlot | money }} / mes</strong><small>Precio por cupo</small></div></article>
+                <article><span class="info-icon material-symbols-outlined">attach_money</span><div><strong>{{ g.pricePerSlot | money }} / {{ periodNoun(g.plan.billingPeriod) }}</strong><small>Precio por cupo</small></div></article>
                 <article><span class="info-icon material-symbols-outlined">groups</span><div><strong>{{ g.occupiedSlots }} / {{ g.availableSlots }}</strong><small>Cupos ocupados</small></div></article>
                 <article><span class="info-icon material-symbols-outlined">calendar_month</span><div><strong>Día {{ g.billingDay }}</strong><small>Día de cobro</small></div></article>
                 <article><span class="info-icon material-symbols-outlined">event</span><div><strong>{{ formatDate(g.createdAt) }}</strong><small>Fecha de solicitud</small></div></article>
@@ -129,8 +129,13 @@
             <div class="side-title"><span class="material-symbols-outlined">key</span><div><h3>Credenciales enviadas</h3><p>Comprueba que el acceso funcione antes de aprobar.</p></div></div>
             @if (submittedCredential() === undefined) { <p class="credential-loading">Descifrando credenciales de forma segura…</p> }
             @else if (submittedCredential(); as credential) {
-              <div class="credential-field"><small>Usuario o correo</small><strong>{{ credential.username }}</strong></div>
-              <div class="credential-field"><small>Contraseña</small><div><strong>{{ showSubmittedPassword() ? credential.password : '••••••••••' }}</strong><button type="button" (click)="toggleSubmittedPassword()"><span class="material-symbols-outlined">{{ showSubmittedPassword() ? 'visibility_off' : 'visibility' }}</span></button></div></div>
+              @if (credential.accessType === 'INVITE_LINK') {
+                <div class="credential-field"><small>Link de invitación al grupo familiar</small><strong class="break-all">{{ credential.inviteLink }}</strong></div>
+                <a class="credential-open-link" [href]="credential.inviteLink" target="_blank" rel="noopener noreferrer"><span class="material-symbols-outlined">open_in_new</span>Abrir la invitación</a>
+              } @else {
+                <div class="credential-field"><small>Usuario o correo</small><strong>{{ credential.username }}</strong></div>
+                <div class="credential-field"><small>Contraseña</small><div><strong>{{ showSubmittedPassword() ? credential.password : '••••••••••' }}</strong><button type="button" (click)="toggleSubmittedPassword()"><span class="material-symbols-outlined">{{ showSubmittedPassword() ? 'visibility_off' : 'visibility' }}</span></button></div></div>
+              }
               @if (credential.notes) { <div class="credential-notes"><small>Indicaciones</small><p>{{ credential.notes }}</p></div> }
               <p class="credential-date">Enviadas el {{ g.credentialsSubmittedAt ? formatDate(g.credentialsSubmittedAt) : formatDate(credential.updatedAt) }}</p>
             } @else { <p class="credential-loading error">No fue posible abrir las credenciales.</p> }

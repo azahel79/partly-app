@@ -1,3 +1,4 @@
+import { periodAdjective, periodNoun } from '../../shared/billing-period.util';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -28,12 +29,6 @@ const PAYMENT_STATUS_LABEL: Record<AdminPayment['status'], string> = {
   FAILED: 'Vencido / rechazado',
 };
 
-const BILLING_PERIOD_LABEL: Record<string, string> = {
-  MONTHLY: 'mensual',
-  QUARTERLY: 'trimestral',
-  SEMIANNUAL: 'semestral',
-  ANNUAL: 'anual',
-};
 
 const GROUP_STATUS_LABEL: Record<GroupStatus, string> = {
   SEARCHING_MEMBERS: 'Buscando miembros',
@@ -74,6 +69,8 @@ const KNOWN_BRANDS: Record<string, Omit<PlatformBrand, 'logoUrl'> & { slug: stri
   templateUrl: './group-detail.html',
 })
 export class AdminGroupDetail implements OnInit {
+  protected readonly periodNoun = periodNoun;
+  protected readonly periodAdjective = periodAdjective;
   private readonly route = inject(ActivatedRoute);
   private readonly groupsService = inject(GroupsService);
   private readonly credentialsService = inject(CredentialsService);
@@ -171,8 +168,8 @@ export class AdminGroupDetail implements OnInit {
     if (!g) {
       return '';
     }
-    const period = BILLING_PERIOD_LABEL[g.plan.billingPeriod] ?? g.plan.billingPeriod.toLowerCase();
-    return `Plan ${g.plan.tierName} de ${g.plan.platform.name}, facturación ${period}. Ofrece ${g.availableSlots} cupos a $${g.pricePerSlot}/mes cada uno.`;
+    const period = periodAdjective(g.plan.billingPeriod);
+    return `Plan ${g.plan.tierName} de ${g.plan.platform.name}, facturación ${period}. Ofrece ${g.availableSlots} cupos a $${g.pricePerSlot} / ${periodNoun(g.plan.billingPeriod)} cada uno.`;
   });
 
   protected readonly features = computed<PlanFeature[]>(() => {
