@@ -74,6 +74,8 @@ module.exports = {
     check('el vendedor lo ve "en revisión"', (await statusOf(b)) === 'IN_REVIEW');
     r = await call('PUT', `/groups/${gid}/payments/${cb.id}/review`, S, { approve: true });
     check('el vendedor lo aprueba y lo ve "Renovó"', r.status === 200 && (await statusOf(b)) === 'RENEWED');
+    const renewed = await prisma.notification.findFirst({ where: { userId: b.id, groupId: gid, type: 'RENEWAL_CONFIRMED' } });
+    check('al comprador se le confirma la renovación y hasta cuándo sigue', !!renewed && /queda renovado: sigues usando la cuenta hasta el/.test(renewed.payload), renewed?.payload.split('hasta el ')[1]?.split('.')[0]);
     r = await call('PUT', `/groups/${gid}/my-membership/auto-renew`, token(b), { autoRenew: false });
     check('ya pagado, no puede apagar la renovación', r.status === 400 && /Ya pagaste tu renovación/.test(JSON.stringify(r.body)));
     check(`${admin.name} sube su comprobante`, (await receipt(gid, A)).status === 201);

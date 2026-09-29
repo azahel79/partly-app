@@ -313,24 +313,13 @@
                 <p class="px-4 pb-3 text-xs text-red-600 font-semibold">{{ deciderError() }}</p>
               }
 
-              @if (deliveringOrderId() === order.id) {
-                <div class="px-4 pb-4 space-y-3 border-t border-slate-100 pt-3">
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input type="text" [value]="deliverUsername()" (input)="deliverUsername.set($any($event.target).value)" placeholder="Usuario o correo de la cuenta" class="w-full bg-white rounded-lg py-2.5 px-3.5 text-sm font-medium text-ink placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-pink/15 focus:border-pink" />
-                    <input type="text" [value]="deliverPassword()" (input)="deliverPassword.set($any($event.target).value)" placeholder="Contraseña real de la cuenta" class="w-full bg-white rounded-lg py-2.5 px-3.5 text-sm font-medium text-ink placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-pink/15 focus:border-pink" />
-                  </div>
-                  <textarea [value]="deliverNotes()" (input)="deliverNotes.set($any($event.target).value)" rows="2" placeholder="Instrucciones para el vendedor (opcional)" class="w-full bg-white rounded-lg py-2.5 px-3.5 text-sm font-medium text-ink placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-pink/15 focus:border-pink resize-none"></textarea>
-                  @if (deliverError()) { <p class="text-xs text-red-600 font-semibold">{{ deliverError() }}</p> }
-                  <div class="flex items-center gap-2">
-                    <button type="button" [disabled]="savingDelivery() || !deliverUsername().trim() || !deliverPassword()" (click)="submitDelivery(order)" class="active:scale-[0.98] hover:bg-[#065f46] py-2 px-4 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-60 transition-all">{{ savingDelivery() ? 'Enviando…' : 'Confirmar entrega' }}</button>
-                    <button type="button" (click)="closeDeliverForm()" class="active:scale-[0.98] hover:bg-slate-200 py-2 px-4 rounded-lg bg-slate-100 text-ink text-xs font-bold transition-all">Cancelar</button>
-                  </div>
-                </div>
-              }
             </article>
           }
         </div>
       }
     </section>
+  }
+  @if (deliveringOrder(); as order) {
+    <app-deliver-credentials-modal [order]="order" (delivered)="onDelivered($event)" (closed)="deliveringOrder.set(null)" />
   }
 </div>

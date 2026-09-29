@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
 import { API_BASE_URL } from './api-config';
-import { AdminGroupDetail, CreateGroupInput, Group, GroupApprovalStatus, GroupJoinPreview, GroupProfile, GroupStartPreview, GroupStatus, PaginatedGroups } from './groups.models';
+import { AdminGroupDetail, CreateGroupInput, Group, GroupApprovalStatus, GroupJoinPreview, GroupProfile, GroupStartPreview, GroupStatus, PaginatedGroups, ReservedSeat, SimilarMembership } from './groups.models';
 import { Membership, MembershipStatus } from './memberships.models';
 import { toErrorMessage } from './http-error.util';
 
@@ -32,6 +32,27 @@ export class GroupsService {
   }
 
   /** Sales de un grupo del que eras miembro. */
+  /** Lugares que apartaste o estás pagando (todavía no activos). */
+  findReserved(): Observable<ReservedSeat[]> {
+    return this.http
+      .get<ReservedSeat[]>(`${API_BASE_URL}/groups/reserved`)
+      .pipe(catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))));
+  }
+
+  /** Para el vendedor: si alguien con acceso salió y falta cambiar la contraseña de la cuenta. */
+  getCredentialStatus(groupId: string): Observable<{ rotationPending: boolean; since: string | null; departures: number; lastMemberName: string | null }> {
+    return this.http
+      .get<{ rotationPending: boolean; since: string | null; departures: number; lastMemberName: string | null }>(`${API_BASE_URL}/groups/${groupId}/credential-status`)
+      .pipe(catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))));
+  }
+
+  /** Tu lugar en otro grupo de la misma plataforma, o null. */
+  findSimilarMembership(groupId: string): Observable<SimilarMembership | null> {
+    return this.http
+      .get<SimilarMembership | null>(`${API_BASE_URL}/groups/${groupId}/similar-membership`)
+      .pipe(catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))));
+  }
+
   leave(groupId: string): Observable<void> {
     return this.http
       .post<void>(`${API_BASE_URL}/groups/${groupId}/leave`, {})
@@ -80,16 +101,9 @@ export class GroupsService {
   }
 
   /** Aprueba o rechaza un grupo — solo ADMIN. `reason` es obligatorio para REJECTED. */
-  reviewApproval(groupId: string, status: 'APPROVED' | 'REJECTED', reason?: string, commissionPercentage?: number): Observable<Group> {
+  reviewApproval(groupId: string, status: 'APPROVED' | 'REJECTED', reason?: string): Observable<Group> {
     return this.http
-      .put<Group>(`${API_BASE_URL}/groups/${groupId}/approval`, { status, reason, commissionPercentage })
-      .pipe(catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))));
-  }
-
-  /** Fija la comisión (10%-15%) de un grupo en revisión y avisa al vendedor — solo ADMIN. */
-  proposeCommission(groupId: string, commissionPercentage: number): Observable<Group> {
-    return this.http
-      .put<Group>(`${API_BASE_URL}/groups/${groupId}/commission`, { commissionPercentage })
+      .put<Group>(`${API_BASE_URL}/groups/${groupId}/approval`, { status, reason })
       .pipe(catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))));
   }
 
@@ -159,10 +173,13 @@ export class GroupsService {
       .pipe(catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))));
   }
 
-  /** Devuelve la membresía: RESERVED (el grupo no inicia, no se paga aún) o PENDING_PAYMENT (a pagar ya). */
-  join(groupId: string): Observable<Membership> {
+  /**
+   * Devuelve la membresía: RESERVED (el grupo no inicia, no se paga aún) o PENDING_PAYMENT (a pagar ya).
+   * `switchFromGroupId` suelta tu lugar sin pagar en ese otro grupo de la misma plataforma ("cambiarme a este").
+   */
+  join(groupId: string, switchFromGroupId?: string): Observable<Membership> {
     return this.http
-      .post<Membership>(`${API_BASE_URL}/groups/${groupId}/join`, {})
+      .post<Membership>(`${API_BASE_URL}/groups/${groupId}/join`, switchFromGroupId ? { switchFromGroupId } : {})
       .pipe(catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))));
   }
 

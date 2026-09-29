@@ -1,5 +1,6 @@
 export type Role = 'USER' | 'ADMIN';
 export type AuthProvider = 'LOCAL' | 'GOOGLE';
+export type PayoutAccountType = 'CLABE' | 'DEBIT_CARD';
 
 export interface AdminUser {
   id: string;
@@ -23,7 +24,8 @@ export interface AdminUser {
   timezone: string;
   payoutAccountHolder: string | null;
   payoutBankName: string | null;
-  payoutClabeLast4: string | null;
+  payoutAccountType: PayoutAccountType | null;
+  payoutAccountNumberLast4: string | null;
   payoutVerified: boolean;
   createdAt: string;
 }
@@ -47,7 +49,8 @@ export interface ProfileUpdate {
   timezone?: string;
   payoutAccountHolder?: string;
   payoutBankName?: string;
-  payoutClabe?: string;
+  payoutAccountType?: PayoutAccountType;
+  payoutAccountNumber?: string;
   clearPayoutAccount?: boolean;
 }
 

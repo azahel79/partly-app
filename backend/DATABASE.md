@@ -2,7 +2,7 @@
 
 Documento funcional del esquema PostgreSQL administrado con Prisma. La fuente canónica es [`prisma/schema.prisma`](prisma/schema.prisma); si este documento y el esquema difieren, prevalece el esquema.
 
-Estado documentado: 32 modelos, 21 enums y 31 migraciones.
+Estado documentado: 33 modelos, 23 enums y 35 migraciones.
 
 ## Convenciones
 
@@ -10,7 +10,7 @@ Estado documentado: 32 modelos, 21 enums y 31 migraciones.
 - Prisma usa nombres `camelCase`; PostgreSQL usa `snake_case` mediante `@map`/`@@map`.
 - Los importes usan `Decimal(10,2)` y los porcentajes `Decimal(5,2)`.
 - Las fechas se guardan como `DateTime`; la aplicación calcula periodos en UTC.
-- Los secretos nunca se almacenan en texto plano: contraseñas usan Argon2, tokens usan hash y credenciales/CLABE usan AES-256-GCM.
+- Los secretos nunca se almacenan en texto plano: contraseñas usan Argon2, tokens usan hash y credenciales/cuentas de retiro usan AES-256-GCM.
 - Los archivos de comprobantes viven fuera de PostgreSQL; las tablas solo guardan su ruta y metadatos.
 
 ## Mapa de dominios
@@ -61,11 +61,13 @@ PlatformSettings (configuración única)
 | `EmailStatus` | `QUEUED`, `SENDING`, `SENT`, `FAILED`, `SKIPPED` |
 | `CommissionEntryStatus` | `ACCRUED`, `BILLED`, `SETTLED` |
 | `CommissionChargeStatus` | `PENDING`, `IN_REVIEW`, `PAID` |
+| `CommissionRateRequestStatus` | `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED` |
 | `ProviderProfileStatus` | `PENDING`, `APPROVED`, `SUSPENDED`, `REJECTED` |
 | `WholesaleAccessStatus` | `REQUESTED`, `AUTHORIZED`, `REJECTED`, `REVOKED` |
 | `ProviderOrderStatus` | `AWAITING_PAYMENT`, `PENDING_APPROVAL`, `PENDING_DELIVERY`, `FULFILLED`, `REJECTED`, `CANCELLED` |
 | `IncidentContext` | `GROUP_MEMBERSHIP`, `PROVIDER_ORDER` |
 | `IncidentStatus` | `OPEN`, `IN_REVIEW`, `RESOLVED`, `ESCALATED` |
+| `PayoutAccountType` | `CLABE`, `DEBIT_CARD` |
 | `NotificationType` | eventos de pagos, credenciales, grupos, comisiones, mayoreo, soporte y sistema |
 
 ## Identidad y privacidad
@@ -80,7 +82,7 @@ Campos relevantes:
 - acceso: `passwordHash`, `authProvider`, `googleId` único, `role`, `emailVerified`;
 - privacidad: `marketingOptOut`, visibilidad de nombre/avatar y preferencias de notificación;
 - reputación: `ratingAvg`;
-- retiro: titular, banco, CLABE cifrada/últimos cuatro dígitos y verificación;
+- retiro: titular, banco, tipo de cuenta, número cifrado (CLABE de 18 dígitos o tarjeta de débito de 16), últimos cuatro dígitos y verificación;
 - ciclo de vida: `deletedAt`, `createdAt`, `updatedAt`.
 
 La cancelación lógica anonimiza datos y usa `deletedAt`; evita depender de borrados físicos para obligaciones financieras y auditoría.

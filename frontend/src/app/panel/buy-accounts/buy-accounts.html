@@ -123,14 +123,17 @@
             </div>
           }
 
-          <div class="flex items-start gap-3 p-4 rounded-xl bg-white border border-slate-200/70">
-            <span class="material-symbols-outlined text-pink">lightbulb</span>
-            <div class="text-xs text-on-surface-variant">
-              <p class="font-bold text-ink text-sm">¿Empezando? Construye tu reputación con tu propia cuenta</p>
-              <p class="mt-0.5">Crea un grupo compartiendo una suscripción que ya tengas. Cuando lleve 2 ciclos cobrados y tus compradores te reseñen bien, cumples los requisitos.</p>
-              <a routerLink="/panel/grupos/nuevo" class="inline-flex items-center gap-1 mt-2 font-bold text-pink hover:underline">Crear un grupo<span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+          <!-- Consejo para quien aún no llega: sobra si ya cumple todo -->
+          @if (a.metCount < a.total) {
+            <div class="flex items-start gap-3 p-4 rounded-xl bg-white border border-slate-200/70">
+              <span class="material-symbols-outlined text-pink">lightbulb</span>
+              <div class="text-xs text-on-surface-variant">
+                <p class="font-bold text-ink text-sm">¿Empezando? Construye tu reputación con tu propia cuenta</p>
+                <p class="mt-0.5">Crea un grupo compartiendo una suscripción que ya tengas. Cuando lleve 2 ciclos cobrados y tus compradores te reseñen bien, cumples los requisitos.</p>
+                <a routerLink="/panel/grupos/nuevo" class="inline-flex items-center gap-1 mt-2 font-bold text-pink hover:underline">Crear un grupo<span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+              </div>
             </div>
-          </div>
+          }
         </footer>
       </section>
     } @else {
@@ -224,24 +227,18 @@
     }
   }
 
-  <!-- Mis compras -->
-  @if (myOrders() !== null && myOrders()!.length > 0) {
-    <div>
-      <h2 class="text-sm font-extrabold text-ink mb-4">
-        Mis compras ({{ myOrders()!.length }})
-      </h2>
-
-      <div class="space-y-3">
-        @for (order of myOrders(); track order.id) {
+  <!-- Tarjeta de una compra: se usa en todas las secciones de "Mis compras" -->
+  <ng-template #orderCard let-order>
           <div class="rounded-2xl bg-white/90 shadow-neu-raised border border-white/70 overflow-hidden">
             <div class="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-              <div class="flex items-center gap-3 sm:w-56 shrink-0 min-w-0">
+              <div class="flex items-center gap-3 sm:w-64 shrink-0 min-w-0">
                 <app-platform-logo class="w-10 h-10 rounded-xl font-black text-sm shrink-0" [name]="order.listing.platform.name" />
                 <div class="min-w-0">
                   <p class="text-sm font-bold text-ink truncate">{{ order.listing.platform.name }}</p>
                   <p class="text-xs text-on-surface-variant truncate">
                     {{ order.listing.tierName }}
                     @if (kindLabel(order); as kind) { <span class="ml-1 px-1.5 py-0.5 rounded bg-slate-100 text-xs font-bold text-ink">{{ kind }}</span> }
+                    @else { <span class="ml-1 px-1.5 py-0.5 rounded text-xs font-bold" [class]="order.renewable ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-800'">{{ order.renewable ? 'Renovable' : 'No renovable' }}</span> }
                   </p>
                 </div>
               </div>
@@ -292,15 +289,24 @@
                 } @else if (order.status === 'PENDING_APPROVAL' || order.status === 'PENDING_DELIVERY') {
                   <a [routerLink]="['/panel/mayoreo/compras', order.id]" class="active:scale-[0.98] hover:bg-slate-200 py-2 px-4 rounded-lg bg-slate-100 text-ink text-xs font-bold transition-all">Ver estado</a>
                 } @else if (order.status === 'FULFILLED' && order.kind !== 'RENEWAL' && !order.replaced) {
-                  @if (order.openFollowUp; as f) {
-                    <a [routerLink]="['/panel/mayoreo/compras', f.id]" class="active:scale-[0.98] hover:bg-slate-200 py-2 px-4 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold transition-all">{{ f.kind === 'RENEWAL' ? 'Ver renovación' : 'Ver reposición' }}</a>
-                  } @else if (expiry(order); as ex) {
+                  @if (!order.openFollowUp && expiry(order); as ex) {
                     @if (ex.state !== 'ok') {
                       <button type="button" [disabled]="followingUpId() === order.id" (click)="followUp(order)" class="active:scale-[0.98] hover:bg-[#065f46] py-2 px-4 rounded-lg bg-pink text-white text-xs font-bold transition-all disabled:opacity-60 flex items-center gap-1">
                         <span class="material-symbols-outlined text-sm">{{ order.renewable ? 'autorenew' : 'swap_horiz' }}</span>
                         {{ followingUpId() === order.id ? 'Creando…' : (order.renewable ? 'Renovar' : 'Comprar reposición') }}
                       </button>
                     }
+                  }
+                  @if (order.resultingGroupId) {
+                    <a [routerLink]="['/panel/grupos', order.resultingGroupId]" class="active:scale-[0.98] hover:bg-slate-200 py-2 px-4 rounded-lg bg-slate-100 text-ink text-xs font-bold transition-all flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-sm">groups</span>
+                      Ver mi grupo
+                    </a>
+                  } @else {
+                    <a routerLink="/panel/grupos/nuevo" [queryParams]="{ providerOrderId: order.id }" class="active:scale-[0.98] hover:bg-[#065f46] py-2 px-4 rounded-lg bg-pink text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-sm">storefront</span>
+                      Publicar en el marketplace
+                    </a>
                   }
                   <button
                     type="button"
@@ -315,6 +321,29 @@
                 }
               </div>
             </div>
+
+            @if (followUpOf(order); as f) {
+              <div class="mx-4 mb-4 p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center gap-3" [class]="f.status === 'AWAITING_PAYMENT' ? 'bg-amber-50 border-amber-200' : 'bg-blue-50 border-blue-100'">
+                <span class="material-symbols-outlined shrink-0" [class]="f.status === 'AWAITING_PAYMENT' ? 'text-amber-700' : 'text-blue-700'">{{ f.kind === 'RENEWAL' ? 'autorenew' : 'swap_horiz' }}</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-bold text-ink">{{ f.kind === 'RENEWAL' ? 'Renovación en curso' : 'Reposición en curso' }} · {{ f.unitPrice | money }}</p>
+                  <p class="text-xs text-on-surface-variant mt-0.5">{{ followUpStatus(f) }}</p>
+                  @if (f.receiptRejectionReason && f.status === 'AWAITING_PAYMENT') {
+                    <p class="text-xs text-red-600 font-semibold mt-0.5">Rechazamos tu comprobante: {{ f.receiptRejectionReason }}. Sube uno nuevo.</p>
+                  }
+                </div>
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
+                  @if (f.status === 'AWAITING_PAYMENT') {
+                    <a [routerLink]="['/panel/mayoreo/compras', f.id]" class="active:scale-[0.98] hover:bg-[#065f46] py-2 px-4 rounded-lg bg-pink text-white text-xs font-bold transition-all">Pagar</a>
+                    <button type="button" [disabled]="cancellingId() === f.id" (click)="cancelOrder(f)" class="active:scale-[0.98] transition-colors hover:bg-slate-50 py-2 px-4 rounded-lg bg-white border border-red-200 text-red-600 text-xs font-bold disabled:opacity-60">
+                      {{ cancellingId() === f.id ? 'Retirando…' : 'Retirar' }}
+                    </button>
+                  } @else {
+                    <a [routerLink]="['/panel/mayoreo/compras', f.id]" class="active:scale-[0.98] hover:bg-slate-200 py-2 px-4 rounded-lg bg-white text-ink text-xs font-bold transition-all">Ver estado</a>
+                  }
+                </div>
+              </div>
+            }
 
             @if (order.receiptRejectionReason && order.status === 'AWAITING_PAYMENT') {
               <p class="px-4 pb-3 text-xs text-red-600 font-semibold">Rechazamos tu comprobante: {{ order.receiptRejectionReason }}. Sube uno nuevo.</p>
@@ -356,23 +385,55 @@
                       </div>
                     }
                   </div>
-                  @if (order.resultingGroupId) {
-                    <a [routerLink]="['/panel/grupos', order.resultingGroupId, 'gestion']" class="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-pink">
-                      Ver mi grupo
-                      <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                    </a>
-                  } @else {
-                    <a routerLink="/panel/grupos/nuevo" [queryParams]="{ providerOrderId: order.id }" class="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-pink">
-                      Crear mi grupo con esta cuenta
-                      <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                    </a>
-                  }
                 }
               </div>
             }
           </div>
-        }
-      </div>
+  </ng-template>
+
+  <!-- Mis compras: agrupadas por cuenta; una renovación o reposición en curso va dentro de su cuenta -->
+  @if (myOrders() !== null && myOrders()!.length > 0) {
+    <div class="space-y-6">
+      <h2 class="text-sm font-extrabold text-ink">Mis compras</h2>
+
+      @if (orderSections().inProgress.length) {
+        <section>
+          <h3 class="mb-3 text-xs font-bold text-on-surface-variant flex items-center gap-1.5"><span class="material-symbols-outlined text-base">pending</span>Compras en proceso ({{ orderSections().inProgress.length }})</h3>
+          <div class="space-y-3">
+            @for (order of orderSections().inProgress; track order.id) { <ng-container *ngTemplateOutlet="orderCard; context: { $implicit: order }" /> }
+          </div>
+        </section>
+      }
+
+      @if (orderSections().active.length) {
+        <section>
+          <h3 class="mb-3 text-xs font-bold text-on-surface-variant flex items-center gap-1.5"><span class="material-symbols-outlined text-base">check_circle</span>Cuentas activas ({{ orderSections().active.length }})</h3>
+          <div class="space-y-3">
+            @for (order of orderSections().active; track order.id) { <ng-container *ngTemplateOutlet="orderCard; context: { $implicit: order }" /> }
+          </div>
+        </section>
+      }
+
+      @if (orderSections().expired.length) {
+        <section>
+          <h3 class="mb-3 text-xs font-bold text-red-700 flex items-center gap-1.5"><span class="material-symbols-outlined text-base">event_busy</span>Vencidas ({{ orderSections().expired.length }})</h3>
+          <div class="space-y-3">
+            @for (order of orderSections().expired; track order.id) { <ng-container *ngTemplateOutlet="orderCard; context: { $implicit: order }" /> }
+          </div>
+        </section>
+      }
+
+      @if (orderSections().history.length) {
+        <details class="group/historial">
+          <summary class="cursor-pointer list-none text-xs font-bold text-on-surface-variant flex items-center gap-1.5 select-none">
+            <span class="material-symbols-outlined text-base transition-transform group-open/historial:rotate-90">chevron_right</span>
+            Historial ({{ orderSections().history.length }}) · renovaciones aplicadas, reposiciones y compras canceladas
+          </summary>
+          <div class="space-y-3 mt-3">
+            @for (order of orderSections().history; track order.id) { <ng-container *ngTemplateOutlet="orderCard; context: { $implicit: order }" /> }
+          </div>
+        </details>
+      }
     </div>
   }
   }

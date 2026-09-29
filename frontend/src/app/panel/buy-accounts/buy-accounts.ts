@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ProviderListingsService } from '../../shared/provider-listings.service';
@@ -12,6 +13,8 @@ import { AuthService } from '../../shared/auth.service';
 import { MoneyPipe } from '../../shared/money';
 
 const EXPIRY_SOON_DAYS = 7;
+/** Compras que todavía esperan algo (tu pago, la validación o la entrega). */
+const OPEN_STATUSES = new Set<ProviderOrder['status']>(['AWAITING_PAYMENT', 'PENDING_APPROVAL', 'PENDING_DELIVERY']);
 
 export interface ExpiryInfo {
   daysLeft: number;
@@ -19,7 +22,7 @@ export interface ExpiryInfo {
 }
 
 @Component({
-  imports: [RouterLink, PlatformLogo, MoneyPipe],
+  imports: [RouterLink, PlatformLogo, MoneyPipe, NgTemplateOutlet],
   selector: 'app-buy-accounts',
   styleUrl: './buy-accounts.css',
   templateUrl: './buy-accounts.html',
@@ -59,6 +62,49 @@ export class BuyAccounts implements OnInit, OnDestroy {
     }
     return ids;
   });
+
+  /**
+   * "Mis compras" por cuenta y no por pago: una renovación o reposición en curso se muestra dentro de la tarjeta de su
+   * cuenta, no como otra fila. Lo demás se reparte en compras en proceso, cuentas activas, vencidas e historial.
+   */
+  protected readonly orderSections = computed(() => {
+    const all = this.myOrders() ?? [];
+    const nestedIds = new Set(all.map((o) => o.openFollowUp?.id).filter((id): id is string => !!id));
+    const inProgress: ProviderOrder[] = [];
+    const active: ProviderOrder[] = [];
+    const expired: ProviderOrder[] = [];
+    const history: ProviderOrder[] = [];
+    for (const order of all) {
+      if (nestedIds.has(order.id)) continue;
+      if (OPEN_STATUSES.has(order.status)) {
+        inProgress.push(order);
+      } else if (order.status === 'FULFILLED' && order.kind !== 'RENEWAL' && !order.replaced) {
+        (this.expiry(order)?.state === 'expired' ? expired : active).push(order);
+      } else {
+        history.push(order);
+      }
+    }
+    return { inProgress, active, expired, history };
+  });
+
+  /** La renovación o reposición en curso de una cuenta (la orden completa, para mostrar su monto y estado). */
+  protected followUpOf(order: ProviderOrder): ProviderOrder | null {
+    const id = order.openFollowUp?.id;
+    return id ? ((this.myOrders() ?? []).find((o) => o.id === id) ?? null) : null;
+  }
+
+  protected followUpStatus(order: ProviderOrder): string {
+    switch (order.status) {
+      case 'AWAITING_PAYMENT':
+        return order.paymentDueAt ? `Falta tu pago · tienes hasta el ${this.formatDateTime(order.paymentDueAt)}` : 'Falta tu pago';
+      case 'PENDING_APPROVAL':
+        return 'Validando tu pago';
+      case 'PENDING_DELIVERY':
+        return order.kind === 'REPLACEMENT' ? 'Pago validado · esperando las credenciales de la cuenta nueva' : 'Pago validado';
+      default:
+        return '';
+    }
+  }
 
   protected readonly capReached = computed(() => {
     const a = this.access();
@@ -229,5 +275,9 @@ export class BuyAccounts implements OnInit, OnDestroy {
 
   protected formatDate(iso: string): string {
     return new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  private formatDateTime(iso: string): string {
+    return new Date(iso).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).replace(/\./g, '');
   }
 }

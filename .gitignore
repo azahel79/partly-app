@@ -47,3 +47,4 @@ frontend/img-logos/
 # Sistema operativo
 .DS_Store
 Thumbs.db
+backend/scripts/qa/.fechas-originales.json

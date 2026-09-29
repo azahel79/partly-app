@@ -92,8 +92,8 @@ export class UsersController {
   @Get('me/payout-account')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Tu cuenta de abono guardada, descifrada (solo tú) — para autocompletar la CLABE al crear un grupo' })
-  async getPayoutAccount(@CurrentUser() currentUser: AuthenticatedUser): Promise<{ holder: string; bankName: string; clabe: string } | null> {
+  @ApiOperation({ summary: 'Tu cuenta de abono guardada, descifrada (solo tú), para autocompletarla al crear un grupo' })
+  async getPayoutAccount(@CurrentUser() currentUser: AuthenticatedUser) {
     return (await this.usersService.getPayoutAccount(currentUser.id)) ?? null;
   }
 

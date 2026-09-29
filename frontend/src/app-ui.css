@@ -276,3 +276,90 @@ html.dark .ui-input:focus { border-color: #34d399; box-shadow: 0 0 0 4px rgba(52
   .ui-chip-row { flex-wrap: nowrap !important; overflow-x: auto; margin-inline: -16px; padding-inline: 16px; scrollbar-width: none; }
   .ui-chip-row::-webkit-scrollbar { display: none; }
 }
+
+/* ---------- Modales de formulario (app-ui-modal) ----------
+   Para acciones con formulario o una decisión importante. Las confirmaciones
+   simples siguen con SweetAlert. En celular el modal sale como hoja desde abajo. */
+.ui-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(16, 24, 40, 0.45);
+  animation: ui-fade 0.15s ease;
+}
+.ui-modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100dvh - 32px);
+  border: 1px solid var(--ui-line);
+  border-radius: 16px;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  box-shadow: 0 24px 48px -12px rgba(16, 24, 40, 0.28);
+  outline: none;
+  animation: ui-pop 0.18s ease;
+}
+.ui-modal--wide .ui-modal { max-width: 760px; }
+.ui-modal__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 22px 16px; border-bottom: 1px solid var(--ui-line); }
+.ui-modal__heading { min-width: 0; }
+.ui-modal__title { margin: 0; color: var(--ui-text); font-size: 18px; font-weight: 800; line-height: 1.3; }
+.ui-modal__subtitle { margin: 4px 0 0; color: var(--ui-muted); font-size: 13px; line-height: 1.45; }
+.ui-modal__close { width: 36px; height: 36px; display: grid; place-items: center; flex-shrink: 0; border: 0; border-radius: 10px; background: transparent; color: var(--ui-muted); cursor: pointer; }
+.ui-modal__close:not(:disabled):hover { background: var(--ui-soft); color: var(--ui-text); }
+.ui-modal__body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 18px 22px; }
+.ui-modal__foot { padding: 14px 22px 18px; border-top: 1px solid var(--ui-line); }
+.ui-modal__foot:not(:has(*)) { display: none; }
+.ui-modal__foot > [modal-actions] { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.ui-modal__foot > [modal-actions] .ui-spacer { flex: 1; }
+
+/* Piezas para el contenido de un modal */
+.ui-field { display: flex; flex-direction: column; gap: 6px; }
+.ui-field > span { color: var(--ui-text); font-size: 13px; font-weight: 600; }
+.ui-field > span small, .ui-field-hint { color: var(--ui-muted); font-size: 12px; font-weight: 500; }
+.ui-field-hint { margin: -8px 0 0; }
+textarea.ui-input { min-height: 84px; padding: 10px 14px; resize: vertical; line-height: 1.5; }
+select.ui-input { cursor: pointer; }
+.ui-summary { display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px; margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--ui-soft); font-size: 13px; }
+.ui-summary dt { color: var(--ui-muted); font-weight: 500; }
+.ui-summary dd { margin: 0; min-width: 0; color: var(--ui-text); font-weight: 700; overflow-wrap: anywhere; }
+.ui-note { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 12px 14px; border: 1px solid; border-radius: 12px; font-size: 13px; line-height: 1.5; }
+.ui-note .material-symbols-outlined { font-size: 19px; }
+.ui-note--info { border-color: #b2ddff; background: #eff8ff; color: #175cd3; }
+.ui-note--warn { border-color: #fedf89; background: #fffaeb; color: #b54708; }
+.ui-note--danger { border-color: #fecdca; background: #fef3f2; color: #b42318; }
+.ui-btn--danger { background: #d92d20; color: #fff; }
+.ui-btn--danger:not(:disabled):hover { background: #b42318; }
+.ui-btn--ghost-danger { border-color: #fecdca; background: #fff; color: #b42318; font-weight: 600; }
+.ui-btn--ghost-danger:not(:disabled):hover { background: #fef3f2; }
+
+html.dark .ui-modal-backdrop { background: rgba(0, 0, 0, 0.6); }
+html.dark .ui-modal { border-color: var(--dm-card-border); box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6); }
+html.dark .ui-note--info { border-color: rgba(96, 165, 250, 0.35); background: rgba(96, 165, 250, 0.12); color: #93c5fd; }
+html.dark .ui-note--warn { border-color: rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.12); color: #fcd34d; }
+html.dark .ui-note--danger { border-color: rgba(248, 113, 113, 0.35); background: rgba(248, 113, 113, 0.12); color: #fca5a5; }
+html.dark .ui-btn--danger { background: rgba(248, 113, 113, 0.18); color: #fff; box-shadow: inset 0 0 0 1.5px #f87171; }
+html.dark .ui-btn--ghost-danger { border-color: rgba(248, 113, 113, 0.4); background: transparent; color: #fca5a5; }
+
+@media (max-width: 639px) {
+  .ui-modal-backdrop { align-items: flex-end; padding: 0; }
+  .ui-modal, .ui-modal--wide .ui-modal { max-width: none; max-height: 92dvh; border-radius: 18px 18px 0 0; animation-name: ui-sheet; }
+  .ui-modal__foot { padding: 12px 16px 16px; }
+  .ui-modal__foot > [modal-actions] .ui-btn { flex: 1 1 0; }
+  .ui-modal__foot > [modal-actions] :is(.ui-btn--primary, .ui-btn--danger) { order: -1; flex-basis: 100%; }
+  .ui-modal__foot > [modal-actions] .ui-spacer { display: none; }
+  .ui-modal__head, .ui-modal__body { padding-inline: 16px; }
+  .ui-summary { grid-template-columns: 1fr; gap: 2px; }
+  .ui-summary dd + dt { margin-top: 8px; }
+}
+@keyframes ui-fade { from { opacity: 0; } }
+@keyframes ui-pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+@keyframes ui-sheet { from { transform: translateY(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .ui-modal-backdrop, .ui-modal { animation: none; }
+}

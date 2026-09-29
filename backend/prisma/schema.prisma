@@ -152,6 +152,19 @@ enum NotificationType {
   GROUP_READY_TO_START
   GROUP_FULL
   GROUP_START_REMINDER
+  COMMISSION_RATE_REQUESTED
+  COMMISSION_RATE_APPROVED
+  COMMISSION_RATE_REJECTED
+  MEMBER_LEFT
+  MEMBERSHIP_ACTIVATED
+  SEAT_RESERVED
+  RENEWAL_CONFIRMED
+}
+
+enum CommissionRateRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum ProviderProfileStatus {
@@ -194,6 +207,11 @@ enum IncidentStatus {
   ESCALATED
 }
 
+enum PayoutAccountType {
+  CLABE
+  DEBIT_CARD
+}
+
 // ---------- Identidad y auth ----------
 
 model User {
@@ -218,11 +236,14 @@ model User {
   profileNameVisible   Boolean @default(true) @map("profile_name_visible")
   profileAvatarVisible Boolean @default(true) @map("profile_avatar_visible")
   timezone          String     @default("America/Mexico_City")
-  payoutAccountHolder String?  @map("payout_account_holder")
-  payoutBankName      String?  @map("payout_bank_name")
-  payoutClabeEncrypted String? @map("payout_clabe_encrypted")
-  payoutClabeLast4    String?  @map("payout_clabe_last4")
-  payoutVerified      Boolean  @default(false) @map("payout_verified")
+  payoutAccountHolder        String?            @map("payout_account_holder")
+  payoutBankName             String?            @map("payout_bank_name")
+  payoutAccountType          PayoutAccountType? @map("payout_account_type")
+  payoutAccountNumberEncrypted String?          @map("payout_account_number_encrypted")
+  payoutAccountNumberLast4   String?            @map("payout_account_number_last4")
+  payoutVerified             Boolean            @default(false) @map("payout_verified")
+  // Comisión reducida que Partly le autorizó a este vendedor por su reputación. Null = la general (9%).
+  commissionRate      Decimal? @map("commission_rate") @db.Decimal(5, 2)
   deletedAt       DateTime?    @map("deleted_at")
   createdAt       DateTime     @default(now()) @map("created_at")
   updatedAt       DateTime     @updatedAt @map("updated_at")
@@ -251,6 +272,8 @@ model User {
   reportedIncidents        Incident[]        @relation("IncidentReporter")
   assignedIncidents        Incident[]        @relation("IncidentAssignee")
   incidentMessages         IncidentMessage[] @relation("IncidentMessageAuthor")
+  commissionRateRequests   CommissionRateRequest[] @relation("SellerRateRequests")
+  reviewedRateRequests     CommissionRateRequest[] @relation("RateRequestReviewer")
 
   @@map("users")
 }
@@ -651,6 +674,28 @@ model CommissionCharge {
   @@index([sellerId, status])
   @@index([status, payBy])
   @@map("commission_charges")
+}
+
+// Solicitud de un vendedor con buena reputación para bajar su comisión. Si el admin la aprueba, el
+// porcentaje nuevo queda en User.commissionRate y se aplica a todos sus grupos para los pagos siguientes.
+model CommissionRateRequest {
+  id               String                      @id @default(uuid())
+  sellerId         String                      @map("seller_id")
+  status           CommissionRateRequestStatus @default(PENDING)
+  currentRate      Decimal                     @map("current_rate") @db.Decimal(5, 2)
+  message          String?
+  approvedRate     Decimal?                    @map("approved_rate") @db.Decimal(5, 2)
+  reviewNote       String?                     @map("review_note")
+  reviewedByUserId String?                     @map("reviewed_by_user_id")
+  reviewedAt       DateTime?                   @map("reviewed_at")
+  createdAt        DateTime                    @default(now()) @map("created_at")
+
+  seller     User  @relation("SellerRateRequests", fields: [sellerId], references: [id], onDelete: Restrict)
+  reviewedBy User? @relation("RateRequestReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([sellerId])
+  @@map("commission_rate_requests")
 }
 
 // Ajustes de la plataforma (una sola fila): la cuenta bancaria de Partly donde los vendedores

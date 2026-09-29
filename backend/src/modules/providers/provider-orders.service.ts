@@ -67,6 +67,12 @@ const ORDER_WITH_PARTIES = {
   buyer: { select: { id: true, name: true } },
 } satisfies Prisma.ProviderOrderInclude;
 
+/** Nombre de la cuenta en los avisos: "Prime Video · Premium", para distinguir compras del mismo plan de distintas plataformas. */
+function accountName(plan: { tierName: string; platform?: { name: string } | null }): string {
+  const tier = plan.tierName.replace(/\s+/g, ' ').trim();
+  return plan.platform ? `${plan.platform.name} · ${tier}` : tier;
+}
+
 @Injectable()
 export class ProviderOrdersService {
   private readonly logger = new Logger(ProviderOrdersService.name);
@@ -110,7 +116,7 @@ export class ProviderOrdersService {
     return this.prisma.$transaction(async (tx) => {
       const listing = await tx.providerListing.findUnique({
         where: { id: dto.listingId },
-        include: { providerProfile: true, plan: { select: { tierName: true } } },
+        include: { providerProfile: true, plan: { select: { tierName: true, platform: { select: { name: true } } } } },
       });
       if (!listing) {
         throw new NotFoundException('Servicio de proveedor no encontrado.');
@@ -142,7 +148,7 @@ export class ProviderOrdersService {
       await this.notificationsService.create(tx, {
         userId: listing.providerProfile.userId,
         type: NotificationType.PROVIDER_ORDER_PLACED,
-        payload: `Un vendedor reservó "${listing.plan.tierName}" por $${Number(listing.wholesalePrice).toFixed(2)}. Tiene ${PAYMENT_WINDOW_HOURS} horas para transferir y subir su comprobante.`,
+        payload: `Un vendedor reservó "${accountName(listing.plan)}" por $${Number(listing.wholesalePrice).toFixed(2)}. Tiene ${PAYMENT_WINDOW_HOURS} horas para transferir y subir su comprobante.`,
       });
       return order;
     });
@@ -180,7 +186,7 @@ export class ProviderOrdersService {
   private async loadOwnFulfilledOrder(orderId: string, buyerUserId: string) {
     const order = await this.prisma.providerOrder.findUnique({
       where: { id: orderId },
-      include: { listing: { include: { providerProfile: true, plan: { select: { tierName: true } } } }, renewals: { select: { status: true } }, replacements: { select: { status: true } } },
+      include: { listing: { include: { providerProfile: true, plan: { select: { tierName: true, platform: { select: { name: true } } } } } }, renewals: { select: { status: true } }, replacements: { select: { status: true } } },
     });
     if (!order || order.buyerUserId !== buyerUserId) {
       throw new NotFoundException('Compra no encontrada.');
@@ -225,7 +231,7 @@ export class ProviderOrdersService {
       await this.notificationsService.create(tx, {
         userId: order.listing.providerProfile.userId,
         type: NotificationType.PROVIDER_ORDER_PLACED,
-        payload: `Un vendedor va a renovar "${order.listing.plan.tierName}" por $${Number(order.listing.wholesalePrice).toFixed(2)}. Tiene ${PAYMENT_WINDOW_HOURS} horas para pagar.`,
+        payload: `Un vendedor va a renovar "${accountName(order.listing.plan)}" por $${Number(order.listing.wholesalePrice).toFixed(2)}. Tiene ${PAYMENT_WINDOW_HOURS} horas para pagar.`,
       });
       return renewal;
     });
@@ -246,7 +252,7 @@ export class ProviderOrdersService {
     await this.wholesaleAccessService.assertCanPurchase(buyerUserId, { countsForCap: false });
 
     return this.prisma.$transaction(async (tx) => {
-      const listing = await tx.providerListing.findUniqueOrThrow({ where: { id: order.listingId }, include: { providerProfile: true, plan: { select: { tierName: true } } } });
+      const listing = await tx.providerListing.findUniqueOrThrow({ where: { id: order.listingId }, include: { providerProfile: true, plan: { select: { tierName: true, platform: { select: { name: true } } } } } });
       if (!listing.active || listing.stockQuantity < 1) {
         throw new BadRequestException('Por ahora no hay cuentas de reposición disponibles. Inténtalo más tarde.');
       }
@@ -261,7 +267,7 @@ export class ProviderOrdersService {
       await this.notificationsService.create(tx, {
         userId: listing.providerProfile.userId,
         type: NotificationType.PROVIDER_ORDER_PLACED,
-        payload: `Un vendedor pidió la reposición de "${listing.plan.tierName}" por $${Number(listing.wholesalePrice).toFixed(2)}. Tiene ${PAYMENT_WINDOW_HOURS} horas para pagar.`,
+        payload: `Un vendedor pidió la reposición de "${accountName(listing.plan)}" por $${Number(listing.wholesalePrice).toFixed(2)}. Tiene ${PAYMENT_WINDOW_HOURS} horas para pagar.`,
       });
       return replacement;
     });
@@ -408,7 +414,7 @@ export class ProviderOrdersService {
         await this.notificationsService.create(tx, {
           userId: order.listing.providerProfile.userId,
           type: NotificationType.PROVIDER_ORDER_RECEIPT_UPLOADED,
-          payload: `${order.buyer.name} subió el comprobante de "${order.listing.plan.tierName}" por $${Number(order.unitPrice).toFixed(2)}. Confirma en tu banco que llegó y aprueba el pago.`,
+          payload: `${order.buyer.name} subió el comprobante de "${accountName(order.listing.plan)}" por $${Number(order.unitPrice).toFixed(2)}. Confirma en tu banco que llegó y aprueba el pago.`,
         });
       });
     } catch (error) {
@@ -466,7 +472,7 @@ export class ProviderOrdersService {
         await this.notificationsService.create(tx, {
           userId: order.buyerUserId,
           type: NotificationType.PROVIDER_ORDER_APPROVED,
-          payload: `Validamos tu pago: "${order.listing.plan.tierName}" queda vigente hasta el ${this.dateLabel(newExpiry)}.`,
+          payload: `Validamos tu pago: "${accountName(order.listing.plan)}" queda vigente hasta el ${this.dateLabel(newExpiry)}.`,
         });
         return;
       }
@@ -479,7 +485,7 @@ export class ProviderOrdersService {
       await this.notificationsService.create(tx, {
         userId: order.buyerUserId,
         type: NotificationType.PROVIDER_ORDER_APPROVED,
-        payload: `Validamos tu pago de $${Number(order.unitPrice).toFixed(2)} por "${order.listing.plan.tierName}". El proveedor entregará las credenciales pronto.`,
+        payload: `Validamos tu pago de $${Number(order.unitPrice).toFixed(2)} por "${accountName(order.listing.plan)}". El proveedor entregará las credenciales pronto.`,
       });
     });
 
@@ -509,7 +515,7 @@ export class ProviderOrdersService {
       await this.notificationsService.create(tx, {
         userId: order.buyerUserId,
         type: NotificationType.PROVIDER_ORDER_RECEIPT_REJECTED,
-        payload: `Rechazamos tu comprobante de "${order.listing.plan.tierName}"${reason ? `: ${reason}` : '.'} Sube uno nuevo antes del ${this.dateLabel(retryUntil)}.`,
+        payload: `Rechazamos tu comprobante de "${accountName(order.listing.plan)}"${reason ? `: ${reason}` : '.'} Sube uno nuevo antes del ${this.dateLabel(retryUntil)}.`,
       });
     });
     await deleteReceiptFile(this.receiptsDir, order.receiptPath);
@@ -534,8 +540,8 @@ export class ProviderOrdersService {
         userId: order.buyerUserId,
         type: NotificationType.PROVIDER_ORDER_REJECTED,
         payload: reason
-          ? `Tu solicitud de compra de "${order.listing.plan.tierName}" fue rechazada: ${reason}`
-          : `Tu solicitud de compra de "${order.listing.plan.tierName}" fue rechazada por el proveedor.`,
+          ? `Tu solicitud de compra de "${accountName(order.listing.plan)}" fue rechazada: ${reason}`
+          : `Tu solicitud de compra de "${accountName(order.listing.plan)}" fue rechazada por el proveedor.`,
       });
     });
     if (order.receiptPath) await deleteReceiptFile(this.receiptsDir, order.receiptPath);
@@ -593,8 +599,8 @@ export class ProviderOrdersService {
         userId: order.buyerUserId,
         type: NotificationType.PROVIDER_ORDER_DELIVERED,
         payload: swappedInto
-          ? `Entregamos la reposición de "${order.listing.plan.tierName}" y ya actualizamos las credenciales de tu grupo.`
-          : `Ya tienes las credenciales de "${order.listing.plan.tierName}" — revísalas en tu compra.`,
+          ? `Entregamos la reposición de "${accountName(order.listing.plan)}" y ya actualizamos las credenciales de tu grupo.`
+          : `Ya tienes las credenciales de "${accountName(order.listing.plan)}" — revísalas en tu compra.`,
       });
       if (swappedInto) {
         const members = await tx.groupMembership.findMany({ where: { groupId: swappedInto, status: MembershipStatus.ACTIVE }, select: { userId: true } });
@@ -672,8 +678,8 @@ export class ProviderOrdersService {
           userId: order.buyerUserId,
           type: NotificationType.PROVIDER_ORDER_CANCELLED,
           payload: paid
-            ? `Cancelamos tu compra de "${order.listing.plan.tierName}". Te devolveremos $${Number(order.unitPrice).toFixed(2)} por transferencia a tu cuenta.`
-            : `Cancelamos tu solicitud de "${order.listing.plan.tierName}".`,
+            ? `Cancelamos tu compra de "${accountName(order.listing.plan)}". Te devolveremos $${Number(order.unitPrice).toFixed(2)} por transferencia a tu cuenta.`
+            : `Cancelamos tu solicitud de "${accountName(order.listing.plan)}".`,
         });
       }
     });
@@ -696,7 +702,7 @@ export class ProviderOrdersService {
       await this.notificationsService.create(tx, {
         userId: order.buyerUserId,
         type: NotificationType.PROVIDER_ORDER_CANCELLED,
-        payload: `Te devolvimos $${Number(order.unitPrice).toFixed(2)} por tu compra cancelada de "${order.listing.plan.tierName}".`,
+        payload: `Te devolvimos $${Number(order.unitPrice).toFixed(2)} por tu compra cancelada de "${accountName(order.listing.plan)}".`,
       });
     });
     return this.findById(orderId);
@@ -732,7 +738,7 @@ export class ProviderOrdersService {
         await this.notificationsService.create(tx, {
           userId: order.buyerUserId,
           type: NotificationType.PROVIDER_ORDER_CANCELLED,
-          payload: `Cancelamos tu reserva de "${order.listing.plan.tierName}" porque no recibimos tu comprobante a tiempo. Puedes volver a reservarla cuando quieras.`,
+          payload: `Cancelamos tu reserva de "${accountName(order.listing.plan)}" porque no recibimos tu comprobante a tiempo. Puedes volver a reservarla cuando quieras.`,
         });
       });
       this.logger.log(`Orden ${order.id} cancelada por falta de pago (plazo vencido).`);
@@ -757,11 +763,26 @@ export class ProviderOrdersService {
       const stage = daysLeft <= 0 ? EXPIRY_NOTICE_DAYS.length + 1 : EXPIRY_NOTICE_DAYS.filter((limit) => daysLeft <= limit).length;
       if (stage <= order.expiryNoticeStage) continue;
 
-      const name = order.listing.plan.tierName;
+      const name = accountName(order.listing.plan);
       const action = order.renewable ? 'Renuévala' : 'Compra su reposición';
       const expired = daysLeft <= 0;
       await this.prisma.$transaction(async (tx) => {
         await tx.providerOrder.update({ where: { id: order.id }, data: { expiryNoticeStage: stage } });
+        if (expired && order.resultingGroupId) {
+          // Los miembros siguen viendo una contraseña que puede dejar de servir: se les explica qué pasa y que no se les cobra.
+          const members = await tx.groupMembership.findMany({
+            where: { groupId: order.resultingGroupId, status: { in: [MembershipStatus.ACTIVE, MembershipStatus.SUSPENDED] } },
+            select: { userId: true },
+          });
+          for (const member of members) {
+            await this.notificationsService.create(tx, {
+              userId: member.userId,
+              type: NotificationType.SYSTEM,
+              groupId: order.resultingGroupId,
+              payload: `La cuenta de ${order.listing.plan.platform?.name ?? 'tu grupo'} venció y el vendedor la está renovando. Mientras tanto no se te cobrará la renovación. Si la cuenta deja de funcionar, avísale desde Soporte.`,
+            });
+          }
+        }
         await this.notificationsService.create(tx, {
           userId: order.buyerUserId,
           type: expired ? NotificationType.PROVIDER_ORDER_EXPIRED : NotificationType.PROVIDER_ORDER_EXPIRING,

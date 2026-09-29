@@ -2,7 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../shared/auth.service';
-import { inspectClabe } from '../../shared/clabe.util';
+import { inspectPayoutAccount, PAYOUT_BANK_OPTIONS } from '../../shared/payout-account.util';
 import { AccountSession, AdminUser, ProfileUpdate, TrustSummary } from '../../shared/users.models';
 import { UsersService } from '../../shared/users.service';
 import { ConfirmService } from '../../shared/confirm.service';
@@ -54,21 +54,45 @@ export class Profile implements OnInit {
 
   protected readonly payoutHolder = signal('');
   protected readonly payoutBank = signal('');
-  protected readonly payoutClabe = signal('');
+  protected readonly payoutAccountNumber = signal('');
   protected readonly deletePassword = signal('');
   protected readonly deleteConfirmation = signal('');
 
-  protected readonly clabeInfo = computed(() => inspectClabe(this.payoutClabe()));
+  protected readonly bankOptions = PAYOUT_BANK_OPTIONS;
+  protected readonly accountInfo = computed(() => inspectPayoutAccount(this.payoutAccountNumber()));
   /** True cuando el banco lo dedujo la app a partir de la CLABE (el campo queda bloqueado). */
-  protected readonly bankDetected = computed(() => !!this.clabeInfo().bankName);
+  protected readonly bankDetected = computed(() => {
+    const info = this.accountInfo();
+    return info.type === 'CLABE' && info.isValid && !!info.bankName;
+  });
+  protected readonly canSavePayoutAccount = computed(() => {
+    const info = this.accountInfo();
+    return this.payoutHolder().trim().length >= 2
+      && this.payoutBank().trim().length >= 2
+      && info.isValid
+      && info.type !== null;
+  });
+  protected readonly accountHint = computed(() => {
+    const info = this.accountInfo();
+    const length = info.digits.length;
+    if (length === 0) return { tone: 'neutral', icon: 'info', text: 'Aceptamos tarjeta de débito de 16 dígitos o CLABE de 18.' } as const;
+    if (length < 16) return { tone: 'neutral', icon: 'more_horiz', text: `Escribe ${16 - length} dígitos más para tarjeta o ${18 - length} para CLABE.` } as const;
+    if (length === 16 && info.isValid) return { tone: 'ok', icon: 'check_circle', text: 'Formato de tarjeta válido. Elige la institución receptora.' } as const;
+    if (length === 16) return { tone: 'warn', icon: 'info', text: 'No parece una tarjeta válida. Si estás escribiendo tu CLABE, agrega los 2 dígitos restantes.' } as const;
+    if (length === 17) return { tone: 'neutral', icon: 'more_horiz', text: 'Falta 1 dígito para completar la CLABE.' } as const;
+    if (!info.isValid) return { tone: 'warn', icon: 'error', text: 'La CLABE no supera la validación del dígito verificador.' } as const;
+    if (info.bankName) return { tone: 'ok', icon: 'check_circle', text: `CLABE válida · banco detectado: ${info.bankName}.` } as const;
+    return { tone: 'ok', icon: 'check_circle', text: 'CLABE válida. Elige la institución receptora.' } as const;
+  });
 
-  protected onClabeInput(value: string): void {
+  protected onPayoutAccountInput(value: string): void {
+    const previousDetectedBank = this.bankDetected() ? this.accountInfo().bankName : null;
     const digits = value.replace(/\D/g, '').slice(0, 18);
-    this.payoutClabe.set(digits);
-    const detected = inspectClabe(digits).bankName;
-    if (detected) {
-      this.payoutBank.set(detected);
-    } else if (digits.length < 3) {
+    this.payoutAccountNumber.set(digits);
+    const next = inspectPayoutAccount(digits);
+    if (next.type === 'CLABE' && next.isValid && next.bankName) {
+      this.payoutBank.set(next.bankName);
+    } else if (previousDetectedBank && this.payoutBank() === previousDetectedBank) {
       this.payoutBank.set('');
     }
   }
@@ -84,7 +108,7 @@ export class Profile implements OnInit {
   protected readonly completion = computed(() => {
     const profile = this.user();
     if (!profile) return 0;
-    const checks = [profile.name, profile.emailVerified, profile.phone, profile.avatarUrl, profile.payoutClabeLast4];
+    const checks = [profile.name, profile.emailVerified, profile.phone, profile.avatarUrl, profile.payoutAccountNumberLast4];
     return Math.round((checks.filter(Boolean).length / checks.length) * 100);
   });
 
@@ -211,16 +235,27 @@ export class Profile implements OnInit {
   }
 
   protected savePayoutAccount(): void {
-    const info = this.clabeInfo();
-    if (!this.payoutHolder().trim() || !this.payoutBank().trim() || !info.isValid) {
-      this.showNotice('error', 'Completa el titular, banco y una CLABE válida de 18 dígitos.');
+    const info = this.accountInfo();
+    if (!this.payoutHolder().trim()) {
+      this.showNotice('error', 'Escribe el nombre de la persona titular de la cuenta.');
+      return;
+    }
+    if (!info.isValid || !info.type) {
+      this.showNotice('error', info.digits.length === 16
+        ? 'Revisa la tarjeta de débito o escribe los 18 dígitos de tu CLABE.'
+        : 'Escribe una tarjeta de débito válida de 16 dígitos o una CLABE válida de 18.');
+      return;
+    }
+    if (!this.payoutBank().trim()) {
+      this.showNotice('error', 'Elige el banco o institución donde recibes el dinero.');
       return;
     }
     this.save('payouts', {
       payoutAccountHolder: this.payoutHolder().trim(),
       payoutBankName: this.payoutBank().trim(),
-      payoutClabe: info.digits,
-    }, 'Cuenta para recibir pagos guardada de forma cifrada.', () => this.payoutClabe.set(''));
+      payoutAccountType: info.type,
+      payoutAccountNumber: info.digits,
+    }, 'Cuenta para recibir pagos guardada de forma cifrada.', () => this.payoutAccountNumber.set(''));
   }
 
   protected async clearPayoutAccount(): Promise<void> {

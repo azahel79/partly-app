@@ -4,9 +4,16 @@
       <h1 class="text-2xl font-extrabold text-ink tracking-tight">Correos</h1>
       <p class="text-sm text-on-surface-variant font-medium mt-1">Todo lo que la app le manda a las personas por correo: recordatorios de pago, avisos de comisión, vencimientos del mayoreo y más.</p>
     </div>
-    <button type="button" (click)="sendTest()" [disabled]="testing()" class="py-2.5 px-5 rounded-lg bg-pink hover:bg-[#065f46] active:scale-[0.98] text-white text-sm font-bold transition-all disabled:opacity-60 flex items-center gap-2">
-      <span class="material-symbols-outlined text-lg">send</span>{{ testing() ? 'Enviando…' : 'Enviar correo de prueba' }}
-    </button>
+    <form class="flex flex-wrap items-center gap-2 w-full sm:w-auto" (submit)="$event.preventDefault(); sendTest()">
+      <label class="relative flex-1 sm:w-72 sm:flex-none">
+        <span class="sr-only">Enviar la prueba a</span>
+        <input type="email" class="ui-input" [value]="testTo()" (input)="testTo.set($any($event.target).value)"
+          [placeholder]="'Enviar a (vacío = ' + (myEmail() || 'tu correo') + ')'" autocomplete="email" />
+      </label>
+      <button type="submit" [disabled]="testing()" class="ui-btn ui-btn--primary">
+        <span class="material-symbols-outlined">send</span>{{ testing() ? 'Enviando…' : 'Enviar correo de prueba' }}
+      </button>
+    </form>
   </div>
 
   @if (errorMessage()) {

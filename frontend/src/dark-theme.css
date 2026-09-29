@@ -238,6 +238,10 @@ html.dark .vk-swal-title { color: var(--dm-text); }
 html.dark .vk-swal-text { color: var(--dm-muted); }
 html.dark .vk-swal-cancel { background: rgba(255, 255, 255, 0.08); color: var(--dm-text-2); }
 html.dark .vk-swal-cancel:hover { background: rgba(255, 255, 255, 0.14); }
+html.dark .vk-swal-outline { background: transparent; color: var(--dm-text); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2); }
+html.dark .vk-swal-outline:hover { color: #6ee7b7; box-shadow: inset 0 0 0 1px #34d399; }
+html.dark .vk-swal .swal2-footer { border-top-color: rgba(255, 255, 255, 0.08); }
+html.dark .vk-swal-link { color: #34d399; }
 html.dark .vk-swal-input { background: var(--dm-bg-2); border-color: var(--dm-line-strong); color: var(--dm-text); }
 html.dark .vk-swal-input:focus { border-color: var(--dm-accent); box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.15); }
 html.dark .swal2-html-container { color: var(--dm-muted); }

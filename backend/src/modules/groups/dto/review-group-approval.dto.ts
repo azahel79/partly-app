@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GroupApprovalStatus } from '@prisma/client';
-import { IsEnum, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class ReviewGroupApprovalDto {
   @ApiProperty({ enum: GroupApprovalStatus, example: GroupApprovalStatus.APPROVED })
@@ -15,14 +15,4 @@ export class ReviewGroupApprovalDto {
   @IsString()
   @MaxLength(500)
   reason?: string;
-
-  @ApiPropertyOptional({
-    example: 12,
-    description: 'Obligatorio si status es APPROVED — % que se queda Partly de cada cobro a los miembros de este grupo (rango permitido 10%-15%).',
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(10)
-  @Max(15)
-  commissionPercentage?: number;
 }

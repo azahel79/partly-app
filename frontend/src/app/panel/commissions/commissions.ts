@@ -1,7 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommissionsService } from '../../shared/commissions.service';
-import { CommissionCharge, CommissionChargeStatus, MyCommissions } from '../../shared/commissions.models';
+import { CommissionCharge, CommissionChargeStatus, MyCommissionRate, MyCommissions } from '../../shared/commissions.models';
+import { ConfirmService } from '../../shared/confirm.service';
 import { formatMoney } from '../../shared/money';
 
 const MAX_RECEIPT_BYTES = 8 * 1024 * 1024;
@@ -22,6 +23,7 @@ const STATUS: Record<CommissionChargeStatus, { label: string; tone: string }> = 
 })
 export class CommissionsPage implements OnInit {
   private readonly commissionsService = inject(CommissionsService);
+  private readonly confirmService = inject(ConfirmService);
 
   protected readonly statusLabel = STATUS;
   protected readonly data = signal<MyCommissions | null>(null);
@@ -33,6 +35,9 @@ export class CommissionsPage implements OnInit {
   protected readonly viewingId = signal<string | null>(null);
   protected readonly copiedField = signal<string | null>(null);
   protected readonly notice = signal<string | null>(null);
+  /** Tu comisión (9% o reducida) y lo que te falta para pedir una menor. */
+  protected readonly rate = signal<MyCommissionRate | null>(null);
+  protected readonly requestingRate = signal(false);
 
   protected readonly pending = computed(() => (this.data()?.charges ?? []).filter((c) => c.status === 'PENDING'));
   protected readonly inReview = computed(() => (this.data()?.charges ?? []).filter((c) => c.status === 'IN_REVIEW'));
@@ -48,6 +53,39 @@ export class CommissionsPage implements OnInit {
     this.commissionsService.getMine().subscribe({
       next: (data) => this.data.set(data),
       error: (message: string) => this.errorMessage.set(message),
+    });
+    this.commissionsService.getMyRate().subscribe({
+      next: (rate) => this.rate.set(rate),
+      error: () => this.rate.set(null),
+    });
+  }
+
+  protected async requestRate(): Promise<void> {
+    const rate = this.rate();
+    if (!rate?.canRequest || this.requestingRate()) {
+      return;
+    }
+    const message = await this.confirmService.prompt({
+      title: 'Solicitar comisión reducida',
+      text: `Hoy pagas ${rate.rate}%. El equipo de Partly revisará tu trayectoria y te dirá el porcentaje que te puede autorizar. Si quieres, agrega un mensaje.`,
+      placeholder: 'Opcional: cuéntanos de tus grupos',
+      confirmText: 'Enviar solicitud',
+    });
+    if (message === null) {
+      return;
+    }
+    this.requestingRate.set(true);
+    this.errorMessage.set(null);
+    this.commissionsService.requestRate(message || undefined).subscribe({
+      next: (updated) => {
+        this.requestingRate.set(false);
+        this.rate.set(updated);
+        this.notice.set('Enviamos tu solicitud. Te avisamos cuando el equipo la revise.');
+      },
+      error: (message: string) => {
+        this.requestingRate.set(false);
+        this.errorMessage.set(message);
+      },
     });
   }
 

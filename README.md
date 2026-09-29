@@ -111,7 +111,7 @@ El módulo de mayoreo permite que usuarios autorizados compren cuentas completas
 
 - Contraseñas con Argon2.
 - Access tokens de corta duración y refresh tokens rotativos/revocables.
-- Credenciales compartidas y CLABE de retiro cifradas con AES-256-GCM.
+- Credenciales compartidas y cuentas de retiro (CLABE o tarjeta de débito) cifradas con AES-256-GCM.
 - Validación estricta de DTO, rate limiting, Helmet y CORS.
 - Los administradores solo pueden leer las credenciales de un grupo mientras las revisan (enviadas y sin aprobar), y cada consulta queda en la bitácora.
 - La cuenta bancaria del vendedor solo la ven él, un administrador y quien le debe un pago; la comisión pactada, solo el vendedor y Partly. Los grupos sin aprobar no son públicos.
@@ -125,7 +125,7 @@ La llave `CREDENTIALS_ENCRYPTION_KEY` debe respaldarse en un gestor de secretos.
 ## Documentación
 
 - [API y backend](backend/README.md)
-- [AnalÃ­tica de la landing](docs/ANALYTICS.md)
+- [Analítica de la landing](docs/ANALYTICS.md)
 - [Modelo de base de datos](backend/DATABASE.md)
 - [Salida a producción](docs/PRODUCTION.md)
 - Swagger local: `/api/docs`

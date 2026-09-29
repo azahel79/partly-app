@@ -34,7 +34,6 @@ module.exports = {
 
     console.log('\n[3] El admin y las credenciales');
     check('en un grupo aprobado donde no es miembro, el admin no puede leer la contraseña', (await call('GET', `/groups/${gid}/credential`, A)).status === 403);
-    await call('PUT', `/groups/${pending}/commission`, A, { commissionPercentage: 10 });
     await call('POST', `/groups/${pending}/request-credentials`, A, {});
     await call('PUT', `/groups/${pending}/credential`, S, { username: 'seg@partly.test', password: 'Secreta123' });
     r = await call('GET', `/groups/${pending}/credential`, A);

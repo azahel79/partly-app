@@ -1,5 +1,6 @@
 import { daysBetween, minEntryDays } from '../../../common/utils/billing.util';
 import { SeatMembership, seatStats } from '../../../common/utils/seats.util';
+import { wholesaleCoversNextPeriod } from '../../../common/utils/wholesale-coverage.util';
 import { ApiProperty } from '@nestjs/swagger';
 import { BillingPeriod, CredentialReviewStatus, Group, GroupApprovalStatus, GroupStatus, Plan, Platform, User } from '@prisma/client';
 import { Exclude, Expose } from 'class-transformer';
@@ -13,6 +14,7 @@ type GroupWithRelations = Group & {
   _count?: { memberships: number };
   /** Membresías vivas (estado, renovación y fin de periodo): de aquí salen los cupos que se liberan. */
   memberships?: SeatMembership[];
+  sourceProviderOrder?: { id: string; expiresAt: Date | null; renewable: boolean } | null;
 };
 
 class PlanSummaryDto {
@@ -181,6 +183,13 @@ export class GroupResponseDto {
   @Expose()
   commissionPercentage: string | null;
 
+  @ApiProperty({
+    nullable: true,
+    description: 'Cuenta de mayoreo de la que salió el grupo: cuándo vence y si se renueva o se repone. Solo la ven el vendedor y Partly.',
+  })
+  @Expose()
+  wholesaleAccount: { orderId: string; expiresAt: Date | null; renewable: boolean; expired: boolean; coversNextPeriod: boolean } | null;
+
   constructor(group: GroupWithRelations) {
     this.id = group.id;
     this.plan = {
@@ -231,6 +240,16 @@ export class GroupResponseDto {
     this.daysUntilRenewal = group.startedAt ? daysBetween(new Date(), group.nextRenewalDate) : null;
     this.minEntryDays = group.startedAt ? min : null;
     this.canJoinNow = group.startedAt ? (this.daysUntilRenewal ?? 0) >= min : true;
+    const account = group.sourceProviderOrder;
+    this.wholesaleAccount = account
+      ? {
+          orderId: account.id,
+          expiresAt: account.expiresAt,
+          renewable: account.renewable,
+          expired: !!account.expiresAt && account.expiresAt.getTime() < Date.now(),
+          coversNextPeriod: wholesaleCoversNextPeriod(account.expiresAt, group.nextRenewalDate, group.plan.billingPeriod),
+        }
+      : null;
   }
 
   /**
@@ -239,7 +258,10 @@ export class GroupResponseDto {
    */
   restrictTo(viewer: { canSeeBankAccount: boolean; canSeeCommission: boolean }): this {
     if (!viewer.canSeeBankAccount) this.bankAccountNumber = null;
-    if (!viewer.canSeeCommission) this.commissionPercentage = null;
+    if (!viewer.canSeeCommission) {
+      this.commissionPercentage = null;
+      this.wholesaleAccount = null;
+    }
     return this;
   }
 }

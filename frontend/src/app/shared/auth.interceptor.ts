@@ -6,7 +6,7 @@ import { API_BASE_URL } from './api-config';
 import { AuthTokens } from './auth.models';
 import { AuthService } from './auth.service';
 
-const NO_AUTH_RETRY_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/google/exchange'];
+const NO_AUTH_RETRY_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/google/exchange', '/auth/forgot-password', '/auth/reset-password'];
 
 /** Margen para renovar poco antes de que venza, no justo al filo. */
 const EXPIRY_SKEW_SECONDS = 20;

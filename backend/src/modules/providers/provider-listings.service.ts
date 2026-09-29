@@ -5,6 +5,7 @@ import { AuthenticatedUser } from '../auth/types/jwt-payload.interface';
 import { CreateProviderListingDto } from './dto/create-provider-listing.dto';
 import { UpdateProviderListingDto } from './dto/update-provider-listing.dto';
 import { ListProviderListingsQueryDto } from './dto/list-provider-listings-query.dto';
+import { DEFAULT_COMMISSION_PCT } from '../commissions/commissions.constants';
 
 const WITH_RELATIONS = {
   plan: { include: { platform: { select: { id: true, name: true, logoUrl: true } } } },
@@ -14,7 +15,6 @@ const WITH_RELATIONS = {
 // Solo un valor de referencia con el que nace el Plan — la comisión real que se cobra a
 // cada grupo la asigna un ADMIN al aprobarlo (ver GroupsService.reviewApproval), así que
 // este número no afecta lo que de verdad se cobra.
-const DEFAULT_PLAN_COMMISSION_PCT = 12;
 
 @Injectable()
 export class ProviderListingsService {
@@ -78,7 +78,7 @@ export class ProviderListingsService {
         officialPrice: dto.officialPrice,
         maxSlots: dto.maxSlots,
         billingPeriod: dto.billingPeriod,
-        commissionPercentage: DEFAULT_PLAN_COMMISSION_PCT,
+        commissionPercentage: DEFAULT_COMMISSION_PCT,
         active: true,
       },
     });

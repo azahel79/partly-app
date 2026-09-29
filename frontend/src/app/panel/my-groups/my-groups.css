@@ -9,3 +9,9 @@
   margin: 0 -1rem 0.5rem;
   padding: 0 1rem 1.5rem;
 }
+
+/* Soltar un lugar apartado: acción secundaria en rojo discreto */
+.leave-link { padding: 4px 0; border: 0; background: transparent; color: #b42318; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.leave-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.leave-link:disabled { opacity: .55; cursor: default; }
+:host-context(html.dark) .leave-link { color: #fca5a5; }

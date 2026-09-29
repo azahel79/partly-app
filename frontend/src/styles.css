@@ -604,6 +604,14 @@ app-admin-group-detail .outline-button:hover { background: #f4f6fa; }
 .vk-swal-danger:hover { background: #b91c1c; }
 .vk-swal-cancel { background: #f1f5f9; color: #334155; }
 .vk-swal-cancel:hover { background: #e2e8f0; }
+.vk-swal-outline { background: #fff; color: #14142b; box-shadow: inset 0 0 0 1px #d5d9e2; }
+.vk-swal-outline:hover { box-shadow: inset 0 0 0 1px #047857; color: #047857; }
+/* Ventana con varias opciones: botones apilados a lo ancho */
+.vk-swal-choice .vk-swal-actions { flex-direction: column; align-items: stretch; width: 100%; }
+.vk-swal-choice .vk-swal-btn { width: 100%; margin: 0; }
+.vk-swal .swal2-footer { margin: 1em 0 0; padding: .9em 0 0; border-top: 1px solid #eef0f4; }
+.vk-swal-link { color: #047857; font-size: 14px; font-weight: 600; text-decoration: none; }
+.vk-swal-link:hover { text-decoration: underline; }
 .vk-swal-btn:focus-visible { outline: 3px solid rgba(5, 150, 105, .35); outline-offset: 2px; }
 .vk-swal-input { margin: 1em 0 0; width: 100%; box-sizing: border-box; min-height: 88px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 10px; font: inherit; font-size: 14px; color: #111735; box-shadow: none; }
 .vk-swal-input:focus { border-color: #059669; box-shadow: 0 0 0 4px rgba(5, 150, 105, .12); }

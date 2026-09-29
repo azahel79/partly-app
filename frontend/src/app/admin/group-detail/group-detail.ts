@@ -13,8 +13,6 @@ import { PlanFeature, planFeatures } from '../../shared/plan-features.util';
 import { MoneyPipe } from '../../shared/money';
 
 /** Rango de comisión que la app permite fijar por grupo (debe coincidir con el backend). */
-const COMMISSION_MIN_PCT = 10;
-const COMMISSION_MAX_PCT = 15;
 
 const MEMBERSHIP_STATUS_LABEL: Record<Membership['status'], string> = {
   RESERVED: 'Cupo reservado',
@@ -89,13 +87,6 @@ export class AdminGroupDetail implements OnInit {
   protected readonly rejecting = signal(false);
   protected readonly rejectReason = signal('');
 
-  protected readonly commissionMin = COMMISSION_MIN_PCT;
-  protected readonly commissionMax = COMMISSION_MAX_PCT;
-
-  protected readonly proposalInput = signal(12);
-  protected readonly proposing = signal(false);
-  protected readonly proposalNotice = signal<string | null>(null);
-
   private breakdown(pct: number) {
     const g = this.group();
     if (!g) {
@@ -106,8 +97,11 @@ export class AdminGroupDetail implements OnInit {
     return { gross, commission, net: Math.round((gross - commission) * 100) / 100 };
   }
 
-  protected readonly proposalValid = computed(() => this.proposalInput() >= COMMISSION_MIN_PCT && this.proposalInput() <= COMMISSION_MAX_PCT);
-  protected readonly proposalPreview = computed(() => this.breakdown(this.proposalInput()));
+  /** La comisión es fija (9% o la reducida del vendedor): aquí solo se muestra cuánto recibe el vendedor con el grupo lleno. */
+  protected readonly commissionPreview = computed(() => {
+    const pct = Number(this.group()?.commissionPercentage ?? 0);
+    return pct > 0 ? { pct, ...this.breakdown(pct)! } : null;
+  });
 
 
   protected readonly editingInfo = signal(false);
@@ -224,9 +218,6 @@ export class AdminGroupDetail implements OnInit {
     this.groupsService.findAdminDetail(this.groupId).subscribe({
       next: (group) => {
         this.group.set(group);
-        if (group.commissionPercentage) {
-          this.proposalInput.set(Number(group.commissionPercentage));
-        }
         this.notesDraft.set(group.internalNotes ?? '');
         this.submittedCredential.set(undefined);
         if (group.credentialReviewStatus === 'SUBMITTED' && group.hasCredentials) {
@@ -243,35 +234,12 @@ export class AdminGroupDetail implements OnInit {
     });
   }
 
-  protected saveProposal(): void {
-    if (this.proposing() || !this.proposalValid()) {
-      return;
-    }
-    this.proposing.set(true);
-    this.proposalNotice.set(null);
-    this.groupsService.proposeCommission(this.groupId, this.proposalInput()).subscribe({
-      next: (updated) => {
-        this.proposing.set(false);
-        this.group.update((g) => (g ? { ...g, commissionPercentage: updated.commissionPercentage } : g));
-        this.proposalNotice.set('Comisión guardada y enviada al vendedor.');
-        setTimeout(() => this.proposalNotice.set(null), 3500);
-      },
-      error: (message: string) => {
-        this.proposing.set(false);
-        this.errorMessage.set(message);
-      },
-    });
-  }
-
   protected confirmApprove(): void {
     if (this.working()) {
       return;
     }
-    if (!this.proposalValid()) {
-      return;
-    }
     this.working.set(true);
-    this.groupsService.reviewApproval(this.groupId, 'APPROVED', undefined, this.proposalInput()).subscribe({
+    this.groupsService.reviewApproval(this.groupId, 'APPROVED').subscribe({
       next: () => {
         this.working.set(false);
         this.load();

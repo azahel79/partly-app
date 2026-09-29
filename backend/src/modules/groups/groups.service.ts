@@ -10,6 +10,7 @@ import { RenewalStatus } from './dto/membership-response.dto';
 import { AuthenticatedUser } from '../auth/types/jwt-payload.interface';
 import { PaymentsService } from '../payments/payments.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { DEFAULT_COMMISSION_PCT } from '../commissions/commissions.constants';
 import { CommissionsService } from '../commissions/commissions.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -22,6 +23,7 @@ import { CredentialResponseDto } from './dto/credential-response.dto';
 import { UpsertGroupProfileDto } from './dto/upsert-group-profile.dto';
 import { GroupProfileResponseDto } from './dto/group-profile-response.dto';
 import { CreateGroupFromProviderOrderDto } from '../providers/dto/create-group-from-provider-order.dto';
+import { memberLeftNotice } from '../../common/utils/member-left.util';
 
 const WITH_RELATIONS = {
   plan: {
@@ -34,6 +36,8 @@ const WITH_RELATIONS = {
   owner: { select: { id: true, name: true, avatarUrl: true, ratingAvg: true, createdAt: true, emailVerified: true, profileNameVisible: true, profileAvatarVisible: true } },
   // Solo para derivar hasCredentials (GroupResponseDto) — nunca se exponen los valores cifrados aquí.
   credential: { select: { id: true } },
+  // Cuenta de mayoreo de la que salió el grupo (si aplica): su vencimiento se le muestra al vendedor.
+  sourceProviderOrder: { select: { id: true, expiresAt: true, renewable: true } },
   // Cupos apartados (reservados o pagando), para mostrar el avance antes de iniciar.
   _count: { select: { memberships: { where: { status: { in: ['RESERVED', 'ACTIVE', 'PENDING_PAYMENT', 'SUSPENDED'] } } } } },
   // Para saber cuántos lugares se liberan al terminar el ciclo (miembros que no renovarán) y cuántos ya los apartaron.
@@ -74,15 +78,6 @@ export function slotsRequiredToStart(availableSlots: number): number {
   return Math.max(1, Math.ceil((availableSlots * START_THRESHOLD_PCT) / 100));
 }
 
-// Comisión que aplica a los planes que un vendedor crea "a mano" (fuera del catálogo de
-// ADMIN). Debe coincidir con CUSTOM_PLATFORM_COMMISSION_PCT en el frontend
-// (create-group.ts) para que la calculadora que ve el vendedor sea exacta a lo que de
-// verdad va a deber de comisión (ver CommissionsService.recordEarning).
-const CUSTOM_PLATFORM_COMMISSION_PCT = 15;
-
-// Rango en el que un ADMIN puede fijar la comisión de un grupo (debe coincidir con los DTOs).
-const COMMISSION_MIN_PCT = 10;
-const COMMISSION_MAX_PCT = 15;
 
 @Injectable()
 export class GroupsService {
@@ -107,10 +102,13 @@ export class GroupsService {
       throw new BadRequestException(`Este plan permite ${maxSlots} cupos en total; no puedes ofrecer más de esos.`);
     }
 
+    const commissionPercentage = await this.commissionsService.rateFor(ownerId);
     const group = await this.prisma.group.create({
       data: {
         planId,
         ownerId,
+        // Comisión fija de Partly (9%, o la reducida del vendedor): la conoce desde que crea el grupo.
+        commissionPercentage,
         pricePerSlot: dto.pricePerSlot,
         availableSlots: dto.availableSlots,
         // Provisionales: el día de cobro y la fecha de renovación reales se fijan cuando el
@@ -199,6 +197,7 @@ export class GroupsService {
         data: {
           planId: order.listing.planId,
           ownerId,
+          commissionPercentage: await this.commissionsService.rateFor(ownerId, tx),
           pricePerSlot: dto.pricePerSlot,
           availableSlots: dto.availableSlots,
           billingDay: 1,
@@ -281,7 +280,7 @@ export class GroupsService {
         tierName: dto.tierName?.trim() || 'Personalizado',
         officialPrice: dto.officialPrice ?? dto.pricePerSlot * (dto.availableSlots + 1),
         maxSlots: dto.maxSlots,
-        commissionPercentage: CUSTOM_PLATFORM_COMMISSION_PCT,
+        commissionPercentage: DEFAULT_COMMISSION_PCT,
         active: true,
       },
     });
@@ -405,6 +404,74 @@ export class GroupsService {
     });
   }
 
+  /**
+   * Lugares que el comprador apartó o está pagando (todavía no son membresías activas), con lo que necesita
+   * saber de cada uno: si espera a que el grupo inicie, si es un lugar que se libera o hasta cuándo pagar.
+   */
+  async findReserved(userId: string) {
+    const memberships = await this.prisma.groupMembership.findMany({
+      where: { userId, status: { in: [MembershipStatus.RESERVED, MembershipStatus.PENDING_PAYMENT] } },
+      include: {
+        group: { include: WITH_RELATIONS },
+        payments: { where: { status: PaymentStatus.PENDING }, select: { amount: true, graceUntil: true, receiptUploadedAt: true }, orderBy: { graceUntil: 'desc' }, take: 1 },
+      },
+      orderBy: { joinedAt: 'desc' },
+    });
+    return memberships.map((m) => {
+      const payment = m.payments[0] ?? null;
+      const stats = seatStats(m.group.memberships, m.group.startedAt !== null);
+      return {
+        group: m.group,
+        membership: {
+          status: m.status,
+          joinedAt: m.joinedAt,
+          // Ya iniciado y RESERVED = apartó un lugar que se libera al terminar el ciclo.
+          waitingForSeat: m.status === MembershipStatus.RESERVED && m.group.startedAt !== null,
+          freeingDate: m.status === MembershipStatus.RESERVED && m.group.startedAt !== null ? stats.freeingDate : null,
+          payment: payment ? { amount: payment.amount.toString(), graceUntil: payment.graceUntil, receiptUploadedAt: payment.receiptUploadedAt } : null,
+        },
+      };
+    });
+  }
+
+  /**
+   * Si el comprador ya tiene un lugar (apartado, pagando o activo) en OTRO grupo de la misma plataforma.
+   * Sirve para avisarle antes de apartar uno más; `canSwitch` dice si puede cambiarse soltando ese lugar
+   * (solo si todavía no lo ha pagado ni subió comprobante).
+   */
+  async findSimilarMembership(groupId: string, userId: string) {
+    const group = await this.prisma.group.findUnique({ where: { id: groupId }, select: { plan: { select: { platformId: true } } } });
+    if (!group) {
+      throw new NotFoundException('Grupo no encontrado.');
+    }
+    const other = await this.prisma.groupMembership.findFirst({
+      where: {
+        userId,
+        groupId: { not: groupId },
+        status: { in: LIVE_MEMBERSHIP_STATUSES },
+        group: { plan: { platformId: group.plan.platformId } },
+      },
+      include: {
+        group: { select: { id: true, pricePerSlot: true, plan: { select: { tierName: true, billingPeriod: true, platform: { select: { name: true } } } } } },
+        payments: { where: { status: PaymentStatus.PENDING, receiptPath: { not: null } }, select: { id: true }, take: 1 },
+      },
+      orderBy: { joinedAt: 'desc' },
+    });
+    if (!other) {
+      return null;
+    }
+    const unpaid = other.status === MembershipStatus.RESERVED || other.status === MembershipStatus.PENDING_PAYMENT;
+    return {
+      groupId: other.group.id,
+      platformName: other.group.plan.platform.name,
+      tierName: other.group.plan.tierName,
+      pricePerSlot: other.group.pricePerSlot.toString(),
+      billingPeriod: other.group.plan.billingPeriod,
+      status: other.status,
+      canSwitch: unpaid && other.payments.length === 0,
+    };
+  }
+
   /** Cola de grupos esperando revisión — solo ADMIN. */
   async findPendingApproval(query: ListPendingGroupsQueryDto) {
     const where: Prisma.GroupWhereInput = { approvalStatus: GroupApprovalStatus.PENDING };
@@ -484,16 +551,14 @@ export class GroupsService {
     if (group.approvalStatus !== GroupApprovalStatus.PENDING) {
       throw new BadRequestException('Solo puedes solicitar credenciales mientras el grupo está pendiente de revisión.');
     }
-    // El vendedor primero tiene que saber cuánto se lleva Partly para decidir si le conviene; sin comisión
-    // definida no se le piden credenciales.
-    if (group.commissionPercentage === null) {
-      throw new BadRequestException('Define primero la comisión del grupo: el vendedor debe conocerla antes de enviar sus credenciales.');
-    }
+    // La comisión es fija: si un grupo viejo no la tiene guardada, toma la del vendedor.
+    const commissionPercentage = group.commissionPercentage ?? new Prisma.Decimal(await this.commissionsService.rateFor(group.ownerId));
 
     await this.prisma.$transaction(async (tx) => {
       await tx.group.update({
         where: { id },
         data: {
+          commissionPercentage,
           credentialReviewStatus: CredentialReviewStatus.REQUESTED,
           credentialsRequestedAt: new Date(),
           credentialsSubmittedAt: null,
@@ -504,7 +569,7 @@ export class GroupsService {
         type: NotificationType.SYSTEM,
         payload:
           `El equipo de Partly solicita las credenciales de ${group.plan.platform.name}. Entra a tu grupo y usa el botón "Enviar credenciales al administrador" para continuar con la revisión.` +
-          (group.commissionPercentage ? ` ${this.commissionSummary(group)}` : ''),
+          ` ${this.commissionSummary({ ...group, commissionPercentage })}`,
         groupId: group.id,
       });
     });
@@ -517,49 +582,12 @@ export class GroupsService {
     return `Comisión de Partly para tu grupo: ${pct}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirías $${(gross * (1 - pct / 100)).toFixed(2)} al mes; si quieres, ajusta tu precio.`;
   }
 
-  /**
-   * El ADMIN fija (o corrige) la comisión mientras el grupo sigue en revisión, sin esperar a
-   * aprobarlo: así el vendedor sabe cuánto ganará y puede ajustar su precio antes de subir
-   * credenciales. Se respeta el rango de la app (10%-15%) y se le avisa por notificación.
-   */
-  async proposeCommission(id: string, commissionPercentage: number) {
-    if (commissionPercentage < COMMISSION_MIN_PCT || commissionPercentage > COMMISSION_MAX_PCT) {
-      throw new BadRequestException(`La comisión debe estar entre ${COMMISSION_MIN_PCT}% y ${COMMISSION_MAX_PCT}%.`);
-    }
-    const group = await this.prisma.group.findUnique({ where: { id }, include: { plan: { include: { platform: true } } } });
-    if (!group) {
-      throw new NotFoundException('Grupo no encontrado.');
-    }
-    if (group.approvalStatus !== GroupApprovalStatus.PENDING) {
-      throw new BadRequestException('Solo puedes proponer la comisión mientras el grupo está pendiente de revisión.');
-    }
-    // El vendedor decide con base en esta cifra: una vez comunicada no se cambia por debajo de él.
-    if (group.commissionPercentage !== null) {
-      throw new BadRequestException(`La comisión de este grupo ya fue definida (${Number(group.commissionPercentage)}%) y no se puede modificar.`);
-    }
-    return this.prisma.$transaction(async (tx) => {
-      const updated = await tx.group.update({ where: { id }, data: { commissionPercentage }, include: WITH_RELATIONS });
-      await this.notificationsService.create(tx, {
-        userId: group.ownerId,
-        type: NotificationType.SYSTEM,
-        payload:
-          `Partly definió la comisión de tu grupo de ${group.plan.platform.name}. ${this.commissionSummary(updated)}` +
-          (updated.credentialReviewStatus === CredentialReviewStatus.SUBMITTED
-            ? ''
-            : ' Cuando estés de acuerdo, envía las credenciales de la cuenta desde "Gestionar grupo" para que Partly pueda revisarla y aprobar tu grupo.'),
-        groupId: group.id,
-      });
-      return updated;
-    });
-  }
-
   /** Aprueba o rechaza un grupo nuevo — solo ADMIN. Avisa al dueño por notificación. */
   async reviewApproval(
     id: string,
     newStatus: GroupApprovalStatus,
     adminId: string,
     reason?: string,
-    commissionPercentage?: number,
   ) {
     const group = await this.prisma.group.findUnique({
       where: { id },
@@ -585,20 +613,8 @@ export class GroupsService {
     ) {
       throw new BadRequestException('Antes de aprobar, solicita las credenciales y espera a que el vendedor las envíe para revisión.');
     }
-    // La comisión la decide el ADMIN caso por caso al aprobar (sugerido 10%-13%) — ya no
-    // depende de un % fijo por Plan, así que es obligatoria en este paso.
-    if (newStatus === GroupApprovalStatus.APPROVED) {
-      // Si ya se le comunicó una comisión al vendedor, esa es la que vale: no se cambia al aprobar.
-      if (group.commissionPercentage !== null) {
-        commissionPercentage = Number(group.commissionPercentage);
-      }
-      if (commissionPercentage === undefined) {
-        throw new BadRequestException('Asigna el porcentaje de comisión de Partly para este grupo antes de aprobarlo.');
-      }
-      if (commissionPercentage < COMMISSION_MIN_PCT || commissionPercentage > COMMISSION_MAX_PCT) {
-        throw new BadRequestException(`La comisión debe estar entre ${COMMISSION_MIN_PCT}% y ${COMMISSION_MAX_PCT}%.`);
-      }
-    }
+    // Comisión fija: la que ya tiene el grupo o, si es un grupo viejo sin ella, la del vendedor.
+    const commissionPercentage = group.commissionPercentage !== null ? Number(group.commissionPercentage) : await this.commissionsService.rateFor(group.ownerId);
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.group.update({
@@ -611,7 +627,7 @@ export class GroupsService {
           credentialReviewStatus:
             newStatus === GroupApprovalStatus.APPROVED ? CredentialReviewStatus.APPROVED : group.credentialReviewStatus,
           credentialsReviewedAt: newStatus === GroupApprovalStatus.APPROVED ? new Date() : null,
-          commissionPercentage: newStatus === GroupApprovalStatus.APPROVED ? commissionPercentage : null,
+          commissionPercentage,
         },
         include: WITH_RELATIONS,
       });
@@ -620,7 +636,7 @@ export class GroupsService {
         type: NotificationType.SYSTEM,
         payload:
           newStatus === GroupApprovalStatus.APPROVED
-            ? `Tu grupo de ${group.plan.platform.name} fue aprobado con una comisión de Partly del ${commissionPercentage}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirás $${(Number(group.pricePerSlot) * group.availableSlots * (1 - commissionPercentage! / 100)).toFixed(2)} al mes, y ya puede aparecer en el marketplace.`
+            ? `Tu grupo de ${group.plan.platform.name} fue aprobado con una comisión de Partly del ${commissionPercentage}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirás $${(Number(group.pricePerSlot) * group.availableSlots * (1 - commissionPercentage / 100)).toFixed(2)} al mes, y ya puede aparecer en el marketplace.`
             : `Tu grupo de ${group.plan.platform.name} fue rechazado: ${reason!.trim()}`,
         groupId: group.id,
       });
@@ -705,9 +721,17 @@ export class GroupsService {
     return this.prisma.group.update({ where: { id }, data, include: WITH_RELATIONS });
   }
 
-  async join(groupId: string, userId: string) {
+  async join(groupId: string, userId: string, options: { switchFromGroupId?: string } = {}) {
     return this.prisma.$transaction(async (tx) => {
-      const group = await tx.group.findUnique({ where: { id: groupId }, include: { credential: { select: { id: true } }, plan: { select: { billingPeriod: true } }, sourceProviderOrder: { select: { expiresAt: true } } } });
+      // "Cambiarme a este": suelta primero su lugar sin pagar en el otro grupo de la misma plataforma. Si
+      // entrar a este falla, la transacción entera se deshace y conserva su lugar anterior.
+      if (options.switchFromGroupId) {
+        if (options.switchFromGroupId === groupId) {
+          throw new BadRequestException('Elige un grupo distinto al que quieres dejar.');
+        }
+        await this.leaveInTx(tx, options.switchFromGroupId, userId, { onlyUnpaid: true });
+      }
+      const group = await tx.group.findUnique({ where: { id: groupId }, include: { credential: { select: { id: true } }, plan: { select: { billingPeriod: true, platform: { select: { name: true } } } }, sourceProviderOrder: { select: { expiresAt: true } } } });
       if (!group) {
         throw new NotFoundException('Grupo no encontrado.');
       }
@@ -788,20 +812,42 @@ export class GroupsService {
         include: { user: { select: { id: true, name: true, avatarUrl: true } } },
       });
 
+      const platform = group.plan.platform.name;
       if (reserveFreeingSeat) {
-        const platform = (await tx.plan.findUniqueOrThrow({ where: { id: group.planId }, include: { platform: { select: { name: true } } } })).platform.name;
+        const freeingOn = stats.freeingDate!.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', timeZone: 'UTC' });
         await this.notificationsService.create(tx, {
           userId: group.ownerId,
           type: NotificationType.SYSTEM,
           groupId,
-          payload: `${membership.user.name} apartó el lugar que se libera el ${stats.freeingDate!.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', timeZone: 'UTC' })} en tu grupo de ${platform}. No ha pagado nada: cuando el lugar quede libre se le generará su pago y tendrá 48 horas para cubrirlo.`,
+          payload: `${membership.user.name} apartó el lugar que se libera el ${freeingOn} en tu grupo de ${platform}. No ha pagado nada: cuando el lugar quede libre se le generará su pago y tendrá 48 horas para cubrirlo.`,
+        });
+        await this.notificationsService.create(tx, {
+          userId,
+          type: NotificationType.SEAT_RESERVED,
+          groupId,
+          payload: `Apartaste un lugar en el grupo de ${platform} que se libera el ${freeingOn}. No pagas nada por ahora: ese día te avisamos y tendrás 48 horas para transferir tu pago.`,
+          emailImmediate: true,
         });
       } else if (hasStarted) {
         // El miembro sube su comprobante (POST .../payments/receipt) y el owner lo revisa
         // (PUT .../payments/:paymentId/review) — solo al aprobar pasa a ACTIVE y desbloquea
         // la credencial. Si no paga dentro de las 48h, el cron diario libera el cupo.
-        await this.paymentsService.createInitialPayment(tx, group, membership.id);
+        const due = await this.paymentsService.createInitialPayment(tx, group, membership.id);
+        await this.notificationsService.create(tx, {
+          userId,
+          type: NotificationType.PAYMENT_DUE_SOON,
+          groupId,
+          payload: `Entraste al grupo de ${platform}. Tienes 48 horas para transferir $${due.amount.toFixed(2)} al vendedor y subir tu comprobante, o tu lugar se liberará.`,
+          emailImmediate: true,
+        });
       } else {
+        await this.notificationsService.create(tx, {
+          userId,
+          type: NotificationType.SEAT_RESERVED,
+          groupId,
+          payload: `Apartaste tu lugar en el grupo de ${platform}. No pagas nada por ahora: cuando el vendedor inicie el grupo te avisamos y tendrás 48 horas para transferir tu pago.`,
+          emailImmediate: true,
+        });
         await this.evaluateStartThreshold(tx, groupId);
       }
 
@@ -810,15 +856,43 @@ export class GroupsService {
   }
 
   async leave(groupId: string, userId: string): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const membership = await tx.groupMembership.findFirst({
-        where: { groupId, userId, status: { in: LIVE_MEMBERSHIP_STATUSES } },
-      });
-      if (!membership) {
-        throw new NotFoundException('No tienes una membresía activa en este grupo.');
-      }
-      await this.releaseMembership(tx, groupId, membership.id);
-      await this.evaluateStartThreshold(tx, groupId);
+    await this.prisma.$transaction((tx) => this.leaveInTx(tx, groupId, userId));
+  }
+
+  /**
+   * El comprador suelta su lugar (apartado, pagando o activo) y queda libre para otra persona. Si subió un
+   * comprobante que el vendedor aún no revisa no se le deja salir: ese dinero pudo haber llegado ya.
+   * `onlyUnpaid` (al cambiarse a otro grupo) solo permite soltar un lugar que todavía no ha pagado.
+   */
+  private async leaveInTx(tx: Prisma.TransactionClient, groupId: string, userId: string, options: { onlyUnpaid?: boolean } = {}): Promise<void> {
+    const membership = await tx.groupMembership.findFirst({
+      where: { groupId, userId, status: { in: LIVE_MEMBERSHIP_STATUSES } },
+      include: {
+        user: { select: { name: true } },
+        group: { select: { ownerId: true, plan: { select: { platform: { select: { name: true } } } } } },
+        payments: { where: { status: PaymentStatus.PENDING }, select: { id: true, receiptPath: true } },
+      },
+    });
+    if (!membership) {
+      throw new NotFoundException('No tienes un lugar en este grupo.');
+    }
+    if (options.onlyUnpaid && membership.status !== MembershipStatus.RESERVED && membership.status !== MembershipStatus.PENDING_PAYMENT) {
+      throw new BadRequestException('Ya pagaste tu lugar en el otro grupo; si quieres dejarlo, sal de él desde Mis grupos.');
+    }
+    if (membership.payments.some((p) => p.receiptPath)) {
+      throw new BadRequestException('Tu comprobante está en revisión con el vendedor. Espera a que lo revise antes de soltar tu lugar, o escríbele desde Soporte.');
+    }
+    await this.releaseMembership(tx, groupId, membership.id);
+    await this.evaluateStartThreshold(tx, groupId);
+
+    const wasReserved = membership.status === MembershipStatus.RESERVED || membership.status === MembershipStatus.PENDING_PAYMENT;
+    await this.notificationsService.create(tx, {
+      userId: membership.group.ownerId,
+      type: wasReserved ? NotificationType.SYSTEM : NotificationType.MEMBER_LEFT,
+      groupId,
+      payload: wasReserved
+        ? `${membership.user.name} soltó el lugar que había apartado en tu grupo de ${membership.group.plan.platform.name}. Ya quedó libre para otra persona.`
+        : memberLeftNotice({ memberName: membership.user.name, platform: membership.group.plan.platform.name, reason: 'left', hadAccess: true }),
     });
   }
 
@@ -855,6 +929,8 @@ export class GroupsService {
       where: { id: membershipId },
       data: { status: MembershipStatus.CANCELLED, leftAt: new Date() },
     });
+    // Cobros pendientes sin comprobante: nadie transfirió nada, así que no deben quedar colgados en Pagos.
+    await tx.payment.deleteMany({ where: { membershipId, status: PaymentStatus.PENDING, receiptPath: null } });
     // Libera su perfil de la cuenta compartida para que quede disponible para el siguiente comprador.
     await tx.groupProfile.updateMany({ where: { assignedMembershipId: membershipId }, data: { assignedMembershipId: null } });
 
@@ -1401,6 +1477,13 @@ export class GroupsService {
       notesEncrypted: dto.notes ? encrypt(dto.notes, key) : null,
     };
 
+    // ¿Cambió de verdad el acceso? (solo las notas no amerita avisar a todos)
+    const previous = await this.prisma.credential.findUnique({ where: { groupId } });
+    const accessChanged =
+      !previous ||
+      decrypt(previous.usernameEncrypted, key) !== dto.username ||
+      decrypt(previous.passwordEncrypted, key) !== dto.password;
+
     const credential = await this.prisma.$transaction(async (tx) => {
       const savedCredential = await tx.credential.upsert({
         where: { groupId },
@@ -1410,6 +1493,25 @@ export class GroupsService {
       await tx.credentialHistory.create({
         data: { groupId, changedByUserId: requester.id, changeReason: dto.changeReason },
       });
+
+      // Grupo ya aprobado y con un acceso nuevo: los miembros que siguen deben saber que la contraseña cambió.
+      // El aviso no incluye la contraseña; la ven dentro de Partly.
+      if (group.approvalStatus === GroupApprovalStatus.APPROVED && previous && accessChanged) {
+        const platform = (await tx.plan.findUniqueOrThrow({ where: { id: group.planId }, select: { platform: { select: { name: true } } } })).platform.name;
+        const members = await tx.groupMembership.findMany({
+          where: { groupId, status: { in: [MembershipStatus.ACTIVE, MembershipStatus.SUSPENDED] } },
+          select: { userId: true },
+        });
+        const reason = dto.changeReason?.trim();
+        for (const member of members) {
+          await this.notificationsService.create(tx, {
+            userId: member.userId,
+            type: NotificationType.CREDENTIAL_UPDATED,
+            groupId,
+            payload: `El vendedor actualizó el acceso de tu cuenta de ${platform}${reason ? ` (${reason})` : ''}. Entra a tu grupo para ver la contraseña nueva.`,
+          });
+        }
+      }
 
       if (group.approvalStatus === GroupApprovalStatus.PENDING) {
         await tx.group.update({
@@ -1567,6 +1669,35 @@ export class GroupsService {
       notes: credential.notesEncrypted ? decrypt(credential.notesEncrypted, key) : null,
       updatedAt: credential.updatedAt,
     });
+  }
+
+  /**
+   * Para el vendedor: si alguien que ya había pagado (y vio la contraseña) salió del grupo DESPUÉS de la última vez
+   * que actualizó las credenciales, hay un cambio de contraseña pendiente. Se quita solo al actualizarlas.
+   */
+  async getCredentialStatus(groupId: string, requester: AuthenticatedUser) {
+    const group = await this.prisma.group.findUnique({ where: { id: groupId }, select: { ownerId: true } });
+    if (!group) {
+      throw new NotFoundException('Grupo no encontrado.');
+    }
+    if (group.ownerId !== requester.id) {
+      throw new ForbiddenException('Solo el vendedor de este grupo puede ver este aviso.');
+    }
+    const credential = await this.prisma.credential.findUnique({ where: { groupId }, select: { updatedAt: true } });
+    if (!credential) {
+      return { rotationPending: false, since: null as Date | null, departures: 0, lastMemberName: null as string | null };
+    }
+    const where: Prisma.GroupMembershipWhereInput = {
+      groupId,
+      status: { in: [MembershipStatus.CANCELLED, MembershipStatus.FINISHED] },
+      leftAt: { gt: credential.updatedAt },
+      payments: { some: { status: PaymentStatus.PAID } },
+    };
+    const [last, departures] = await Promise.all([
+      this.prisma.groupMembership.findFirst({ where, orderBy: { leftAt: 'desc' }, include: { user: { select: { name: true } } } }),
+      this.prisma.groupMembership.count({ where }),
+    ]);
+    return { rotationPending: departures > 0, since: last?.leftAt ?? null, departures, lastMemberName: last?.user.name ?? null };
   }
 
   /** Historial de cambios (quién y cuándo) — no expone valores viejos, solo lo mismo que puede ver getCredential. */

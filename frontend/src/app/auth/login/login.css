@@ -176,6 +176,12 @@
 .platform-icons .disney { background: #123476; font-size: 10px; }
 .platform-pill > .material-symbols-outlined { font-size: 21px; }
 
+/* Recuperar contraseña */
+.login-alert.recovery-sent { color: #065f46; background: #ecfdf5; font-size: 13px; font-weight: 600; line-height: 1.5; }
+.recovery-note { margin: 14px 0 0; color: #666b80; font-size: 12px; font-weight: 600; line-height: 1.5; }
+.recovery-link { color: #059669; font: inherit; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+a.submit-button { margin-top: 18px; text-decoration: none; }
+
 .signup-row { margin-top: 26px; padding-top: 24px; border-top: 1px solid #e2e2e3; display: flex; align-items: center; justify-content: center; gap: 10px; color: #666b80; font-size: 13px; font-weight: 600; }
 .signup-row a { display: inline-flex; align-items: center; gap: 7px; color: #059669; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
 .signup-row .material-symbols-outlined { font-size: 25px; text-decoration: none; }

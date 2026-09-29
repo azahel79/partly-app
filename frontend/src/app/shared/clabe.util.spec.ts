@@ -22,4 +22,8 @@ describe('inspectClabe', () => {
     expect(inspectClabe(valid).isValid).toBe(true);
     expect(inspectClabe(`${base}${Number(valid[17]) === 9 ? 0 : Number(valid[17]) + 1}`).isValid).toBe(false);
   });
+
+  it('rechaza una secuencia repetida aunque pase el cálculo del verificador', () => {
+    expect(inspectClabe('000000000000000000').isValid).toBe(false);
+  });
 });

@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { PayoutAccountType } from '@prisma/client';
+import { IsBoolean, IsEnum, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateProfileDto {
   @ApiPropertyOptional({ example: 'Ana García' })
@@ -98,10 +99,19 @@ export class UpdateProfileDto {
   @MaxLength(80)
   payoutBankName?: string;
 
+  @ApiPropertyOptional({
+    example: '012180015978622507',
+    description: 'CLABE de 18 dígitos o número de tarjeta de débito de 16 dígitos.',
+  })
   @IsOptional()
   @IsString()
-  @Matches(/^\d{18}$/, { message: 'La CLABE debe contener exactamente 18 dígitos.' })
-  payoutClabe?: string;
+  @Matches(/^(?:\d{16}|\d{18})$/, { message: 'Usa una tarjeta de débito de 16 dígitos o una CLABE de 18.' })
+  payoutAccountNumber?: string;
+
+  @ApiPropertyOptional({ enum: PayoutAccountType })
+  @IsOptional()
+  @IsEnum(PayoutAccountType)
+  payoutAccountType?: PayoutAccountType;
 
   @IsOptional()
   @IsBoolean()

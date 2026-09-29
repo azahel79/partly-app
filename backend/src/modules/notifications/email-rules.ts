@@ -35,9 +35,14 @@ export const EMAIL_RULES: Partial<Record<NotificationType, EmailRule>> = {
   PAYMENT_DUE_SOON: { title: 'Tu pago está por vencer', audience: 'user', defer: true, cta: groupPay },
   PAYMENT_FAILED: { title: 'No pudimos procesar tu pago', audience: 'user', cta: groupPay },
   PAYMENT_CONFIRMED: { title: 'Pago confirmado', audience: 'user', cta: groupDetail },
+  MEMBERSHIP_ACTIVATED: { title: '¡Ya estás dentro del grupo!', audience: 'user', cta: (n) => ({ label: 'Ver mis credenciales', path: n.groupId ? `/panel/grupos/${n.groupId}` : '/panel/grupos' }) },
+  SEAT_RESERVED: { title: 'Apartaste tu lugar', audience: 'user', cta: groupDetail },
+  RENEWAL_CONFIRMED: { title: 'Tu renovación quedó confirmada', audience: 'user', cta: groupDetail },
   PAYMENT_RECEIPT_REJECTED: { title: 'Tu comprobante fue rechazado', audience: 'user', cta: groupPay },
   MEMBERSHIP_CANCELLED: { title: 'Tu membresía fue cancelada', audience: 'user', cta: () => ({ label: 'Explorar grupos', path: '/panel/explorar' }) },
   CREDENTIAL_UPDATED: { title: 'Cambiaron las credenciales de tu cuenta', audience: 'user', cta: groupDetail },
+  // el vendedor: salió alguien que ya conocía la contraseña
+  MEMBER_LEFT: { title: 'Alguien salió de tu grupo: cambia la contraseña', audience: 'user', cta: (n) => ({ label: 'Actualizar credenciales', path: n.groupId ? `/panel/grupos/${n.groupId}` : '/panel/grupos' }) },
   // el vendedor con comprobantes por revisar
   PAYMENT_RECEIPT_UPLOADED: { title: 'Tienes un comprobante por revisar', audience: 'user', cta: (n) => ({ label: 'Revisar comprobantes', path: n.groupId ? `/panel/grupos/${n.groupId}` : '/panel/grupos' }) },
   // el vendedor con un grupo que ya puede iniciar
@@ -51,6 +56,9 @@ export const EMAIL_RULES: Partial<Record<NotificationType, EmailRule>> = {
   COMMISSION_REJECTED: { title: 'Rechazamos tu comprobante de comisión', audience: 'user', cta: commissions },
   COMMISSION_PAID: { title: 'Recibimos tu pago de comisión', audience: 'user', cta: commissions },
   COMMISSION_RECEIPT_UPLOADED: { title: 'Comprobante de comisión por revisar', audience: 'admin', cta: () => ({ label: 'Revisar comisiones', path: '/admin/comisiones' }) },
+  COMMISSION_RATE_APPROVED: { title: 'Tu comisión bajó', audience: 'user', cta: commissions },
+  COMMISSION_RATE_REJECTED: { title: 'Sobre tu solicitud de comisión reducida', audience: 'user', cta: commissions },
+  COMMISSION_RATE_REQUESTED: { title: 'Nueva solicitud de comisión reducida', audience: 'admin', cta: () => ({ label: 'Revisar solicitudes', path: '/admin/comisiones' }) },
   // mayoreo
   PROVIDER_ORDER_APPROVED: { title: 'Tu compra al mayoreo avanzó', audience: 'user', cta: wholesale },
   PROVIDER_ORDER_DELIVERED: { title: 'Tu cuenta de mayoreo está lista', audience: 'user', cta: wholesale },

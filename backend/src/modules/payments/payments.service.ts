@@ -13,6 +13,8 @@ import { PaymentResponseDto } from './dto/payment-response.dto';
 import { ListPendingPaymentsQueryDto } from './dto/list-pending-payments-query.dto';
 import { ReviewPaymentReceiptDto } from './dto/review-payment-receipt.dto';
 import { ListAdminPaymentsQueryDto, ReceiptFilter } from './dto/list-admin-payments-query.dto';
+import { memberLeftNotice } from '../../common/utils/member-left.util';
+import { wholesaleCoversNextPeriod } from '../../common/utils/wholesale-coverage.util';
 
 const GRACE_PERIOD_MS = 48 * 60 * 60 * 1000; // 48 horas de gracia tras la fecha de corte
 // Plazo para cubrir el primer pago: cuentan desde que el pago se genera (al iniciar el
@@ -21,6 +23,8 @@ const FIRST_PAYMENT_WINDOW_MS = 48 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 // La renovación se cobra por adelantado: el cobro del ciclo siguiente se genera 3 días antes del corte.
 const RENEWAL_WINDOW_MS = 3 * DAY_MS;
+/** Inicio del aviso de "cobros en pausa por la cuenta de mayoreo" (se busca por él para no repetirlo). */
+const RENEWAL_ON_HOLD_PREFIX = 'No generamos los cobros de renovación';
 
 const EXTENSION_BY_MIMETYPE: Record<string, string> = {
   'image/jpeg': '.jpg',
@@ -138,7 +142,7 @@ export class PaymentsService {
    * en el ciclo de facturación abierto del grupo (lo crea si es el primer miembro) con
    * un monto prorrateado según los días que le quedan a ese ciclo.
    */
-  async createInitialPayment(tx: Prisma.TransactionClient, group: GroupForBilling, membershipId: string): Promise<void> {
+  async createInitialPayment(tx: Prisma.TransactionClient, group: GroupForBilling, membershipId: string): Promise<{ amount: number; graceUntil: Date }> {
     const now = new Date();
     let cycle = await tx.billingCycle.findFirst({ where: { groupId: group.id, status: BillingCycleStatus.OPEN } });
     if (!cycle) {
@@ -153,6 +157,7 @@ export class PaymentsService {
     }
 
     const pricing = computeJoinPricing(Number(group.pricePerSlot), cycle.periodStart, cycle.periodEnd, group.plan.billingPeriod, now);
+    const graceUntil = new Date(now.getTime() + FIRST_PAYMENT_WINDOW_MS);
 
     await tx.payment.create({
       data: {
@@ -166,7 +171,7 @@ export class PaymentsService {
         includesNextCycle: pricing.includesNextCycle,
         // 48h para pagar desde que entra, no hasta el corte: así el cupo no queda apartado
         // semanas por alguien que nunca transfirió.
-        graceUntil: new Date(now.getTime() + FIRST_PAYMENT_WINDOW_MS),
+        graceUntil,
       },
     });
 
@@ -174,6 +179,7 @@ export class PaymentsService {
     if (pricing.includesNextCycle) {
       await tx.groupMembership.update({ where: { id: membershipId }, data: { currentPeriodEnd: pricing.coveredUntil } });
     }
+    return { amount: pricing.amountToPay, graceUntil };
   }
 
   /**
@@ -233,7 +239,7 @@ export class PaymentsService {
       userId: membership.userId,
       type: NotificationType.PAYMENT_DUE_SOON,
       groupId: membership.groupId,
-      payload: `${intro} Tu lugar en "${group.plan.platform.name}" se renueva el ${this.dateLabel(cycle.periodEnd)}: transfiere $${group.pricePerSlot.toString()} y sube tu comprobante antes de esa fecha para seguir usando la cuenta el mes siguiente. Si no quieres renovar, desactiva la renovación automática desde el grupo.`,
+      payload: `${intro} Tu lugar en "${group.plan.platform.name}" se renueva el ${this.periodDateLabel(cycle.periodEnd)}: transfiere $${group.pricePerSlot.toString()} y sube tu comprobante antes de esa fecha para seguir usando la cuenta el mes siguiente. Si no quieres renovar, desactiva la renovación automática desde el grupo.`,
       emailDedupeKey: `payment-reminder:${payment.id}:1`,
     });
   }
@@ -250,11 +256,18 @@ export class PaymentsService {
         periodEnd: { gt: now, lte: new Date(now.getTime() + RENEWAL_WINDOW_MS) },
         group: { startedAt: { not: null }, status: { in: [GroupStatus.ACTIVE, GroupStatus.FULL] } },
       },
-      include: { group: { include: { plan: { include: { platform: { select: { name: true } } } } } } },
+      include: {
+        group: { include: { plan: { include: { platform: { select: { name: true } } } }, sourceProviderOrder: { select: { expiresAt: true, renewable: true } } } },
+      },
     });
 
     let created = 0;
     for (const cycle of cycles) {
+      const account = cycle.group.sourceProviderOrder;
+      if (account && !wholesaleCoversNextPeriod(account.expiresAt, cycle.periodEnd, cycle.group.plan.billingPeriod)) {
+        await this.notifyRenewalOnHold(cycle, account);
+        continue;
+      }
       const members = await this.prisma.groupMembership.findMany({
         where: {
           groupId: cycle.groupId,
@@ -277,6 +290,33 @@ export class PaymentsService {
   }
 
   /**
+   * Avisa una sola vez por ciclo al vendedor que no se generaron los cobros de renovación porque su cuenta de mayoreo
+   * vence antes de que termine el siguiente periodo. En cuanto la renueva o la repone, el proceso diario los genera.
+   */
+  private async notifyRenewalOnHold(
+    cycle: { id: string; groupId: string; periodStart: Date; group: { ownerId: string; plan: { platform: { name: string } } } },
+    account: { expiresAt: Date | null; renewable: boolean },
+  ): Promise<void> {
+    const already = await this.prisma.notification.findFirst({
+      where: { userId: cycle.group.ownerId, groupId: cycle.groupId, type: NotificationType.SYSTEM, payload: { startsWith: RENEWAL_ON_HOLD_PREFIX }, createdAt: { gte: cycle.periodStart } },
+      select: { id: true },
+    });
+    if (already) return;
+    const action = account.renewable ? 'Renuévala' : 'Compra su reposición';
+    const expired = !!account.expiresAt && account.expiresAt.getTime() < Date.now();
+    await this.prisma.$transaction((tx) =>
+      this.notificationsService.create(tx, {
+        userId: cycle.group.ownerId,
+        type: NotificationType.SYSTEM,
+        groupId: cycle.groupId,
+        payload: `${RENEWAL_ON_HOLD_PREFIX} de tu grupo de ${cycle.group.plan.platform.name} porque su cuenta de mayoreo ${expired ? 'ya venció' : 'vence'}${account.expiresAt ? ' el ' + this.dateLabel(account.expiresAt) : ''}${expired ? '' : ', antes de que termine el siguiente periodo'}. ${action} en Mayoreo y los cobros saldrán solos esa misma noche; así tus miembros no pagan por una cuenta que puede dejar de funcionar.`,
+        emailImmediate: true,
+      }),
+    );
+    this.logger.log(`Cobros de renovación en pausa (cuenta de mayoreo por vencer) en el ciclo ${cycle.id}.`);
+  }
+
+  /**
    * Si el comprador vuelve a encender su renovación cuando ya se abrió la ventana de 3 días, se le genera el cobro
    * en ese momento (el proceso diario ya pasó y no se lo generaría a tiempo).
    */
@@ -284,13 +324,17 @@ export class PaymentsService {
     const now = new Date();
     const membership = await tx.groupMembership.findUnique({
       where: { id: membershipId },
-      include: { group: { include: { plan: { include: { platform: { select: { name: true } } } } } } },
+      include: { group: { include: { plan: { include: { platform: { select: { name: true } } } }, sourceProviderOrder: { select: { expiresAt: true } } } } },
     });
     if (!membership || membership.status !== MembershipStatus.ACTIVE || !membership.group.startedAt) {
       return;
     }
     const cycle = await tx.billingCycle.findFirst({ where: { groupId: membership.groupId, status: BillingCycleStatus.OPEN } });
     if (!cycle || cycle.periodEnd <= now || cycle.periodEnd.getTime() - now.getTime() > RENEWAL_WINDOW_MS) {
+      return;
+    }
+    // Mismo freno que en generateRenewalCharges: no se cobra si la cuenta de mayoreo no cubre el siguiente mes.
+    if (membership.group.sourceProviderOrder && !wholesaleCoversNextPeriod(membership.group.sourceProviderOrder.expiresAt, cycle.periodEnd, membership.group.plan.billingPeriod)) {
       return;
     }
     const exists = await tx.payment.findFirst({ where: { membershipId, billingCycleId: cycle.id, forNextCycle: true }, select: { id: true } });
@@ -494,7 +538,7 @@ export class PaymentsService {
 
   /** Aprueba (acredita al owner, igual que antes) o rechaza (borra el comprobante y avisa por qué) — owner o ADMIN. */
   async reviewReceipt(groupId: string, paymentId: string, dto: ReviewPaymentReceiptDto, requester: AuthenticatedUser) {
-    const group = await this.prisma.group.findUnique({ where: { id: groupId }, include: { plan: true } });
+    const group = await this.prisma.group.findUnique({ where: { id: groupId }, include: { plan: { include: { platform: { select: { name: true } } } } } });
     if (!group) {
       throw new NotFoundException('Grupo no encontrado.');
     }
@@ -530,6 +574,8 @@ export class PaymentsService {
           throw new BadRequestException('Este pago ya fue revisado por otra solicitud.');
         }
         const paid = await tx.payment.findUniqueOrThrow({ where: { id: payment.id } });
+        // Perfil que se le asigna si es su primer pago (para el aviso de bienvenida).
+        let assignedProfileLabel: string | null = null;
 
         // Primer pago aprobado de esta membresía: la pasa de PENDING_PAYMENT a ACTIVE,
         // lo que desbloquea la credencial (getCredential exige ACTIVE). En renovaciones ya
@@ -554,6 +600,7 @@ export class PaymentsService {
           if (profileUpdateResult.count === 0) {
             throw new BadRequestException('Ese perfil ya está asignado a otro miembro. Elige uno libre.');
           }
+          assignedProfileLabel = profile.label;
 
           await tx.groupMembership.update({
             where: { id: payment.membership.id },
@@ -585,11 +632,29 @@ export class PaymentsService {
         });
         await this.commissionsService.billDueEntries(tx, group.ownerId);
 
+        // El primer pago lo vuelve miembro: se le da la bienvenida y se le dice dónde ver las credenciales
+        // (nunca van en el aviso). En una renovación se le confirma hasta cuándo sigue.
+        const platform = group.plan.platform.name;
+        const amount = `$${payment.amount.toString()}`;
         await this.notificationsService.create(tx, {
           userId: payment.membership.userId,
           groupId: group.id,
-          type: NotificationType.PAYMENT_CONFIRMED,
-          payload: `Tu pago de $${payment.amount.toString()} fue confirmado.`,
+          ...(assignedProfileLabel
+            ? {
+                type: NotificationType.MEMBERSHIP_ACTIVATED,
+                payload: `El vendedor confirmó tu pago de ${amount} y ya eres parte del grupo de ${platform}. Tu perfil es "${assignedProfileLabel}". Entra a Partly para ver el correo y la contraseña de la cuenta.`,
+                emailImmediate: true,
+              }
+            : payment.forNextCycle && payment.coveredUntil
+              ? {
+                  type: NotificationType.RENEWAL_CONFIRMED,
+                  payload: `El vendedor confirmó tu pago de ${amount}. Tu lugar en ${platform} queda renovado: sigues usando la cuenta hasta el ${this.periodDateLabel(payment.coveredUntil)}. Tu próximo cobro se generará 3 días antes de esa fecha.`,
+                  emailImmediate: true,
+                }
+              : {
+                  type: NotificationType.PAYMENT_CONFIRMED,
+                  payload: `El vendedor confirmó tu pago de ${amount} en el grupo de ${platform}.`,
+                }),
         });
 
         return paid;
@@ -674,7 +739,14 @@ export class PaymentsService {
     const overdue = await this.prisma.payment.findMany({
       // Quien ya subió su comprobante cumplió: ahora le toca al vendedor revisarlo, y esa demora no le cuesta el lugar.
       where: { status: PaymentStatus.PENDING, graceUntil: { lt: now }, receiptPath: null },
-      include: { membership: true },
+      include: {
+        membership: {
+          include: {
+            user: { select: { name: true } },
+            group: { select: { ownerId: true, plan: { select: { platform: { select: { name: true } } } } } },
+          },
+        },
+      },
     });
 
     for (const payment of overdue) {
@@ -707,6 +779,14 @@ export class PaymentsService {
           type: NotificationType.MEMBERSHIP_CANCELLED,
           groupId: membership.groupId,
           payload: 'Se te removió del grupo por no confirmar tu pago dentro de las 48 horas de gracia.',
+        });
+        // Si ya tenía acceso (era una renovación), vio la contraseña: se le pide al vendedor cambiarla.
+        const hadAccess = payment.membership.status === MembershipStatus.ACTIVE || payment.membership.status === MembershipStatus.SUSPENDED;
+        await this.notificationsService.create(tx, {
+          userId: payment.membership.group.ownerId,
+          type: hadAccess ? NotificationType.MEMBER_LEFT : NotificationType.SYSTEM,
+          groupId: membership.groupId,
+          payload: memberLeftNotice({ memberName: payment.membership.user.name, platform: payment.membership.group.plan.platform.name, reason: 'unpaid', hadAccess }),
         });
       });
 
@@ -750,8 +830,8 @@ export class PaymentsService {
         });
         await this.notificationsService.create(tx, {
           userId: membership.group.ownerId,
-          type: NotificationType.SYSTEM,
-          payload: `${membership.user.name} terminó su periodo y no renovó. Su lugar en tu grupo de ${platform} quedó libre.`,
+          type: NotificationType.MEMBER_LEFT,
+          payload: memberLeftNotice({ memberName: membership.user.name, platform, reason: 'not_renewed', hadAccess: true }),
           groupId: membership.groupId,
         });
       });
@@ -763,10 +843,15 @@ export class PaymentsService {
     const now = new Date();
     const readyToClose = await this.prisma.billingCycle.findMany({
       where: { status: BillingCycleStatus.OPEN, periodEnd: { lte: new Date(now.getTime() - GRACE_PERIOD_MS) } },
-      include: { group: { include: { plan: true } } },
+      include: { group: { include: { plan: true, sourceProviderOrder: { select: { expiresAt: true } } } } },
     });
 
     for (const cycle of readyToClose) {
+      // Cuenta de mayoreo sin renovar: el grupo se queda en su ciclo (nadie paga ni sale) hasta que el vendedor la
+      // renueve o la reponga; ese día pasa al siguiente mes y a los miembros se les genera su cobro.
+      if (cycle.group.sourceProviderOrder && !wholesaleCoversNextPeriod(cycle.group.sourceProviderOrder.expiresAt, cycle.periodEnd, cycle.group.plan.billingPeriod)) {
+        continue;
+      }
       await this.prisma.$transaction(async (tx) => {
         await tx.billingCycle.update({ where: { id: cycle.id }, data: { status: BillingCycleStatus.CLOSED } });
 
@@ -840,8 +925,14 @@ export class PaymentsService {
     }
   }
 
+  /** Fecha de un plazo real (hasta cuándo subir el comprobante), en hora de México. */
   private dateLabel(date: Date): string {
     return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', timeZone: 'America/Mexico_City' });
+  }
+
+  /** Fecha de corte o de fin de periodo: se guardan a medianoche UTC y la web las muestra en UTC; aquí igual, para no correrse un día. */
+  private periodDateLabel(date: Date): string {
+    return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', timeZone: 'UTC' });
   }
 
   /**
@@ -887,10 +978,10 @@ export class PaymentsService {
           const daysLeft = Math.ceil((due.getTime() - now.getTime()) / DAY_MS);
           if (daysLeft <= 1) {
             stage = 2;
-            payload = `Tu renovación de ${amount} de "${platform}" vence hoy o mañana (${this.dateLabel(due)}). Sube tu comprobante para no perder tu lugar.`;
+            payload = `Tu renovación de ${amount} de "${platform}" vence hoy o mañana (${this.periodDateLabel(due)}). Sube tu comprobante para no perder tu lugar.`;
           } else if (daysLeft <= 3) {
             stage = 1;
-            payload = `Tu renovación de ${amount} de "${platform}" vence el ${this.dateLabel(due)}. Transfiere a tiempo y sube tu comprobante.`;
+            payload = `Tu renovación de ${amount} de "${platform}" vence el ${this.periodDateLabel(due)}. Transfiere a tiempo y sube tu comprobante.`;
           }
         }
       }

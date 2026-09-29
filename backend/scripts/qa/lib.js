@@ -9,6 +9,8 @@ const DAY = 86_400_000;
 const HOUR = 3_600_000;
 /** Todos los grupos que crean las pruebas llevan este prefijo en el plan: así se reconocen y se borran. */
 const QA_PREFIX = 'QA ';
+/** Correo de las cuentas desechables de cada corrida (dominio reservado que no existe: nunca recibe nada). */
+const QA_EMAIL_DOMAIN = '@partly-qa.test';
 
 function readEnv() {
   const env = {};
@@ -73,25 +75,27 @@ async function createRun() {
     // Las pruebas corren las tareas diarias (cobros, recordatorios) sobre toda la base: nunca contra datos reales.
     throw new Error('El .env es de producción. Estas pruebas solo se corren en desarrollo.');
   }
-  const configPath = path.join(__dirname, 'qa-users.json');
-  if (!fs.existsSync(configPath)) {
-    throw new Error('Falta scripts/qa/qa-users.json. Cópialo de qa-users.example.json y pon correos de cuentas de prueba ya registradas.');
-  }
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  const find = async (email) => {
-    const user = await prisma.user.findFirst({ where: { email: email.toLowerCase(), deletedAt: null } });
-    if (!user) throw new Error(`No existe la cuenta ${email} (revisa qa-users.json).`);
-    return user;
-  };
-  const admin = await find(config.admin);
-  const seller = await find(config.vendedor);
-  const buyers = await Promise.all((config.compradores || []).map(find));
-  if (admin.role !== 'ADMIN') throw new Error(`${config.admin} no es administrador.`);
-  if (buyers.length < 4) throw new Error('qa-users.json necesita al menos 4 compradores.');
-  if ([seller, ...buyers].some((u) => u.role === 'ADMIN')) throw new Error('El vendedor y los compradores deben ser cuentas normales (no admin).');
-
   const health = await fetch(`${API}/health/live`).catch(() => null);
   if (!health || !health.ok) throw new Error(`La API no responde en ${API}. Arráncala (npm run start:dev) antes de correr las pruebas.`);
+
+  // Cuentas desechables solo para esta corrida: nunca se usan personas reales (con el correo real encendido les
+  // llegarían avisos de prueba). Tienen los correos apagados, así la app no les manda nada, y se borran al final.
+  const stamp = Date.now().toString(36);
+  const makeUser = (name, role) =>
+    prisma.user.create({
+      data: {
+        name,
+        email: `qa.${name.split(' ').pop().toLowerCase()}.${stamp}${QA_EMAIL_DOMAIN}`,
+        role,
+        emailVerified: true,
+        emailNotifications: false,
+        phone: '5500000000',
+      },
+    });
+  const admin = await makeUser('QA Admin', 'ADMIN');
+  const seller = await makeUser('QA Vendedor', 'USER');
+  const buyers = [];
+  for (const name of ['QA Ana', 'QA Beto', 'QA Caro', 'QA Dani']) buyers.push(await makeUser(name, 'USER'));
 
   process.chdir(BACKEND);
   const { NestFactory } = require('@nestjs/core');
@@ -123,7 +127,7 @@ async function createRun() {
   return run;
 }
 
-/** Crea un grupo de prueba ya aprobado (comisión 10%) y con credenciales, sin miembros. */
+/** Crea un grupo de prueba ya aprobado (comisión fija del 9%) y con credenciales, sin miembros. */
 async function createApprovedGroup(run, { name, price = 60, slots = 4 }) {
   const S = token(run.seller), A = token(run.admin);
   const created = await call('POST', '/groups', S, {
@@ -133,7 +137,6 @@ async function createApprovedGroup(run, { name, price = 60, slots = 4 }) {
   if (created.status >= 300) throw new Error('No se pudo crear el grupo de prueba: ' + JSON.stringify(created.body));
   const groupId = run.track(created.body.id);
   for (const [method, route, tok, body] of [
-    ['PUT', `/groups/${groupId}/commission`, A, { commissionPercentage: 10 }],
     ['POST', `/groups/${groupId}/request-credentials`, A, {}],
     ['PUT', `/groups/${groupId}/credential`, S, { username: 'qa@partly.test', password: 'Secreta123' }],
     ['PUT', `/groups/${groupId}/approval`, A, { status: 'APPROVED' }],
@@ -176,8 +179,12 @@ async function deleteReceiptFiles(paths) {
 async function deleteGroup(groupId) {
   const payments = await prisma.payment.findMany({ where: { membership: { groupId } }, select: { receiptPath: true } });
   await deleteReceiptFiles(payments.map((p) => p.receiptPath).filter(Boolean));
+  // Las ganancias de prueba pudieron sumarse a un cobro de comisión que ya existía (real): se anotan ANTES de
+  // borrar los pagos (al borrarlos, la base borra en cascada sus ganancias) y el cobro se recalcula al final.
+  const touchedCharges = (await prisma.earningEntry.findMany({ where: { groupId, chargeId: { not: null } }, select: { chargeId: true }, distinct: ['chargeId'] })).map((e) => e.chargeId);
   await prisma.payment.deleteMany({ where: { membership: { groupId } } });
   await prisma.earningEntry.deleteMany({ where: { groupId } });
+  await recalcCharges(touchedCharges);
   await prisma.groupProfile.deleteMany({ where: { groupId } });
   await prisma.review.deleteMany({ where: { groupId } });
   await prisma.incident.deleteMany({ where: { groupMembership: { groupId } } }).catch(() => {});
@@ -192,6 +199,21 @@ async function deleteGroup(groupId) {
     await prisma.group.delete({ where: { id: groupId } });
     if ((await prisma.group.count({ where: { planId: group.planId } })) === 0) {
       await prisma.plan.delete({ where: { id: group.planId } }).catch(() => {});
+    }
+  }
+}
+
+/** Recalcula cobros de comisión con sus entradas actuales; si ya no les queda ninguna (eran solo de prueba) se borran. */
+async function recalcCharges(chargeIds) {
+  for (const id of chargeIds) {
+    const charge = await prisma.commissionCharge.findUnique({ where: { id }, include: { entries: { select: { commission: true } } } });
+    if (!charge) continue;
+    if (charge.entries.length === 0) {
+      if (charge.receiptPath) await deleteReceiptFiles([charge.receiptPath]);
+      await prisma.commissionCharge.delete({ where: { id } });
+    } else {
+      const amount = Math.round(charge.entries.reduce((sum, e) => sum + Number(e.commission), 0) * 100) / 100;
+      await prisma.commissionCharge.update({ where: { id }, data: { amount } });
     }
   }
 }
@@ -219,14 +241,43 @@ async function cleanup(run) {
   for (const groupId of groups) await deleteGroup(groupId);
   await tidyCommissionCharges(run.startedAt);
   await prisma.notification.deleteMany({ where: { createdAt: { gte: run.startedAt }, groupId: null, userId: { in: run.users.map((u) => u.id) } } });
-  await prisma.emailMessage.deleteMany({ where: { createdAt: { gte: run.startedAt } } });
+  // Solo los correos de las cuentas de la corrida: mientras corre, la app puede estar mandando correos reales a otras personas.
+  await prisma.emailMessage.deleteMany({ where: { createdAt: { gte: run.startedAt }, toUserId: { in: run.users.map((u) => u.id) } } });
+  // Solicitudes de comisión reducida de prueba y su bitácora de revisión.
+  await prisma.commissionRateRequest.deleteMany({ where: { createdAt: { gte: run.startedAt } } });
+  await prisma.adminActionLog.deleteMany({ where: { createdAt: { gte: run.startedAt }, actionType: { startsWith: 'COMMISSION_RATE_' } } });
   const newPlatforms = await prisma.platform.findMany({ where: { id: { notIn: [...run.platformIdsBefore] } }, include: { _count: { select: { plans: true } } } });
   for (const p of newPlatforms) if (p._count.plans === 0) await prisma.platform.delete({ where: { id: p.id } }).catch(() => {});
+  await deleteQaUsers(run.users.map((u) => u.id));
   return groups.size;
+}
+
+/** Borra las cuentas desechables de una corrida con todo lo que quedó a su nombre fuera de los grupos de prueba. */
+async function deleteQaUsers(ids) {
+  if (ids.length === 0) return;
+  const owned = await prisma.group.findMany({ where: { ownerId: { in: ids } }, select: { id: true } });
+  for (const g of owned) await deleteGroup(g.id);
+  const where = { in: ids };
+  await prisma.groupMembership.deleteMany({ where: { userId: where } });
+  await prisma.earningEntry.deleteMany({ where: { sellerId: where } });
+  await prisma.commissionCharge.deleteMany({ where: { sellerId: where } });
+  await prisma.commissionRateRequest.deleteMany({ where: { sellerId: where } });
+  await prisma.incidentMessage.deleteMany({ where: { authorUserId: where } });
+  await prisma.incident.deleteMany({ where: { OR: [{ reportedByUserId: where }, { assignedToUserId: where }] } });
+  await prisma.providerOrder.deleteMany({ where: { buyerUserId: where } });
+  await prisma.credentialHistory.deleteMany({ where: { changedByUserId: where } });
+  await prisma.adminActionLog.deleteMany({ where: { adminUserId: where } });
+  await prisma.emailMessage.deleteMany({ where: { toUserId: where } });
+  await prisma.user.deleteMany({ where: { id: where } });
+}
+
+/** Cuentas desechables que quedaron de corridas interrumpidas. */
+async function strayQaUserIds() {
+  return (await prisma.user.findMany({ where: { email: { endsWith: QA_EMAIL_DOMAIN } }, select: { id: true } })).map((u) => u.id);
 }
 
 module.exports = {
   BACKEND, ENV, API, DAY, HOUR, QA_PREFIX, prisma,
   token, call, receipt, travel, setCycleEndIn,
-  createRun, createApprovedGroup, buildGroup, deleteGroup, tidyCommissionCharges, cleanup,
+  createRun, createApprovedGroup, buildGroup, deleteGroup, tidyCommissionCharges, cleanup, deleteQaUsers, strayQaUserIds,
 };

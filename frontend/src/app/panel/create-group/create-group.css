@@ -104,3 +104,22 @@ input:disabled{opacity:.6;cursor:not-allowed;background:#f4f5f8}
 /* Rediseño: sufijo de moneda sin partirse y título de un solo color */
 .money-input b, .money-input span { white-space: nowrap; flex-shrink: 0; }
 h1 em { color: inherit; }
+
+/* Cuentas de mayoreo listas para publicar (paso 1) */
+.wholesale-picks { margin: 0 0 22px; padding: 16px; border: 1px solid #cdeee2; border-radius: 14px; background: #f0faf6; }
+.wholesale-picks-title { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; color: #065f46; font-size: 13px; font-weight: 800; }
+.wholesale-picks-title .material-symbols-outlined { font-size: 19px; }
+.wholesale-pick { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #e3e8ee; border-radius: 12px; background: #fff; }
+.wholesale-pick + .wholesale-pick { margin-top: 8px; }
+.wholesale-pick-logo { width: 38px; height: 38px; flex: 0 0 auto; border-radius: 10px; font-size: 12px; font-weight: 900; }
+.wholesale-pick-copy { display: grid; flex: 1; min-width: 0; }
+.wholesale-pick-copy strong { overflow: hidden; color: #111735; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.wholesale-pick-copy small { margin-top: 2px; color: #59627c; font-size: 12px; }
+.wholesale-picks-hint { margin: 10px 0 0; color: #4a6b60; font-size: 12px; }
+:host-context(html.dark) .wholesale-picks { border-color: rgba(94, 234, 212, 0.25); background: rgba(68, 228, 182, 0.08); }
+:host-context(html.dark) .wholesale-picks-title { color: #5eead4; }
+:host-context(html.dark) .wholesale-pick { border-color: var(--dm-line-strong); background: var(--dm-surface); }
+:host-context(html.dark) .wholesale-pick-copy strong { color: var(--dm-text); }
+:host-context(html.dark) .wholesale-pick-copy small, :host-context(html.dark) .wholesale-picks-hint { color: var(--dm-muted); }
+@media (max-width: 560px) { .wholesale-pick { flex-wrap: wrap; } .wholesale-pick .ui-btn { width: 100%; } }
+

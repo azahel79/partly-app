@@ -6,14 +6,17 @@ import {
   AdminCommissionCharge,
   AdminCommissionsPage,
   AdminCommissionsSummary,
+  AdminRateRequestsPage,
   BankAccountInput,
   CommissionCharge,
   CommissionChargeStatus,
   CommissionStatus,
   EarningEntriesPage,
   EarningsSummary,
+  MyCommissionRate,
   MyCommissions,
   PlatformBankAccount,
+  RateRequestStatus,
 } from './commissions.models';
 import { toErrorMessage } from './http-error.util';
 import { ReminderResult } from './mail.models';
@@ -80,6 +83,24 @@ export class CommissionsService {
   /** El comprobante requiere sesión: se descarga como blob y se abre desde un object URL. */
   getReceiptBlob(chargeId: string): Observable<Blob> {
     return this.http.get(`${API_BASE_URL}/commissions/${chargeId}/receipt`, { responseType: 'blob' }).pipe(catchError(fail));
+  }
+
+  // ---- comisión reducida
+  getMyRate(): Observable<MyCommissionRate> {
+    return this.http.get<MyCommissionRate>(`${API_BASE_URL}/commissions/rate`).pipe(catchError(fail));
+  }
+
+  requestRate(message?: string): Observable<MyCommissionRate> {
+    return this.http.post<MyCommissionRate>(`${API_BASE_URL}/commissions/rate/request`, message ? { message } : {}).pipe(catchError(fail));
+  }
+
+  findRateRequests(status: RateRequestStatus = 'PENDING', page = 1, limit = 20): Observable<AdminRateRequestsPage> {
+    const params = new HttpParams().set('status', status).set('page', page).set('limit', limit);
+    return this.http.get<AdminRateRequestsPage>(`${API_BASE_URL}/admin/commission-rate-requests`, { params }).pipe(catchError(fail));
+  }
+
+  reviewRateRequest(id: string, input: { approve: boolean; rate?: number; note?: string }): Observable<{ id: string; status: RateRequestStatus }> {
+    return this.http.put<{ id: string; status: RateRequestStatus }>(`${API_BASE_URL}/admin/commission-rate-requests/${id}`, input).pipe(catchError(fail));
   }
 
   // ---- admin

@@ -1,6 +1,6 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideClientHydration } from '@angular/platform-browser';
+import { provideClientHydration, withNoIncrementalHydration } from '@angular/platform-browser';
 import { provideRouter, withInMemoryScrolling, withRouterConfig } from '@angular/router';
 import { routes } from './app.routes';
 import { authInterceptor } from './shared/auth.interceptor';
@@ -8,7 +8,9 @@ import { authInterceptor } from './shared/auth.interceptor';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideClientHydration(),
+    // Sin hidratación incremental (no usamos bloques `@defer` con `hydrate`): así el HTML prerenderizado no
+    // lleva los scripts en línea de "event replay", que la CSP (script-src 'self') bloquearía.
+    provideClientHydration(withNoIncrementalHydration()),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(
       routes,

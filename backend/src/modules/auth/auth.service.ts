@@ -216,7 +216,7 @@ export class AuthService {
     });
 
     const frontendUrl = this.configService.get<string>('frontendUrl');
-    const resetUrl = new URL('/reset-password', frontendUrl);
+    const resetUrl = new URL('/restablecer-contrasena', frontendUrl);
     resetUrl.searchParams.set('token', resetTokenPlain);
     await this.mailService.sendPasswordResetEmail(user.email, resetUrl.toString());
 

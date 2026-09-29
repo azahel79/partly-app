@@ -56,7 +56,7 @@
           <section class="content-card seller-card">
             <div class="card-heading compact"><span class="heading-icon blue"><span class="material-symbols-outlined">person</span></span><div><h3>Vendedor</h3></div></div>
             <div class="seller-row"><div class="seller-avatar">{{ g.owner.name.charAt(0) }}</div><div class="seller-copy"><div><strong>{{ g.owner.name }}</strong>@if (g.owner.emailVerified) { <span>Vendedor verificado</span> }</div><p>⭐ {{ g.owner.ratingAvg }} · {{ g.sellerSalesCount }} ventas</p><small>Vendedor desde {{ formatDate(g.owner.memberSince) }}</small></div>
-              @if (!messaging()) { <div class="seller-actions">@if (g.approvalStatus === 'PENDING' && g.credentialReviewStatus !== 'SUBMITTED') { <button type="button" class="credential-button" [disabled]="requestingCredentials() || !g.commissionPercentage" [attr.title]="!g.commissionPercentage ? 'Primero define y avisa la comisión al vendedor' : null" (click)="requestCredentials()"><span class="material-symbols-outlined">key</span>{{ requestingCredentials() ? 'Enviando…' : g.credentialReviewStatus === 'REQUESTED' ? 'Volver a solicitar credenciales' : 'Pedir credenciales' }}</button> }<button type="button" class="outline-button" (click)="startMessage()"><span class="material-symbols-outlined">mail</span>Enviar mensaje específico</button></div>@if (g.approvalStatus === 'PENDING' && g.credentialReviewStatus !== 'SUBMITTED' && !g.commissionPercentage) { <p class="credential-lock-hint"><span class="material-symbols-outlined">lock</span>Primero define la comisión (tarjeta "Comisión de Partly"): el vendedor debe conocerla antes de que le pidas las credenciales.</p> } }
+              @if (!messaging()) { <div class="seller-actions">@if (g.approvalStatus === 'PENDING' && g.credentialReviewStatus !== 'SUBMITTED') { <button type="button" class="credential-button" [disabled]="requestingCredentials()" (click)="requestCredentials()"><span class="material-symbols-outlined">key</span>{{ requestingCredentials() ? 'Enviando…' : g.credentialReviewStatus === 'REQUESTED' ? 'Volver a solicitar credenciales' : 'Pedir credenciales' }}</button> }<button type="button" class="outline-button" (click)="startMessage()"><span class="material-symbols-outlined">mail</span>Enviar mensaje específico</button></div>@if (g.approvalStatus === 'PENDING' && g.credentialReviewStatus !== 'SUBMITTED' && !g.commissionPercentage) { <p class="credential-lock-hint"><span class="material-symbols-outlined">lock</span>Primero define la comisión (tarjeta "Comisión de Partly"): el vendedor debe conocerla antes de que le pidas las credenciales.</p> } }
             </div>
             @if (messageSent()) { <p class="success-message"><span class="material-symbols-outlined">check_circle</span>{{ sentConfirmation() }} Le llegó como notificación.</p> }
             @if (messaging()) { <div class="message-form"><div><strong>Mensaje específico para el vendedor</strong><p>Escribe la indicación o aclaración relacionada con este grupo.</p></div><textarea rows="3" maxlength="500" placeholder="Escribe tu mensaje para el vendedor…" [value]="messageDraft()" (input)="messageDraft.set($any($event.target).value)"></textarea><div class="form-footer"><small>{{ messageDraft().length }}/500</small><button type="button" class="ghost-button" (click)="cancelMessage()">Cancelar</button><button type="button" class="primary-small" [disabled]="!messageDraft().trim() || sendingMessage()" (click)="sendMessage()">{{ sendingMessage() ? 'Enviando…' : 'Enviar mensaje' }}</button></div></div> }
@@ -140,25 +140,13 @@
         @if (g.approvalStatus === 'PENDING') {
           <section class="side-card commission-card proposal-card">
             <div class="side-title"><span class="material-symbols-outlined">percent</span><h3>Comisión de Partly</h3></div>
-            @if (g.commissionPercentage) {
-              <p class="commission-hint">Ya se le comunicó al vendedor y no se puede modificar: él decide con base en esta cifra.</p>
-              <div class="commission-locked"><span class="material-symbols-outlined">lock</span><strong>{{ g.commissionPercentage }}%</strong><small>Comisión definida</small></div>
-            } @else {
-              <p class="commission-hint">Rango permitido: {{ commissionMin }}% a {{ commissionMax }}%. Fíjala ahora, antes de pedir credenciales: el vendedor la ve y decide si le conviene. Una vez guardada ya no se puede cambiar.</p>
-              <label class="commission-input" [class.invalid]="!proposalValid()"><input type="number" [min]="commissionMin" [max]="commissionMax" step="0.5" [value]="proposalInput()" (input)="proposalInput.set(+$any($event.target).value || 0)" /><span>%</span></label>
-              @if (!proposalValid()) { <p class="proposal-error">Debe estar entre {{ commissionMin }}% y {{ commissionMax }}%.</p> }
-            }
-            @if (proposalValid() && proposalPreview(); as p) {
+            @if (commissionPreview(); as c) {
+              <p class="commission-hint">Es fija: {{ c.pct === 9 ? 'la general de Partly' : 'la comisión reducida que tiene autorizada este vendedor' }}. El vendedor la conoce desde que creó el grupo.</p>
+              <div class="commission-locked"><span class="material-symbols-outlined">lock</span><strong>{{ c.pct }}%</strong><small>Comisión fija</small></div>
               <div class="commission-breakdown">
-                <div><small>Total a miembros</small><strong>{{ p.gross | money }}</strong></div>
-                <div><small>Comisión Partly</small><strong>{{ p.commission | money }}</strong></div>
-                <div><small>Recibe el vendedor</small><strong>{{ p.net | money }}</strong></div>
-              </div>
-            }
-            @if (!g.commissionPercentage) {
-              <div class="proposal-actions">
-                @if (proposalNotice()) { <span class="success-message"><span class="material-symbols-outlined">check</span>{{ proposalNotice() }}</span> }
-                <button type="button" class="primary-small" [disabled]="proposing() || !proposalValid()" (click)="saveProposal()">{{ proposing() ? 'Guardando…' : 'Guardar y avisar al vendedor' }}</button>
+                <div><small>Total a miembros</small><strong>{{ c.gross | money }}</strong></div>
+                <div><small>Comisión Partly</small><strong>{{ c.commission | money }}</strong></div>
+                <div><small>Recibe el vendedor</small><strong>{{ c.net | money }}</strong></div>
               </div>
             }
           </section>
@@ -168,7 +156,7 @@
           @if (!rejecting()) {
             <div class="approval-actions">
               <button type="button" class="reject-button" [disabled]="working()" (click)="startReject()"><span class="material-symbols-outlined">close</span>Rechazar</button>
-              <button type="button" class="approve-button" [disabled]="working() || !proposalValid() || g.credentialReviewStatus !== 'SUBMITTED' || submittedCredential() === undefined || submittedCredential() === null" (click)="confirmApprove()"><span class="material-symbols-outlined">check</span>{{ g.credentialReviewStatus === 'SUBMITTED' ? 'Aprobar grupo' : 'Faltan credenciales' }}</button>
+              <button type="button" class="approve-button" [disabled]="working() || g.credentialReviewStatus !== 'SUBMITTED' || submittedCredential() === undefined || submittedCredential() === null" (click)="confirmApprove()"><span class="material-symbols-outlined">check</span>{{ g.credentialReviewStatus === 'SUBMITTED' ? 'Aprobar grupo' : 'Faltan credenciales' }}</button>
             </div>
           } @else if (rejecting()) {
             <section class="side-card reject-card"><h3>Motivo del rechazo</h3><textarea rows="3" maxlength="500" placeholder="Explícale al vendedor por qué se rechaza…" [value]="rejectReason()" (input)="rejectReason.set($any($event.target).value)"></textarea><div><button type="button" class="ghost-button" (click)="cancelReject()">Cancelar</button><button type="button" class="reject-confirm" [disabled]="!rejectReason().trim() || working()" (click)="confirmReject()">Confirmar rechazo</button></div></section>

@@ -10,6 +10,9 @@
   @if (errorMessage()) {
     <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700 font-semibold">{{ errorMessage() }}</div>
   }
+  @if (noticeMessage()) {
+    <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-800 font-semibold" role="status">{{ noticeMessage() }}</div>
+  }
 
   <!-- Tus grupos (vendedor) -->
   <section class="lazy-render-region">
@@ -108,6 +111,45 @@
       </div>
     }
   </section>
+
+  <!-- Lugares apartados (comprador): todavía sin pagar o esperando que el grupo inicie -->
+  @if (reservedSeats(); as reservedList) {
+    @if (reservedList.length > 0) {
+      <section>
+        <div class="flex items-baseline justify-between gap-3 mb-3">
+          <h2 class="text-base font-bold text-ink">Lugares apartados <span class="text-on-surface-variant font-semibold">· {{ reservedList.length }}</span></h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          @for (seat of reservedList; track seat.group.id) {
+            <div class="p-5 rounded-2xl bg-white shadow-neu-raised flex flex-col gap-4">
+              <div class="flex items-start gap-3">
+                <app-platform-logo class="w-11 h-11 rounded-xl font-black text-sm shrink-0" [name]="seat.group.plan.platform.name" />
+                <div class="min-w-0 flex-1">
+                  <p class="text-[15px] font-bold text-ink truncate">{{ seat.group.plan.platform.name }}</p>
+                  <p class="text-[13px] text-on-surface-variant truncate">{{ seat.group.plan.tierName }}</p>
+                </div>
+                <p class="text-ink shrink-0"><span class="text-base font-extrabold tabular-nums">{{ (seat.membership.payment?.amount ?? seat.group.pricePerSlot) | money }}</span></p>
+              </div>
+              <span class="ui-pill self-start whitespace-normal!" [class]="seatStatus(seat).tone">{{ seatStatus(seat).label }}</span>
+              <div class="ui-seats" aria-hidden="true">
+                @for (s of seats(seat.group); track $index) { <span [class]="s"></span> }
+              </div>
+              <div class="mt-auto flex items-center justify-between gap-3">
+                @if (seat.membership.status === 'PENDING_PAYMENT' && !seat.membership.payment?.receiptUploadedAt) {
+                  <a [routerLink]="['/panel/grupos', seat.group.id, 'pago']" class="ui-btn ui-btn--primary ui-btn--sm">Pagar mi lugar<span class="material-symbols-outlined">arrow_forward</span></a>
+                } @else {
+                  <a [routerLink]="['/panel/grupos', seat.group.id]" class="ui-btn ui-btn--secondary ui-btn--sm">Ver grupo<span class="material-symbols-outlined">arrow_forward</span></a>
+                }
+                @if (!seat.membership.payment?.receiptUploadedAt) {
+                  <button type="button" class="leave-link" [disabled]="leavingId() === seat.group.id" (click)="leaveSeat(seat)">{{ leavingId() === seat.group.id ? 'Soltando…' : 'Soltar lugar' }}</button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
 
   <!-- Grupos a los que perteneces (comprador) -->
   <section class="lazy-render-region">

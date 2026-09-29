@@ -141,3 +141,54 @@ export interface BankAccountInput {
   clabe: string;
   reference?: string;
 }
+
+// ---- comisión reducida por reputación
+
+export interface RateRequirement {
+  key: 'payments' | 'rating' | 'commission';
+  label: string;
+  hint: string;
+  met: boolean;
+  current: number;
+  target: number;
+}
+
+export type RateRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+/** Tu comisión (9% o la reducida), requisitos para pedir una menor y tu última solicitud. */
+export interface MyCommissionRate {
+  rate: number;
+  defaultRate: number;
+  minRate: number;
+  reduced: boolean;
+  requirements: RateRequirement[];
+  allMet: boolean;
+  lastRequest: { id: string; status: RateRequestStatus; createdAt: string; reviewedAt: string | null; approvedRate: number | null; reviewNote: string | null } | null;
+  /** Tras un rechazo: desde cuándo puede volver a pedirla. */
+  retryAt: string | null;
+  canRequest: boolean;
+}
+
+export interface AdminRateRequest {
+  id: string;
+  status: RateRequestStatus;
+  createdAt: string;
+  reviewedAt: string | null;
+  currentRate: number;
+  approvedRate: number | null;
+  message: string | null;
+  reviewNote: string | null;
+  seller: { id: string; name: string; email: string; avatarUrl: string | null; memberSince: string };
+  activeGroups: number;
+  requirements: RateRequirement[];
+}
+
+export interface AdminRateRequestsPage {
+  data: AdminRateRequest[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  minRate: number;
+  defaultRate: number;
+}

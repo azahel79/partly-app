@@ -1,11 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PayoutRequest, PayoutStatus, User } from '@prisma/client';
+import { PayoutAccountType, PayoutRequest, PayoutStatus, User } from '@prisma/client';
 import { Exclude, Expose } from 'class-transformer';
 
 export interface PayoutDestination {
   holder: string;
   bankName: string;
-  clabe: string;
+  accountType: PayoutAccountType | null;
+  accountNumber: string;
 }
 
 type PayoutWithOwner = PayoutRequest & { owner?: Pick<User, 'id' | 'name' | 'email'>; destination?: PayoutDestination | null };

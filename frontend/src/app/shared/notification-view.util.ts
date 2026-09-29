@@ -46,6 +46,13 @@ const PANEL_ICONS: Record<NotificationType, string> = {
   GROUP_READY_TO_START: 'rocket_launch',
   GROUP_FULL: 'groups',
   GROUP_START_REMINDER: 'hourglass_top',
+  COMMISSION_RATE_REQUESTED: 'trending_down',
+  COMMISSION_RATE_APPROVED: 'trending_down',
+  COMMISSION_RATE_REJECTED: 'trending_down',
+  MEMBER_LEFT: 'key',
+  MEMBERSHIP_ACTIVATED: 'celebration',
+  SEAT_RESERVED: 'event_seat',
+  RENEWAL_CONFIRMED: 'autorenew',
 };
 
 const isGroupStartNotice = (type: NotificationType): boolean =>
@@ -87,9 +94,16 @@ export function notificationTitle(n: Notification, area: NotificationArea): stri
   switch (n.type) {
     case 'INCIDENT_MESSAGE': return 'Nuevo mensaje de soporte';
     case 'CREDENTIAL_UPDATED': return 'Credenciales actualizadas';
+    case 'MEMBER_LEFT': return 'Alguien salió: cambia la contraseña';
+    case 'COMMISSION_RATE_APPROVED': return 'Tu comisión bajó';
+    case 'COMMISSION_RATE_REJECTED': return 'Solicitud de comisión reducida';
+    case 'COMMISSION_RATE_REQUESTED': return 'Solicitud de comisión reducida';
     case 'PAYMENT_DUE_SOON': return 'Tu pago está próximo';
     case 'PAYMENT_FAILED': return 'No pudimos procesar tu pago';
     case 'PAYMENT_CONFIRMED': return 'Pago confirmado';
+    case 'MEMBERSHIP_ACTIVATED': return '¡Ya estás dentro del grupo!';
+    case 'SEAT_RESERVED': return 'Apartaste tu lugar';
+    case 'RENEWAL_CONFIRMED': return 'Tu renovación quedó confirmada';
     case 'PAYMENT_RECEIPT_UPLOADED': return 'Nuevo comprobante de pago';
     case 'PAYMENT_RECEIPT_REJECTED': return 'Comprobante rechazado';
     case 'PAYOUT_PAID': return 'Retiro procesado';
@@ -116,11 +130,11 @@ export function notificationTitle(n: Notification, area: NotificationArea): stri
 
 /** Color del ícono: amber = requiere atención, red = algo salió mal, blue = buena noticia del grupo, green = normal. */
 export function notificationTone(n: Notification): 'green' | 'amber' | 'blue' | 'red' | 'slate' {
-  if (n.type === 'GROUP_START_REMINDER') return 'amber';
+  if (n.type === 'GROUP_START_REMINDER' || n.type === 'MEMBER_LEFT') return 'amber';
   if (n.type === 'GROUP_READY_TO_START' || n.type === 'GROUP_FULL') return 'green';
   const payload = n.payload.toLowerCase();
   if (payload.includes('revisión') || payload.includes('revision')) return 'amber';
-  if (payload.includes('aprobado') || payload.includes('disponible') || n.type === 'PAYMENT_CONFIRMED') return 'blue';
+  if (payload.includes('aprobado') || payload.includes('disponible') || n.type === 'PAYMENT_CONFIRMED' || n.type === 'MEMBERSHIP_ACTIVATED' || n.type === 'SEAT_RESERVED' || n.type === 'RENEWAL_CONFIRMED') return 'blue';
   if (['COMMISSION_OVERDUE', 'COMMISSION_REMINDER', 'COMMISSION_DUE', 'PROVIDER_ORDER_EXPIRING', 'PROVIDER_ORDER_EXPIRED'].includes(n.type)) return 'amber';
   if (n.type.includes('FAILED') || n.type.includes('REJECTED') || n.type.startsWith('INCIDENT_')) return 'red';
   return 'green';

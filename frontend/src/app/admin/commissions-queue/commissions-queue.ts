@@ -5,6 +5,7 @@ import { inspectClabe } from '../../shared/clabe.util';
 import {
   AdminCommissionCharge,
   AdminCommissionsSummary,
+  AdminRateRequest,
   CommissionChargeStatus,
   PlatformBankAccount,
 } from '../../shared/commissions.models';
@@ -46,6 +47,11 @@ export class CommissionsQueue implements OnInit {
   protected readonly viewingId = signal<string | null>(null);
   protected readonly remindingId = signal<string | null>(null);
   protected readonly notice = signal<string | null>(null);
+  /** Solicitudes de comisión reducida pendientes y el porcentaje que el admin va a autorizar en cada una. */
+  protected readonly rateRequests = signal<AdminRateRequest[] | null>(null);
+  protected readonly rateInputs = signal<Record<string, number>>({});
+  protected readonly minRate = signal(6);
+  protected readonly rateActingId = signal<string | null>(null);
 
   // cuenta bancaria de Partly
   protected readonly bank = signal<PlatformBankAccount | null | undefined>(undefined);
@@ -61,6 +67,7 @@ export class CommissionsQueue implements OnInit {
   ngOnInit(): void {
     this.loadSummary();
     this.loadCharges();
+    this.loadRateRequests();
     this.commissionsService.getBankAccount().subscribe({
       next: (account) => {
         this.bank.set(account);
@@ -222,5 +229,66 @@ export class CommissionsQueue implements OnInit {
           this.bankMessage.set(message);
         },
       });
+  }
+
+  private loadRateRequests(): void {
+    this.commissionsService.findRateRequests('PENDING').subscribe({
+      next: (page) => {
+        this.minRate.set(page.minRate);
+        this.rateRequests.set(page.data);
+        // Sugerencia: 2 puntos menos que hoy, sin bajar del mínimo.
+        this.rateInputs.set(Object.fromEntries(page.data.map((r) => [r.id, Math.max(page.minRate, r.currentRate - 2)])));
+      },
+      error: () => this.rateRequests.set([]),
+    });
+  }
+
+  protected setRateInput(id: string, value: string): void {
+    this.rateInputs.update((inputs) => ({ ...inputs, [id]: Number(value) }));
+  }
+
+  protected metCount(request: AdminRateRequest): number {
+    return request.requirements.filter((r) => r.met).length;
+  }
+
+  protected async approveRate(request: AdminRateRequest): Promise<void> {
+    const rate = this.rateInputs()[request.id];
+    if (this.rateActingId() || !rate) return;
+    const ok = await this.confirmService.ask({
+      title: `¿Bajar la comisión de ${request.seller.name} a ${rate}%?`,
+      text: `Aplica a sus ${request.activeGroups} ${request.activeGroups === 1 ? 'grupo' : 'grupos'} para los pagos que valide desde hoy. Se le avisa por la app y por correo.`,
+      confirmText: `Autorizar ${rate}%`,
+    });
+    if (!ok) return;
+    this.reviewRate(request, { approve: true, rate }, `Autorizaste ${rate}% a ${request.seller.name}.`);
+  }
+
+  protected async rejectRate(request: AdminRateRequest): Promise<void> {
+    if (this.rateActingId()) return;
+    const note = await this.confirmService.prompt({
+      title: `Rechazar la solicitud de ${request.seller.name}`,
+      text: 'Dile qué le falta para que sepa qué mejorar. Podrá volver a pedirla en 30 días.',
+      placeholder: 'Ej. Todavía tiene pocas reseñas.',
+      confirmText: 'Rechazar',
+      required: true,
+    });
+    if (note === null) return;
+    this.reviewRate(request, { approve: false, note }, `Rechazaste la solicitud de ${request.seller.name}.`);
+  }
+
+  private reviewRate(request: AdminRateRequest, input: { approve: boolean; rate?: number; note?: string }, done: string): void {
+    this.rateActingId.set(request.id);
+    this.errorMessage.set(null);
+    this.commissionsService.reviewRateRequest(request.id, input).subscribe({
+      next: () => {
+        this.rateActingId.set(null);
+        this.notice.set(done);
+        this.rateRequests.update((list) => (list ?? []).filter((r) => r.id !== request.id));
+      },
+      error: (message: string) => {
+        this.rateActingId.set(null);
+        this.errorMessage.set(message);
+      },
+    });
   }
 }

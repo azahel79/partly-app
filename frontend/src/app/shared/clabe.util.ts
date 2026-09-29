@@ -1,5 +1,5 @@
 /** Claves de institución (los últimos tres dígitos del catálogo SPEI de Banco de México). */
-const CLABE_BANKS: Readonly<Record<string, string>> = {
+export const CLABE_BANKS: Readonly<Record<string, string>> = {
   '002': 'Banamex', '006': 'Bancomext', '009': 'Banobras', '012': 'BBVA México', '014': 'Santander',
   '019': 'Banjército', '021': 'HSBC', '030': 'Banco del Bajío', '036': 'Inbursa', '042': 'Mifel',
   '044': 'Scotiabank', '058': 'Banregio', '059': 'Invex', '060': 'Bansi', '062': 'Afirme',
@@ -36,7 +36,7 @@ export function inspectClabe(value: string): ClabeInfo {
   const isComplete = digits.length === 18;
   let isValid = false;
 
-  if (isComplete) {
+  if (isComplete && !/^(\d)\1+$/.test(digits)) {
     const weights = [3, 7, 1];
     const sum = digits
       .slice(0, 17)

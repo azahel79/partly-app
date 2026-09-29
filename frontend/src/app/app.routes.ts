@@ -16,6 +16,10 @@ export const routes: Routes = [
     ],
   },
   { path: 'iniciar-sesion', loadComponent: () => import('./auth/login/login').then((m) => m.Login) },
+  { path: 'recuperar-contrasena', loadComponent: () => import('./auth/forgot-password/forgot-password').then((m) => m.ForgotPassword) },
+  { path: 'restablecer-contrasena', loadComponent: () => import('./auth/reset-password/reset-password').then((m) => m.ResetPassword) },
+  // Enlaces de correos enviados antes de que la ruta tuviera nombre en español.
+  { path: 'reset-password', redirectTo: 'restablecer-contrasena' },
   { path: 'crear-cuenta', loadComponent: () => import('./auth/register/register').then((m) => m.Register) },
   { path: 'oauth/callback', loadComponent: () => import('./auth/oauth-callback/oauth-callback').then((m) => m.OauthCallback) },
   { path: 'admin/login', loadComponent: () => import('./admin/admin-login/admin-login').then((m) => m.AdminLogin) },

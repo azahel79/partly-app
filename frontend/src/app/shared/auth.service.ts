@@ -44,6 +44,21 @@ export class AuthService {
     );
   }
 
+  /** Pide el enlace para crear una contraseña nueva; la respuesta es la misma exista o no la cuenta. */
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${API_BASE_URL}/auth/forgot-password`, { email }).pipe(
+      catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))),
+    );
+  }
+
+  /** Guarda la contraseña nueva con el token del correo y deja la sesión iniciada. */
+  resetPassword(token: string, newPassword: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${API_BASE_URL}/auth/reset-password`, { token, newPassword }).pipe(
+      tap((session) => this.persistSession(session)),
+      catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))),
+    );
+  }
+
   exchangeGoogleCode(code: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${API_BASE_URL}/auth/google/exchange`, { code }).pipe(
       tap((session) => this.persistSession(session)),

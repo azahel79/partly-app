@@ -1,6 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { GroupsService } from '../../shared/groups.service';
 import { AuthService } from '../../shared/auth.service';
@@ -11,17 +10,23 @@ import { Group, GroupJoinPreview, GroupProfile } from '../../shared/groups.model
 import { Review, ReviewEligibility } from '../../shared/reviews.models';
 import { Credential } from '../../shared/credentials.models';
 import { Payment, PendingPayment } from '../../shared/payments.models';
+import { PaymentReviewModal } from './payment-review-modal';
+import { ReviewReplyModal } from './review-reply-modal';
 import { Membership } from '../../shared/memberships.models';
 import { planFeatures } from '../../shared/plan-features.util';
 import { avatarColor as pastelColor } from '../../shared/avatar-color.util';
 import { ConfirmService } from '../../shared/confirm.service';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
 import { RenewalToggle } from '../../shared/renewal-toggle/renewal-toggle';
-import { MoneyPipe } from '../../shared/money';
+import { MoneyPipe, formatMoney } from '../../shared/money';
 import { seatSegments } from '../../shared/seat-bar.util';
+import { firstValueFrom } from 'rxjs';
+
+/** Días antes del vencimiento en que Mayoreo deja renovar o reponer una cuenta (igual que el servidor). */
+const WHOLESALE_ACTION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 @Component({
-  imports: [RouterLink, NgTemplateOutlet, PlatformLogo, RenewalToggle, MoneyPipe],
+  imports: [RouterLink, NgTemplateOutlet, PlatformLogo, RenewalToggle, MoneyPipe, PaymentReviewModal, ReviewReplyModal],
   selector: 'app-group-detail',
   styleUrl: './group-detail.css',
   templateUrl: './group-detail.html',
@@ -34,7 +39,6 @@ export class GroupDetail implements OnInit {
   private readonly reviewsService = inject(ReviewsService);
   private readonly credentialsService = inject(CredentialsService);
   private readonly paymentsService = inject(PaymentsService);
-  private readonly sanitizer = inject(DomSanitizer);
   protected readonly authService = inject(AuthService);
 
   protected scrollToCredentials(): void {
@@ -58,6 +62,7 @@ export class GroupDetail implements OnInit {
   /** Reservaste cupo pero el vendedor todavía no inicia el grupo: aún no pagas nada. */
   protected readonly reserved = signal(false);
   protected readonly hasPendingPayment = signal(false);
+  protected readonly leaving = signal(false);
   /** Pago pendiente propio: el primer pago, o la renovación cuando ya se abrió su cobro (3 días antes del corte). */
   protected readonly ownPayment = signal<Payment | null>(null);
   protected readonly joinError = signal<string | null>(null);
@@ -72,19 +77,8 @@ export class GroupDetail implements OnInit {
 
   protected readonly groupMembers = signal<Membership[] | null>(null);
   protected readonly pendingPayments = signal<PendingPayment[] | null>(null);
-  protected readonly reviewingId = signal<string | null>(null);
-  protected readonly viewingReceiptId = signal<string | null>(null);
-  protected readonly rejectingId = signal<string | null>(null);
-  protected readonly rejectReason = signal('');
-  protected readonly errorMessageForOwnerReview = signal<string | null>(null);
-  protected readonly selectedProfileByPayment = signal<Record<string, string>>({});
-
-  protected readonly receiptPreviewUrl = signal<string | null>(null);
-  protected readonly receiptPreviewIsPdf = signal(false);
-  protected readonly receiptPreviewSafeUrl = computed<SafeResourceUrl | null>(() => {
-    const url = this.receiptPreviewUrl();
-    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
-  });
+  /** Pago cuyo modal de "Revisar pago" está abierto. */
+  protected readonly reviewingPayment = signal<PendingPayment | null>(null);
 
   protected readonly profiles = signal<GroupProfile[] | null>(null);
   protected readonly newProfileLabel = signal('');
@@ -111,10 +105,8 @@ export class GroupDetail implements OnInit {
   protected readonly deletingReview = signal(false);
   /** Si ya puedes reseñar (pago validado y 7 días con el servicio); solo se consulta si eres miembro activo. */
   protected readonly reviewEligibility = signal<ReviewEligibility | null>(null);
-  protected readonly replyingId = signal<string | null>(null);
-  protected readonly replyDraft = signal('');
-  protected readonly savingReply = signal(false);
-  protected readonly replyError = signal<string | null>(null);
+  /** Reseña cuyo modal de respuesta está abierto (solo el vendedor). */
+  protected readonly replyingReview = signal<Review | null>(null);
 
   /** Tu propia reseña dentro de la lista pública, si ya dejaste una. */
   protected readonly myReview = computed(() => {
@@ -133,6 +125,10 @@ export class GroupDetail implements OnInit {
   protected readonly credUsername = signal('');
   protected readonly credPassword = signal('');
   protected readonly credNotes = signal('');
+  /** Motivo opcional del cambio: aparece en el aviso que reciben los miembros. */
+  protected readonly credReason = signal('');
+  /** Alguien que ya conocía la contraseña salió del grupo y el vendedor no la ha cambiado. */
+  protected readonly rotation = signal<{ rotationPending: boolean; since: string | null; departures: number; lastMemberName: string | null } | null>(null);
   protected readonly savingCredential = signal(false);
   protected readonly credentialSaveError = signal<string | null>(null);
   protected readonly credentialSent = signal(false);
@@ -232,6 +228,7 @@ export class GroupDetail implements OnInit {
         this.loadOtherGroups(group.owner.id, id);
         if (this.isOwner()) {
           this.loadCredential(id);
+          this.loadRotation(id);
           this.loadPendingPayments(id);
           this.loadMembers(id);
           this.loadProfiles(id);
@@ -325,62 +322,36 @@ export class GroupDetail implements OnInit {
     });
   }
 
-  /** Vista previa dentro de la página (imagen o PDF embebido) en vez de abrir una pestaña nueva. */
-  protected viewReceipt(payment: PendingPayment): void {
+  /** Tras aprobar o rechazar en el modal: al aprobar el miembro queda activo y su perfil asignado. */
+  /**
+   * Banner de la cuenta de mayoreo del grupo (solo el vendedor): vencida; ya se puede renovar o reponer (faltan 7 días
+   * o menos, igual que en Mayoreo); o la renovación de los miembros está en pausa pero todavía no se puede renovar.
+   */
+  protected wholesaleNotice(g: Group): { kind: 'expired' | 'renew' | 'waiting'; expiresAt: string; actionFrom: string; renewable: boolean } | null {
+    const wa = g.wholesaleAccount;
+    if (!wa?.expiresAt) return null;
+    const expiresAt = new Date(wa.expiresAt).getTime();
+    const actionFrom = new Date(expiresAt - WHOLESALE_ACTION_WINDOW_MS).toISOString();
+    const base = { expiresAt: wa.expiresAt, actionFrom, renewable: wa.renewable };
+    if (wa.expired) return { kind: 'expired', ...base };
+    if (expiresAt - Date.now() <= WHOLESALE_ACTION_WINDOW_MS) return { kind: 'renew', ...base };
+    const chargesDue = g.startedAt !== null && (g.daysUntilRenewal ?? Infinity) <= 3;
+    return !wa.coversNextPeriod && chargesDue ? { kind: 'waiting', ...base } : null;
+  }
+
+  protected onPaymentReviewed(payment: PendingPayment, approved: boolean): void {
+    this.reviewingPayment.set(null);
     const group = this.group();
-    if (!group || this.viewingReceiptId()) {
-      return;
-    }
-    this.viewingReceiptId.set(payment.id);
-    this.paymentsService.getReceiptBlob(group.id, payment.id).subscribe({
-      next: (blob) => {
-        this.viewingReceiptId.set(null);
-        this.receiptPreviewIsPdf.set(blob.type === 'application/pdf');
-        this.receiptPreviewUrl.set(URL.createObjectURL(blob));
-      },
-      error: () => this.viewingReceiptId.set(null),
-    });
-  }
-
-  protected closeReceiptPreview(): void {
-    const url = this.receiptPreviewUrl();
-    if (url) {
-      URL.revokeObjectURL(url);
-    }
-    this.receiptPreviewUrl.set(null);
-  }
-
-  protected selectProfileForPayment(paymentId: string, profileId: string): void {
-    this.selectedProfileByPayment.update((map) => ({ ...map, [paymentId]: profileId }));
-  }
-
-  protected approvePayment(payment: PendingPayment): void {
-    const group = this.group();
-    if (!group || this.reviewingId()) {
-      return;
-    }
-    const needsProfile = payment.membershipStatus === 'PENDING_PAYMENT';
-    const profileId = this.selectedProfileByPayment()[payment.id];
-    if (needsProfile && !profileId) {
-      this.errorMessageForOwnerReview.set('Elige qué perfil de la cuenta le vas a asignar antes de aprobar.');
-      return;
-    }
-    this.reviewingId.set(payment.id);
-    this.errorMessageForOwnerReview.set(null);
-    this.paymentsService.review(group.id, payment.id, true, undefined, needsProfile ? profileId : undefined).subscribe({
-      next: () => {
-        this.reviewingId.set(null);
-        this.pendingPayments.update((list) => (list ?? []).filter((p) => p.id !== payment.id));
-        // El miembro pasó de PENDING_PAYMENT a ACTIVE en el backend — refresca la lista para
-        // que deje de decir "Esperando pago" con la fecha real de ingreso, y su perfil quedó asignado.
+    if (approved) {
+      this.pendingPayments.update((list) => (list ?? []).filter((p) => p.id !== payment.id));
+      if (group) {
         this.loadMembers(group.id);
         this.loadProfiles(group.id);
-      },
-      error: (message: string) => {
-        this.reviewingId.set(null);
-        this.errorMessageForOwnerReview.set(message);
-      },
-    });
+      }
+    } else {
+      // Rechazado: el comprobante se borra y el pago queda esperando uno nuevo.
+      this.pendingPayments.update((list) => (list ?? []).map((p) => (p.id === payment.id ? { ...p, receiptUploadedAt: null } : p)));
+    }
   }
 
   protected addProfile(): void {
@@ -453,36 +424,6 @@ export class GroupDetail implements OnInit {
     });
   }
 
-  protected startReject(paymentId: string): void {
-    this.rejectingId.set(paymentId);
-    this.rejectReason.set('');
-  }
-
-  protected cancelReject(): void {
-    this.rejectingId.set(null);
-  }
-
-  protected confirmReject(payment: PendingPayment): void {
-    const group = this.group();
-    if (!group || this.reviewingId()) {
-      return;
-    }
-    this.reviewingId.set(payment.id);
-    this.paymentsService.review(group.id, payment.id, false, this.rejectReason().trim() || undefined).subscribe({
-      next: () => {
-        this.reviewingId.set(null);
-        this.rejectingId.set(null);
-        this.pendingPayments.update((list) =>
-          (list ?? []).map((p) => (p.id === payment.id ? { ...p, receiptUploadedAt: null } : p)),
-        );
-      },
-      error: (message: string) => {
-        this.reviewingId.set(null);
-        this.errorMessageForOwnerReview.set(message);
-      },
-    });
-  }
-
   /**
    * El backend permite ver la credencial al owner o a un miembro ACTIVO — usamos ese mismo
    * resultado para saber si el visitante ya es miembro (incluso si recargó la página y no viene
@@ -500,6 +441,21 @@ export class GroupDetail implements OnInit {
     });
   }
 
+  private loadRotation(groupId: string): void {
+    this.groupsService.getCredentialStatus(groupId).subscribe({
+      next: (status) => this.rotation.set(status),
+      error: () => this.rotation.set(null),
+    });
+  }
+
+  /** Desde el aviso de "cambio de contraseña pendiente": abre el formulario ya con un motivo sugerido. */
+  protected startRotation(): void {
+    this.scrollToCredentials();
+    this.openCredentialForm();
+    this.credPassword.set('');
+    this.credReason.set('Salió un miembro del grupo');
+  }
+
   protected openCredentialForm(): void {
     const g = this.group();
     if (g && this.isOwner() && g.approvalStatus === 'PENDING' && g.credentialReviewStatus === 'NOT_REQUESTED') {
@@ -509,6 +465,7 @@ export class GroupDetail implements OnInit {
     this.credUsername.set(cred?.username ?? '');
     this.credPassword.set(cred?.password ?? '');
     this.credNotes.set(cred?.notes ?? '');
+    this.credReason.set('');
     this.credentialSaveError.set(null);
     this.credentialFormOpen.set(true);
   }
@@ -531,13 +488,16 @@ export class GroupDetail implements OnInit {
         username,
         password,
         notes: this.credNotes().trim() || undefined,
-        changeReason: group.approvalStatus === 'PENDING' ? 'Enviadas al administrador para revisión' : 'Actualización del acceso',
+        changeReason: group.approvalStatus === 'PENDING' ? 'Enviadas al administrador para revisión' : this.credReason().trim() || undefined,
       })
       .subscribe({
         next: (cred) => {
           this.savingCredential.set(false);
           this.credential.set(cred);
           this.credentialFormOpen.set(false);
+          if (group.approvalStatus === 'APPROVED') {
+            this.loadRotation(group.id);
+          }
           if (group.approvalStatus === 'PENDING') {
             this.group.set({ ...group, hasCredentials: true, credentialReviewStatus: 'SUBMITTED', credentialsSubmittedAt: new Date().toISOString() });
             this.credentialSent.set(true);
@@ -763,31 +723,9 @@ export class GroupDetail implements OnInit {
     this.emojiOpen.set(false);
   }
 
-  protected openReply(review: Review): void {
-    this.replyingId.set(review.id);
-    this.replyDraft.set(review.sellerReply ?? '');
-    this.replyError.set(null);
-  }
-
-  protected submitReply(review: Review): void {
-    const group = this.group();
-    const text = this.replyDraft().trim();
-    if (!group || this.savingReply() || text.length < 2) {
-      return;
-    }
-    this.savingReply.set(true);
-    this.replyError.set(null);
-    this.reviewsService.reply(group.id, review.id, text).subscribe({
-      next: (updated) => {
-        this.savingReply.set(false);
-        this.replyingId.set(null);
-        this.reviews.update((list) => (list ?? []).map((r) => (r.id === updated.id ? updated : r)));
-      },
-      error: (message: string) => {
-        this.savingReply.set(false);
-        this.replyError.set(message);
-      },
-    });
+  protected onReplySaved(updated: Review): void {
+    this.replyingReview.set(null);
+    this.reviews.update((list) => (list ?? []).map((r) => (r.id === updated.id ? updated : r)));
   }
 
   protected openReviewForm(): void {
@@ -850,14 +788,46 @@ export class GroupDetail implements OnInit {
     });
   }
 
-  protected join(): void {
+  /**
+   * Elegir o apartar lugar. Si ya tiene un lugar en otro grupo de la misma plataforma se le avisa antes y
+   * elige: tomar este también o cambiarse (suelta el otro, solo si todavía no lo pagó).
+   */
+  protected async join(): Promise<void> {
     const group = this.group();
     if (!group || this.joining()) {
       return;
     }
     this.joining.set(true);
     this.joinError.set(null);
-    this.groupsService.join(group.id).subscribe({
+
+    let switchFromGroupId: string | undefined;
+    const similar = await firstValueFrom(this.groupsService.findSimilarMembership(group.id)).catch(() => null);
+    if (similar) {
+      // Mientras decide, el botón vuelve a su texto normal; "Uniendo…" solo al apartar de verdad.
+      this.joining.set(false);
+      const buying = this.joinPreview()?.payNow ?? false;
+      const state = similar.status === 'RESERVED' ? 'apartado' : similar.status === 'PENDING_PAYMENT' ? 'apartado y pendiente de pago' : 'activo';
+      const choice = await this.confirmService.choose({
+        title: `Ya tienes un lugar en otro grupo de ${similar.platformName}`,
+        text:
+          `Tienes un lugar ${state} en ${similar.platformName} ${similar.tierName} (${formatMoney(similar.pricePerSlot)}/${this.periodNoun(similar.billingPeriod)}). ` +
+          (similar.canSwitch
+            ? `¿Quieres ${buying ? 'comprar' : 'apartar'} este también, o cambiarte a este? Si te cambias, tu otro lugar queda libre para alguien más.`
+            : `¿Quieres ${buying ? 'comprar' : 'apartar'} este también?`),
+        primaryText: buying ? 'Comprar este también' : 'Apartar este también',
+        secondaryText: similar.canSwitch ? 'Cambiarme a este' : undefined,
+        link: { label: 'Ver mi otro grupo', href: `/panel/grupos/${similar.groupId}` },
+      });
+      if (choice === 'cancel') {
+        return;
+      }
+      if (choice === 'secondary') {
+        switchFromGroupId = similar.groupId;
+      }
+      this.joining.set(true);
+    }
+
+    this.groupsService.join(group.id, switchFromGroupId).subscribe({
       next: (membership) => {
         this.joining.set(false);
         if (membership.status === 'RESERVED') {
@@ -870,6 +840,36 @@ export class GroupDetail implements OnInit {
       },
       error: (message: string) => {
         this.joining.set(false);
+        this.joinError.set(message);
+      },
+    });
+  }
+
+  /** Soltar un lugar apartado o sin pagar: queda libre para otra persona. */
+  protected async leaveSeat(): Promise<void> {
+    const group = this.group();
+    if (!group || this.leaving()) {
+      return;
+    }
+    const confirmed = await this.confirmService.ask({
+      title: '¿Soltar tu lugar?',
+      text: `Tu lugar en ${group.plan.platform.name} quedará libre para otra persona. Si luego cambias de opinión, tendrás que apartarlo de nuevo (si todavía hay lugar).`,
+      confirmText: 'Sí, soltar mi lugar',
+      cancelText: 'Conservarlo',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+    this.leaving.set(true);
+    this.joinError.set(null);
+    this.groupsService.leave(group.id).subscribe({
+      next: () => {
+        this.leaving.set(false);
+        this.router.navigate(['/panel/grupos']);
+      },
+      error: (message: string) => {
+        this.leaving.set(false);
         this.joinError.set(message);
       },
     });

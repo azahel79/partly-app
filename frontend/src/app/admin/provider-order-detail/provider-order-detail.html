@@ -87,23 +87,11 @@
           @case ('PENDING_DELIVERY') {
             <section class="p-6 rounded-[28px] bg-white shadow-neu-raised border border-white/70 space-y-4">
               <h2 class="text-sm font-extrabold text-ink">Entrega de credenciales</h2>
-              @if (!delivering()) {
-                <p class="text-xs text-on-surface-variant">Ya validaste su pago{{ o.paidAt ? ' el ' + formatDate(o.paidAt) : '' }}. Entrégale el usuario y contraseña de la cuenta.{{ o.kind === 'REPLACEMENT' ? ' Es una reposición: al entregarla se actualiza sola la credencial de su grupo.' : '' }}</p>
-                <div class="flex flex-wrap items-center gap-2">
-                  <button type="button" (click)="delivering.set(true)" class="hover:bg-[#065f46] py-2.5 px-6 rounded-lg bg-pink text-white text-xs font-bold active:scale-95 transition-all">Entregar credenciales</button>
-                  <button type="button" [disabled]="working()" (click)="cancelPaid()" class="active:scale-[0.98] transition-colors hover:bg-red-50 py-2.5 px-5 rounded-lg bg-white border border-red-200 text-red-600 text-xs font-bold disabled:opacity-60">Cancelar y reembolsar</button>
-                </div>
-              } @else {
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <input type="text" [value]="deliverUsername()" (input)="deliverUsername.set($any($event.target).value)" placeholder="Usuario o correo de la cuenta" class="w-full bg-white rounded-full py-2.5 px-4 text-sm font-medium text-ink border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink" />
-                  <input type="text" [value]="deliverPassword()" (input)="deliverPassword.set($any($event.target).value)" placeholder="Contraseña real de la cuenta" class="w-full bg-white rounded-full py-2.5 px-4 text-sm font-medium text-ink border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink" />
-                </div>
-                <textarea rows="2" [value]="deliverNotes()" (input)="deliverNotes.set($any($event.target).value)" placeholder="Instrucciones para el vendedor (opcional)" class="w-full bg-white rounded-2xl py-3 px-4 text-sm font-medium text-ink border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink resize-none"></textarea>
-                <div class="flex items-center gap-2">
-                  <button type="button" [disabled]="working() || !deliverUsername().trim() || !deliverPassword()" (click)="submitDelivery()" class="active:scale-[0.98] transition-colors hover:bg-[#065f46] py-2.5 px-5 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-60">{{ working() ? 'Enviando…' : 'Confirmar entrega' }}</button>
-                  <button type="button" (click)="delivering.set(false)" class="active:scale-[0.98] transition-colors hover:bg-slate-200 py-2.5 px-5 rounded-lg bg-slate-100 text-ink text-xs font-bold">Cancelar</button>
-                </div>
-              }
+              <p class="text-xs text-on-surface-variant">Ya validaste su pago{{ o.paidAt ? ' el ' + formatDate(o.paidAt) : '' }}. Entrégale el usuario y contraseña de la cuenta.{{ o.kind === 'REPLACEMENT' ? ' Es una reposición: al entregarla se actualiza sola la credencial de su grupo.' : '' }}</p>
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" (click)="delivering.set(true)" class="hover:bg-[#065f46] py-2.5 px-6 rounded-lg bg-pink text-white text-xs font-bold active:scale-95 transition-all">Entregar credenciales</button>
+                <button type="button" [disabled]="working()" (click)="cancelPaid()" class="active:scale-[0.98] transition-colors hover:bg-red-50 py-2.5 px-5 rounded-lg bg-white border border-red-200 text-red-600 text-xs font-bold disabled:opacity-60">Cancelar y reembolsar</button>
+              </div>
             </section>
           }
 
@@ -158,5 +146,8 @@
         </section>
       </aside>
     </div>
+    @if (delivering()) {
+      <app-deliver-credentials-modal [order]="o" (delivered)="onDelivered($event)" (closed)="delivering.set(false)" />
+    }
   }
 </div>

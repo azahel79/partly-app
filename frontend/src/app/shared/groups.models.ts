@@ -39,6 +39,15 @@ export interface Group {
   nextRenewalDate: string;
   createdAt: string;
   commissionPercentage: string | null;
+  /** Cuenta de mayoreo de la que salió el grupo (solo la ven el vendedor y Partly). */
+  wholesaleAccount?: {
+    orderId: string;
+    expiresAt: string | null;
+    renewable: boolean;
+    expired: boolean;
+    /** false = no se cobra la renovación a los miembros hasta que el vendedor la renueve o la reponga. */
+    coversNextPeriod: boolean;
+  } | null;
   /** Cupos ya apartados (reservados o pagando): el avance hacia el 75% antes de iniciar. */
   reservedSlots: number;
   /** Apartados que aún no son miembros activos (reservados o pagando). */
@@ -154,4 +163,29 @@ export interface PaginatedGroups {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+/** Tu lugar en otro grupo de la misma plataforma (para avisarte antes de apartar uno más). */
+export interface SimilarMembership {
+  groupId: string;
+  platformName: string;
+  tierName: string;
+  pricePerSlot: string;
+  billingPeriod: string;
+  status: 'RESERVED' | 'PENDING_PAYMENT' | 'ACTIVE' | 'SUSPENDED';
+  /** Solo si todavía no lo pagaste: te puedes cambiar soltando ese lugar. */
+  canSwitch: boolean;
+}
+
+/** Un lugar que apartaste o estás pagando (todavía no es una membresía activa). */
+export interface ReservedSeat {
+  group: Group;
+  membership: {
+    status: 'RESERVED' | 'PENDING_PAYMENT';
+    joinedAt: string;
+    /** Apartaste un lugar que se libera al terminar el ciclo de un grupo ya iniciado. */
+    waitingForSeat: boolean;
+    freeingDate: string | null;
+    payment: { amount: string; graceUntil: string | null; receiptUploadedAt: string | null } | null;
+  };
 }

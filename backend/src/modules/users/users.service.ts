@@ -1,8 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AuthProvider, Prisma, Role, User } from '@prisma/client';
+import { AuthProvider, PayoutAccountType, Prisma, Role, User } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { decrypt, encrypt } from '../../common/utils/crypto.util';
+import { inspectPayoutAccountNumber } from '../../common/utils/payout-account.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -27,17 +28,19 @@ export class UsersService {
     private readonly configService: ConfigService,
   ) {}
 
-  /** Cuenta de abono del propio usuario, descifrada — solo se devuelve a su dueño para autocompletar el CLABE al crear un grupo. */
-  async getPayoutAccount(userId: string): Promise<{ holder: string; bankName: string; clabe: string } | null> {
+  /** Cuenta de abono del propio usuario, descifrada; solo se devuelve a su dueño al crear un grupo. */
+  async getPayoutAccount(userId: string): Promise<{ holder: string; bankName: string; accountNumber: string; accountType: PayoutAccountType } | null> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { payoutAccountHolder: true, payoutBankName: true, payoutClabeEncrypted: true },
+      select: { payoutAccountHolder: true, payoutBankName: true, payoutAccountType: true, payoutAccountNumberEncrypted: true },
     });
-    if (!user?.payoutClabeEncrypted || !user.payoutBankName || !user.payoutAccountHolder) {
+    if (!user?.payoutAccountNumberEncrypted || !user.payoutBankName || !user.payoutAccountHolder) {
       return null;
     }
     const key = this.configService.getOrThrow<string>('credentialsEncryptionKey');
-    return { holder: user.payoutAccountHolder, bankName: user.payoutBankName, clabe: decrypt(user.payoutClabeEncrypted, key) };
+    const accountNumber = decrypt(user.payoutAccountNumberEncrypted, key);
+    const accountType = user.payoutAccountType ?? (accountNumber.length === 18 ? PayoutAccountType.CLABE : PayoutAccountType.DEBIT_CARD);
+    return { holder: user.payoutAccountHolder, bankName: user.payoutBankName, accountNumber, accountType };
   }
 
   findByEmail(email: string): Promise<User | null> {
@@ -152,18 +155,31 @@ export class UsersService {
     if (dto.clearPayoutAccount) {
       data.payoutAccountHolder = null;
       data.payoutBankName = null;
-      data.payoutClabeEncrypted = null;
-      data.payoutClabeLast4 = null;
+      data.payoutAccountType = null;
+      data.payoutAccountNumberEncrypted = null;
+      data.payoutAccountNumberLast4 = null;
       data.payoutVerified = false;
-    } else if (dto.payoutClabe) {
+    } else if (dto.payoutAccountNumber) {
       if (!dto.payoutAccountHolder?.trim() || !dto.payoutBankName?.trim()) {
         throw new BadRequestException('Indica el titular y el banco de la cuenta de retiro.');
+      }
+      const account = inspectPayoutAccountNumber(dto.payoutAccountNumber);
+      if (!account.isValid || !account.type) {
+        throw new BadRequestException(
+          dto.payoutAccountNumber.length === 16
+            ? 'El número de tarjeta de débito no supera la validación. Revísalo o usa tu CLABE de 18 dígitos.'
+            : 'La CLABE no supera la validación del dígito verificador.',
+        );
+      }
+      if (dto.payoutAccountType && dto.payoutAccountType !== account.type) {
+        throw new BadRequestException('El tipo de cuenta no coincide con la longitud del número proporcionado.');
       }
       const encryptionKey = this.configService.getOrThrow<string>('credentialsEncryptionKey');
       data.payoutAccountHolder = dto.payoutAccountHolder.trim();
       data.payoutBankName = dto.payoutBankName.trim();
-      data.payoutClabeEncrypted = encrypt(dto.payoutClabe, encryptionKey);
-      data.payoutClabeLast4 = dto.payoutClabe.slice(-4);
+      data.payoutAccountType = account.type;
+      data.payoutAccountNumberEncrypted = encrypt(account.digits, encryptionKey);
+      data.payoutAccountNumberLast4 = account.digits.slice(-4);
       data.payoutVerified = false;
     }
 
@@ -222,7 +238,7 @@ export class UsersService {
         emailNotifications: true, inAppNotifications: true, notifyPayments: true,
         notifyGroups: true, notifyCredentials: true, notifyPayouts: true,
         profileNameVisible: true, profileAvatarVisible: true, timezone: true,
-        payoutAccountHolder: true, payoutBankName: true, payoutClabeLast4: true,
+        payoutAccountHolder: true, payoutBankName: true, payoutAccountType: true, payoutAccountNumberLast4: true,
         payoutVerified: true, createdAt: true, updatedAt: true,
         ownedGroups: { select: { id: true, status: true, createdAt: true, plan: { select: { tierName: true, platform: { select: { name: true } } } } } },
         memberships: { select: { id: true, status: true, joinedAt: true, leftAt: true, groupId: true } },
@@ -263,8 +279,9 @@ export class UsersService {
           avatarUrl: null,
           payoutAccountHolder: null,
           payoutBankName: null,
-          payoutClabeEncrypted: null,
-          payoutClabeLast4: null,
+          payoutAccountType: null,
+          payoutAccountNumberEncrypted: null,
+          payoutAccountNumberLast4: null,
           payoutVerified: false,
           passwordHash: null,
           googleId: null,

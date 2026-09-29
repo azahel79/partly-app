@@ -12,6 +12,7 @@ import {
   COMMISSION_GRACE_DAYS,
   COMMISSION_REMINDER_DAYS_BEFORE,
   DAY_MS,
+  DEFAULT_COMMISSION_PCT,
   round2,
 } from './commissions.constants';
 import { ListAdminCommissionsQueryDto } from './dto/list-admin-commissions-query.dto';
@@ -184,6 +185,12 @@ export class CommissionsService {
    * Comisión vencida sin pagar: el vendedor no puede abrir grupos nuevos ni recibir miembros.
    * Mientras Partly no publique su cuenta bancaria no hay a dónde pagar, así que tampoco se restringe a nadie.
    */
+  /** Comisión vigente del vendedor: la reducida que se le autorizó, o la general del 9%. */
+  async rateFor(sellerId: string, db: Db = this.prisma): Promise<number> {
+    const user = await db.user.findUnique({ where: { id: sellerId }, select: { commissionRate: true } });
+    return user?.commissionRate != null ? Number(user.commissionRate) : DEFAULT_COMMISSION_PCT;
+  }
+
   async getRestriction(sellerId: string, db: Db = this.prisma) {
     if (!(await this.hasBankAccount(db))) {
       return { restricted: false, overdueAmount: 0, since: null as Date | null };

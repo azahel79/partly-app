@@ -1,22 +1,20 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { GroupsService } from '../../shared/groups.service';
 import { ProviderOrdersService } from '../../shared/provider-orders.service';
+import { isPublishable, ProviderOrder } from '../../shared/provider-orders.models';
 import { UsersService } from '../../shared/users.service';
-import { inspectClabe } from '../../shared/clabe.util';
+import { inspectPayoutAccount, PAYOUT_BANK_OPTIONS } from '../../shared/payout-account.util';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
 import { MoneyPipe } from '../../shared/money';
+import { CommissionsService } from '../../shared/commissions.service';
 
-/**
- * Solo una ESTIMACIÓN para este formulario: el % real lo asigna un ADMIN caso por caso al
- * aprobar el grupo (ver GroupsService.reviewApproval) y se le notifica al vendedor. Por eso
- * la ganancia se muestra como un rango entre la comisión más baja y la más alta esperadas.
- */
-const COMMISSION_MIN_PCT = 10;
-const COMMISSION_MAX_PCT = 15;
+/** Comisión general de Partly mientras llega la del vendedor (puede tener una reducida). */
+const DEFAULT_COMMISSION_PCT = 9;
 
 @Component({
-  imports: [RouterLink, PlatformLogo, MoneyPipe],
+  imports: [RouterLink, PlatformLogo, MoneyPipe, DatePipe],
   selector: 'app-create-group',
   styleUrl: './create-group.css',
   templateUrl: './create-group.html',
@@ -25,6 +23,7 @@ export class CreateGroup implements OnInit {
   private readonly groupsService = inject(GroupsService);
   private readonly providerOrdersService = inject(ProviderOrdersService);
   private readonly usersService = inject(UsersService);
+  private readonly commissionsService = inject(CommissionsService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -54,30 +53,37 @@ export class CreateGroup implements OnInit {
   protected readonly billingDay = signal(1);
   protected readonly bankAccountNumber = signal('');
   protected readonly bankName = signal('');
-  protected readonly clabeInfo = computed(() => inspectClabe(this.bankAccountNumber()));
+  protected readonly payoutAccountInfo = computed(() => inspectPayoutAccount(this.bankAccountNumber()));
 
   protected readonly dayPickerOpen = signal(false);
   protected readonly calendarDays = Array.from({ length: 31 }, (_, i) => i + 1);
   protected readonly billingDayOptions = [1, 5, 10, 15, 20, 25, 28];
   protected readonly banks = ['BBVA', 'Santander', 'Banorte', 'HSBC', 'Citibanamex', 'Banco Azteca', 'Mercado Pago', 'Otro'];
+  protected readonly payoutBanks = PAYOUT_BANK_OPTIONS;
   protected readonly slotOptions = [1, 2, 3, 4, 5, 6];
   protected readonly previewSlots = computed(() => Array.from({ length: Math.min(this.maxSlots(), 5) }));
   protected readonly availableSlotOptions = computed(() => Array.from({ length: this.sellableSlots() }, (_, index) => index + 1));
 
-  protected readonly commissionMin = COMMISSION_MIN_PCT;
-  protected readonly commissionMax = COMMISSION_MAX_PCT;
+  /** Comisión fija del vendedor: la general (9%) o la reducida que tenga autorizada. */
+  protected readonly commissionPct = signal(DEFAULT_COMMISSION_PCT);
 
-  /** Prioriza el precio de venta que tú defines; si no lo diste, cae a un reparto parejo de tu costo. */
+  /**
+   * Prioriza el precio de venta que tú defines; si no lo diste, cae a un reparto parejo de tu costo. Con una cuenta
+   * de mayoreo (para revender) sugiere el precio que recupera lo que pagaste ya descontada la comisión de Partly.
+   */
   protected readonly suggestedPrice = computed(() => {
     const slots = this.maxSlots();
     if (slots <= 0) {
       return 0;
     }
+    const cost = this.officialPrice();
+    if (this.providerOrderId() && cost) {
+      return Math.ceil(cost / (this.sellableSlots() * (1 - this.commissionPct() / 100)));
+    }
     const salePrice = this.totalSalePrice();
     if (salePrice) {
       return Math.ceil(salePrice / slots);
     }
-    const cost = this.officialPrice();
     if (cost) {
       return Math.ceil(cost / slots);
     }
@@ -121,14 +127,14 @@ export class CreateGroup implements OnInit {
     return margin.high < 0 ? 'loss' : margin.low < 0 ? 'risk' : 'none';
   });
 
-  /** Precio por cupo que cubre tu costo incluso con la comisión más alta (15%), para que nunca pierdas. */
+  /** Precio por cupo que cubre tu costo ya descontando tu comisión, para que nunca pierdas. */
   protected readonly breakEvenPricePerSlot = computed(() => {
     const cost = this.officialPrice();
     const slots = this.availableSlots();
     if (!cost || slots <= 0) {
       return null;
     }
-    return Math.ceil(cost / (slots * (1 - COMMISSION_MAX_PCT / 100)));
+    return Math.ceil(cost / (slots * (1 - this.commissionPct() / 100)));
   });
 
   protected formatRange(range: { low: number; high: number }): string {
@@ -139,17 +145,21 @@ export class CreateGroup implements OnInit {
 
   private netRange(gross: number): { low: number; high: number } {
     return {
-      low: gross * (1 - COMMISSION_MAX_PCT / 100),
-      high: gross * (1 - COMMISSION_MIN_PCT / 100),
+      low: gross * (1 - this.commissionPct() / 100),
+      high: gross * (1 - this.commissionPct() / 100),
     };
   }
 
   ngOnInit(): void {
+    this.commissionsService.getMyRate().subscribe({
+      next: (rate) => this.commissionPct.set(rate.rate),
+      error: () => undefined,
+    });
     this.usersService.getPayoutAccount().subscribe({
       next: (account) => {
         if (account && !this.bankAccountNumber()) {
-          this.bankAccountNumber.set(account.clabe);
-          this.bankName.set(inspectClabe(account.clabe).bankName ?? account.bankName);
+          this.bankAccountNumber.set(account.accountNumber);
+          this.bankName.set(account.bankName);
           this.bankFromProfile.set(true);
         }
       },
@@ -158,6 +168,11 @@ export class CreateGroup implements OnInit {
 
     const orderId = this.route.snapshot.queryParamMap.get('providerOrderId');
     if (!orderId) {
+      // Sin compra elegida: si tiene cuentas de mayoreo sin publicar, se le ofrecen arriba del paso 1.
+      this.providerOrdersService.findMine('FULFILLED').subscribe({
+        next: (page) => this.publishableOrders.set(page.data.filter((o) => isPublishable(o))),
+        error: () => undefined,
+      });
       return;
     }
     this.providerOrderId.set(orderId);
@@ -173,18 +188,40 @@ export class CreateGroup implements OnInit {
           this.errorMessage.set('Ya creaste un grupo con esta compra.');
           return;
         }
-        this.platformName.set(order.listing.platform.name);
-        this.tierName.set(order.listing.tierName);
-        this.maxSlots.set(order.listing.maxSlots);
-        this.officialPrice.set(Number(order.unitPrice));
-        this.providerName.set(order.listing.providerProfile.businessName);
-        this.orderReady.set(true);
+        this.applyOrder(order);
       },
       error: (message: string) => {
         this.loadingOrder.set(false);
         this.errorMessage.set(message);
       },
     });
+  }
+
+  /** Cuentas de mayoreo ya entregadas que todavía no se publican como grupo. */
+  protected readonly publishableOrders = signal<ProviderOrder[]>([]);
+
+  /** "Usar esta cuenta" desde el aviso del paso 1: el formulario se llena con los datos de la compra. */
+  protected useOrder(order: ProviderOrder): void {
+    this.router.navigate([], { relativeTo: this.route, queryParams: { providerOrderId: order.id }, replaceUrl: true });
+    this.providerOrderId.set(order.id);
+    this.pricePerSlot.set(0);
+    this.step.set(1);
+    this.maxStepReached.set(1);
+    this.applyOrder(order);
+  }
+
+  /**
+   * Toma de la compra la plataforma, el plan, los perfiles y lo que pagó. Una cuenta de mayoreo es para revender,
+   * así que por defecto ofrece todos los perfiles ("No, solo vendo"); el vendedor puede cambiarlo.
+   */
+  private applyOrder(order: ProviderOrder): void {
+    this.platformName.set(order.listing.platform.name);
+    this.tierName.set(order.listing.tierName);
+    this.maxSlots.set(order.listing.maxSlots);
+    this.officialPrice.set(Number(order.unitPrice));
+    this.providerName.set(order.listing.providerProfile.businessName);
+    this.ownerUsesSlot.set(false);
+    this.orderReady.set(true);
   }
 
   protected readonly canAdvanceFromStep1 = computed(() => this.platformName().trim().length >= 2 && this.maxSlots() >= 2);
@@ -228,11 +265,11 @@ export class CreateGroup implements OnInit {
     this.dayPickerOpen.set(false);
   }
 
-  protected updateClabe(value: string): void {
+  protected updatePayoutAccount(value: string): void {
     this.bankFromProfile.set(false);
-    const info = inspectClabe(value);
+    const info = inspectPayoutAccount(value);
     this.bankAccountNumber.set(info.digits);
-    this.bankName.set(info.bankName ?? '');
+    this.bankName.set(info.type === 'CLABE' && info.isValid ? info.bankName ?? '' : '');
   }
 
   protected applySuggestedPrice(): void {
@@ -282,8 +319,8 @@ export class CreateGroup implements OnInit {
     if (!this.canAdvanceFromStep1() || !this.canAdvanceFromStep2() || this.submitting()) {
       return;
     }
-    if (this.bankAccountNumber() && !this.clabeInfo().isValid) {
-      this.errorMessage.set('La CLABE debe tener 18 dígitos y un dígito verificador válido.');
+    if (this.bankAccountNumber() && (!this.payoutAccountInfo().isValid || !this.bankName().trim())) {
+      this.errorMessage.set('Revisa la cuenta y elige el banco o institución antes de crear el grupo.');
       return;
     }
 

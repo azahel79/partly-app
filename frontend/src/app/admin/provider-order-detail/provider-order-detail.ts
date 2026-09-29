@@ -5,6 +5,7 @@ import { ConfirmService } from '../../shared/confirm.service';
 import { ProviderOrder } from '../../shared/provider-orders.models';
 import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
 import { MoneyPipe, formatMoney } from '../../shared/money';
+import { DeliverCredentialsModal } from '../deliver-credentials-modal/deliver-credentials-modal';
 
 const STATUS_LABEL: Record<ProviderOrder['status'], { label: string; tone: string }> = {
   AWAITING_PAYMENT: { label: 'Esperando el pago del comprador', tone: 'bg-slate-100 text-on-surface-variant' },
@@ -25,7 +26,7 @@ const WHOLESALE_STATUS: Record<string, string> = {
 };
 
 @Component({
-  imports: [RouterLink, PlatformLogo, MoneyPipe],
+  imports: [RouterLink, PlatformLogo, MoneyPipe, DeliverCredentialsModal],
   selector: 'app-provider-order-detail',
   styleUrl: './provider-order-detail.css',
   templateUrl: './provider-order-detail.html',
@@ -41,10 +42,8 @@ export class ProviderOrderDetail implements OnInit {
   protected readonly working = signal(false);
   protected readonly viewingReceipt = signal(false);
 
+  /** Modal de "Entregar credenciales" abierto. */
   protected readonly delivering = signal(false);
-  protected readonly deliverUsername = signal('');
-  protected readonly deliverPassword = signal('');
-  protected readonly deliverNotes = signal('');
 
   protected readonly status = computed(() => {
     const o = this.order();
@@ -189,13 +188,9 @@ export class ProviderOrderDetail implements OnInit {
     this.run(() => this.providerOrdersService.markRefunded(this.orderId));
   }
 
-  protected submitDelivery(): void {
-    const username = this.deliverUsername().trim();
-    const password = this.deliverPassword();
-    if (!username || !password) return;
-    this.run(
-      () => this.providerOrdersService.deliver(this.orderId, { username, password, notes: this.deliverNotes().trim() || undefined }),
-      () => this.delivering.set(false),
-    );
+  protected onDelivered(updated: ProviderOrder): void {
+    this.delivering.set(false);
+    this.order.set(updated);
   }
+
 }

@@ -20,7 +20,8 @@ export interface AuthUser {
   timezone: string;
   payoutAccountHolder: string | null;
   payoutBankName: string | null;
-  payoutClabeLast4: string | null;
+  payoutAccountType: 'CLABE' | 'DEBIT_CARD' | null;
+  payoutAccountNumberLast4: string | null;
   payoutVerified: boolean;
   createdAt: string;
 }

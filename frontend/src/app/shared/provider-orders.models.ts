@@ -78,3 +78,8 @@ export interface DeliverProviderOrderCredentialInput {
   password: string;
   notes?: string;
 }
+
+/** Compra entregada que todavía se puede publicar como grupo (no es renovación ni fue sustituida por una reposición). */
+export function isPublishable(order: ProviderOrder): boolean {
+  return order.status === 'FULFILLED' && !order.resultingGroupId && order.kind !== 'RENEWAL' && !order.replaced;
+}

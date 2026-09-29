@@ -17,10 +17,10 @@ import { AdminGroupDetailResponseDto } from './dto/admin-group-detail-response.d
 import { UpdateAdminNotesDto } from './dto/update-admin-notes.dto';
 import { SendSellerMessageDto } from './dto/send-seller-message.dto';
 import { ReviewGroupApprovalDto } from './dto/review-group-approval.dto';
+import { JoinGroupDto } from './dto/join-group.dto';
 import { GroupResponseDto } from './dto/group-response.dto';
 import { PaginatedGroupsResponseDto } from './dto/paginated-groups-response.dto';
 import { MembershipResponseDto } from './dto/membership-response.dto';
-import { ProposeCommissionDto } from './dto/propose-commission.dto';
 import { SetAutoRenewDto } from './dto/set-auto-renew.dto';
 import { UpsertCredentialDto } from './dto/upsert-credential.dto';
 import { CredentialResponseDto } from './dto/credential-response.dto';
@@ -94,6 +94,19 @@ export class GroupsController {
     return groups.map((g) => new GroupResponseDto(g).restrictTo({ canSeeBankAccount: true, canSeeCommission: g.ownerId === user.id }));
   }
 
+  @Get('reserved')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Tus lugares apartados o pendientes de pago (todavía no activos), con su estado' })
+  async findReserved(@CurrentUser() user: AuthenticatedUser) {
+    const rows = await this.groupsService.findReserved(user.id);
+    // Quien ya tiene un pago pendiente necesita la cuenta del vendedor para transferir; quien solo apartó, todavía no.
+    return rows.map((row) => ({
+      group: new GroupResponseDto(row.group).restrictTo({ canSeeBankAccount: row.membership.status === 'PENDING_PAYMENT', canSeeCommission: false }),
+      membership: row.membership,
+    }));
+  }
+
   @Get('pending-approval')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
@@ -159,21 +172,6 @@ export class GroupsController {
     await this.groupsService.sendMessageToSeller(id, dto.message);
   }
 
-  @Put(':id/commission')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Fija la comisión (10%-15%) de un grupo en revisión y avisa al vendedor (solo ADMIN)',
-    description: 'Se puede hacer antes de pedir credenciales para que el vendedor sepa cuánto ganará y ajuste su precio.',
-  })
-  @ApiResponse({ status: 200, type: GroupResponseDto })
-  @ApiResponse({ status: 400, description: 'Fuera del rango permitido o el grupo ya fue revisado.' })
-  async proposeCommission(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ProposeCommissionDto): Promise<GroupResponseDto> {
-    const group = await this.groupsService.proposeCommission(id, dto.commissionPercentage);
-    return new GroupResponseDto(group);
-  }
-
   @Post(':id/request-credentials')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
@@ -230,7 +228,7 @@ export class GroupsController {
     @Body() dto: ReviewGroupApprovalDto,
     @CurrentUser() admin: AuthenticatedUser,
   ): Promise<GroupResponseDto> {
-    const group = await this.groupsService.reviewApproval(id, dto.status, admin.id, dto.reason, dto.commissionPercentage);
+    const group = await this.groupsService.reviewApproval(id, dto.status, admin.id, dto.reason);
     return new GroupResponseDto(group);
   }
 
@@ -243,6 +241,22 @@ export class GroupsController {
   })
   async getJoinPreview(@Param('id', ParseUUIDPipe) id: string) {
     return this.groupsService.getJoinPreview(id);
+  }
+
+  @Get(':id/similar-membership')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Tu lugar en otro grupo de la misma plataforma (para avisarte antes de apartar otro), o null' })
+  findSimilarMembership(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.groupsService.findSimilarMembership(id, user.id);
+  }
+
+  @Get(':id/credential-status')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Para el vendedor: si alguien con acceso salió del grupo y falta cambiar la contraseña' })
+  getCredentialStatus(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.groupsService.getCredentialStatus(id, user);
   }
 
   @Get(':id/my-membership')
@@ -303,8 +317,8 @@ export class GroupsController {
   @ApiResponse({ status: 201, type: MembershipResponseDto })
   @ApiResponse({ status: 400, description: 'Grupo lleno, pausado/cancelado, sin aprobar, o es tu propio grupo.' })
   @ApiResponse({ status: 409, description: 'Ya eres miembro activo de este grupo.' })
-  async join(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthenticatedUser): Promise<MembershipResponseDto> {
-    const membership = await this.groupsService.join(id, user.id);
+  async join(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthenticatedUser, @Body() dto: JoinGroupDto): Promise<MembershipResponseDto> {
+    const membership = await this.groupsService.join(id, user.id, { switchFromGroupId: dto.switchFromGroupId });
     return new MembershipResponseDto(membership);
   }
 
@@ -312,9 +326,10 @@ export class GroupsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Sales de un grupo del que eras miembro' })
+  @ApiOperation({ summary: 'Sueltas tu lugar (apartado, pagando o activo): queda libre para otra persona' })
   @ApiResponse({ status: 204 })
-  @ApiResponse({ status: 404, description: 'No tienes una membresía activa en ese grupo.' })
+  @ApiResponse({ status: 400, description: 'Tienes un comprobante en revisión con el vendedor.' })
+  @ApiResponse({ status: 404, description: 'No tienes un lugar en ese grupo.' })
   async leave(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthenticatedUser): Promise<void> {
     await this.groupsService.leave(id, user.id);
   }

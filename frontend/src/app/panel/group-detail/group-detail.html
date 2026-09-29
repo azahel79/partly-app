@@ -97,6 +97,15 @@
             }
           </button>
         }
+        @if (!isOwner() && (reserved() || (hasPendingPayment() && !joined()))) {
+          @if (ownPayment()?.receiptUploadedAt) {
+            <p class="text-xs text-on-surface-variant md:text-right max-w-64">Tu comprobante está en revisión con el vendedor; espera su respuesta antes de soltar tu lugar.</p>
+          } @else {
+            <button type="button" class="leave-seat" [disabled]="leaving()" (click)="leaveSeat()">
+              <span class="material-symbols-outlined">logout</span>{{ leaving() ? 'Soltando…' : 'Soltar mi lugar' }}
+            </button>
+          }
+        }
       </div>
     </div>
 
@@ -142,7 +151,7 @@
             <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-crema-border/60">
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-crema-inset text-on-surface-variant text-xs font-semibold">
                 <span class="material-symbols-outlined text-sm">percent</span>
-                {{ g.approvalStatus === 'APPROVED' ? 'Comisión de Partly' : 'Comisión propuesta por Partly' }}: {{ g.commissionPercentage }}%
+                Comisión de Partly: {{ +g.commissionPercentage }}%
               </span>
               <span class="text-xs text-on-surface-variant font-medium">
                 Recibes ~{{ ((+g.pricePerSlot) * (1 - (+g.commissionPercentage) / 100)) | money }} por cupo después de comisión.
@@ -234,6 +243,46 @@
           <app-renewal-toggle class="block" [groupId]="g.id" />
         }
 
+        <!-- Cuenta de mayoreo vencida o por vencer (solo el vendedor) -->
+        @if (isOwner() && wholesaleNotice(g); as wn) {
+          <div class="gd-banner" [class.gd-banner--danger]="wn.kind === 'expired'" [class.gd-banner--warn]="wn.kind !== 'expired'">
+            <span class="gd-banner-icon"><span class="material-symbols-outlined">{{ wn.kind === 'expired' ? 'event_busy' : 'event' }}</span></span>
+            <div class="flex-1 min-w-0">
+              @switch (wn.kind) {
+                @case ('expired') {
+                  <p class="gd-banner-title">La cuenta de mayoreo de este grupo venció</p>
+                  <p class="gd-banner-text">Venció el {{ paymentDateLabel(wn.expiresAt) }}. Mientras no la {{ wn.renewable ? 'renueves' : 'repongas' }}, el grupo no aparece en Explorar, no recibe miembros nuevos y no se les cobra la renovación a tus miembros. Ya les avisamos que la estás renovando.</p>
+                }
+                @case ('renew') {
+                  <p class="gd-banner-title">Tu cuenta de mayoreo vence el {{ paymentDateLabel(wn.expiresAt) }}</p>
+                  <p class="gd-banner-text">{{ wn.renewable ? 'Renuévala' : 'Compra su reposición' }} ya: hasta que lo hagas no se les cobra la renovación a tus miembros, para que nadie pague por una cuenta que va a dejar de funcionar.</p>
+                }
+                @case ('waiting') {
+                  <p class="gd-banner-title">La renovación de tus miembros está en pausa</p>
+                  <p class="gd-banner-text">Tu cuenta de mayoreo vence el {{ paymentDateLabel(wn.expiresAt) }}, antes de que termine el siguiente mes, así que todavía no se les cobra. Podrás {{ wn.renewable ? 'renovarla' : 'comprar su reposición' }} desde el {{ paymentDateLabel(wn.actionFrom) }}; en cuanto lo hagas, se les genera su cobro.</p>
+                }
+              }
+            </div>
+            @if (wn.kind !== 'waiting') {
+              <a routerLink="/panel/mayoreo" class="ui-btn ui-btn--primary w-full sm:w-auto">{{ wn.renewable ? 'Renovar cuenta' : 'Comprar reposición' }}</a>
+            }
+          </div>
+        }
+
+        @if (isOwner() && rotation()?.rotationPending) {
+          <div class="gd-banner gd-banner--warn">
+            <span class="gd-banner-icon"><span class="material-symbols-outlined">key</span></span>
+            <div class="flex-1 min-w-0">
+              <p class="gd-banner-title">Cambio de contraseña pendiente</p>
+              <p class="gd-banner-text">
+                {{ rotation()!.departures === 1 ? rotation()!.lastMemberName + ' salió del grupo' : rotation()!.departures + ' personas salieron del grupo' }} el {{ paymentDateLabel(rotation()!.since!) }} y todavía conoce{{ rotation()!.departures === 1 ? '' : 'n' }} la contraseña.
+                Cámbiala en {{ g.plan.platform.name }}, cierra sesión en todos los dispositivos y guárdala aquí: tus miembros recibirán un aviso.
+              </p>
+            </div>
+            <button type="button" class="ui-btn ui-btn--primary w-full sm:w-auto" (click)="startRotation()">Actualizar credenciales</button>
+          </div>
+        }
+
         <!-- Aviso de aprobación pendiente/rechazada (solo owner) -->
         @if (isOwner() && g.approvalStatus === 'PENDING') {
           @if (g.credentialReviewStatus === 'SUBMITTED') {
@@ -248,11 +297,9 @@
                 <p class="text-sm font-extrabold text-ink">{{ g.credentialReviewStatus === 'REQUESTED' ? 'Partly solicitó las credenciales' : 'Este grupo está en revisión de Partly' }}</p>
                 <p class="text-xs text-on-surface-variant font-medium mt-0.5">
                   @if (g.credentialReviewStatus === 'REQUESTED') {
-                    Si la comisión de Partly te conviene, envía el correo y la contraseña de {{ g.plan.platform.name }} para que comprueben el acceso y aprueben tu grupo.
-                  } @else if (g.commissionPercentage) {
-                    Partly definió tu comisión ({{ g.commissionPercentage }}%). Revísala y, cuando el equipo te pida las credenciales, podrás enviarlas desde aquí.
+                    Envía el correo y la contraseña de {{ g.plan.platform.name }} para que el equipo compruebe el acceso y apruebe tu grupo.
                   } @else {
-                    Primero Partly te dirá cuánta comisión se lleva; si te conviene, después te pedirá las credenciales de {{ g.plan.platform.name }}. Te avisamos por aquí.
+                    El equipo de Partly revisará tu grupo y te pedirá las credenciales de {{ g.plan.platform.name }} para comprobar el acceso. Te avisamos por aquí.
                   }
                 </p>
               </div>
@@ -295,10 +342,6 @@
               </div>
             </div>
 
-            @if (errorMessageForOwnerReview()) {
-              <p class="text-xs text-red-600 font-semibold mb-3">{{ errorMessageForOwnerReview() }}</p>
-            }
-
             <div class="space-y-3">
               @for (payment of pendingPayments(); track payment.id) {
                 <div class="p-4 rounded-2xl bg-crema-inset shadow-neu-inset-sm">
@@ -331,86 +374,13 @@
                     </div>
 
                     @if (payment.receiptUploadedAt) {
-                      <div class="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                        <button
-                          type="button"
-                          [disabled]="viewingReceiptId() === payment.id"
-                          (click)="viewReceipt(payment)"
-                          class="active:scale-[0.98] transition-colors hover:bg-slate-50 py-2 px-3.5 rounded-lg bg-white border border-crema-border text-ink text-xs font-bold flex items-center gap-1 disabled:opacity-60"
-                        >
-                          <span class="material-symbols-outlined text-sm">visibility</span>
-                          {{ viewingReceiptId() === payment.id ? 'Abriendo…' : 'Ver comprobante' }}
-                        </button>
-                        <button
-                          type="button"
-                          [disabled]="reviewingId() === payment.id"
-                          (click)="approvePayment(payment)"
-                          class="active:scale-[0.98] transition-colors py-2 px-3.5 rounded-lg bg-emerald-600 text-white text-xs font-bold disabled:opacity-60"
-                        >
-                          Aprobar
-                        </button>
-                        <button
-                          type="button"
-                          [disabled]="reviewingId() === payment.id"
-                          (click)="startReject(payment.id)"
-                          class="active:scale-[0.98] transition-colors hover:bg-slate-50 py-2 px-3.5 rounded-lg bg-white border border-red-200 text-red-600 text-xs font-bold disabled:opacity-60"
-                        >
-                          Rechazar
-                        </button>
-                      </div>
+                      <button type="button" class="ui-btn ui-btn--primary ui-btn--sm shrink-0" (click)="reviewingPayment.set(payment)">
+                        <span class="material-symbols-outlined">fact_check</span>Revisar pago
+                      </button>
                     } @else {
                       <span class="text-xs font-semibold text-on-surface-variant shrink-0">Esperando su comprobante</span>
                     }
                   </div>
-
-                  @if (payment.receiptUploadedAt && payment.membershipStatus === 'PENDING_PAYMENT') {
-                    <div class="mt-3 pt-3 border-t border-crema-border/60">
-                      <label class="block text-xs font-bold text-on-surface-variant mb-1.5">Perfil que le vas a asignar</label>
-                      @if (availableProfiles().length > 0) {
-                        <div class="relative w-full sm:w-64">
-                          <span class="material-symbols-outlined text-on-surface-variant/50 text-lg absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">person</span>
-                          <select
-                            [value]="selectedProfileByPayment()[payment.id] ?? ''"
-                            (change)="selectProfileForPayment(payment.id, $any($event.target).value)"
-                            class="w-full appearance-none bg-white border border-slate-200 hover:border-slate-300 transition-colors border border-crema-border rounded-full py-2.5 pl-10 pr-9 text-xs font-bold text-ink outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink focus:border-pink/40 transition-all cursor-pointer"
-                          >
-                            <option value="" disabled>Elige un perfil libre…</option>
-                            @for (profile of availableProfiles(); track profile.id) {
-                              <option [value]="profile.id">{{ profile.label }}</option>
-                            }
-                          </select>
-                          <span class="material-symbols-outlined text-on-surface-variant/60 text-lg absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
-                        </div>
-                      } @else {
-                        <p class="text-xs text-amber-700 font-semibold">No te queda ningún perfil libre — agrega uno en "Perfiles de la cuenta" antes de aprobar.</p>
-                      }
-                    </div>
-                  }
-
-                  @if (rejectingId() === payment.id) {
-                    <div class="mt-3 pt-3 border-t border-crema-border/60">
-                      <input
-                        type="text"
-                        [value]="rejectReason()"
-                        (input)="rejectReason.set($any($event.target).value)"
-                        placeholder="Motivo (opcional) — ej. el monto no coincide"
-                        class="w-full bg-white rounded-full py-2.5 px-4 text-xs font-medium text-ink placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink mb-2"
-                      />
-                      <div class="flex items-center gap-2">
-                        <button
-                          type="button"
-                          [disabled]="reviewingId() === payment.id"
-                          (click)="confirmReject(payment)"
-                          class="active:scale-[0.98] transition-colors hover:bg-red-700 py-1.5 px-4 rounded-lg bg-red-600 text-white text-xs font-bold disabled:opacity-60"
-                        >
-                          Confirmar rechazo
-                        </button>
-                        <button type="button" (click)="cancelReject()" class="active:scale-[0.98] transition-colors hover:bg-slate-50 py-1.5 px-4 rounded-lg bg-white border border-crema-border text-ink text-xs font-bold">
-                          Cancelar
-                        </button>
-                      </div>
-                    </div>
-                  }
                 </div>
               }
             </div>
@@ -463,6 +433,20 @@
                     class="w-full bg-white rounded-2xl py-3 px-4 text-sm font-medium text-ink placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink resize-none"
                   ></textarea>
                 </div>
+                @if (g.approvalStatus === 'APPROVED') {
+                  <div>
+                    <label class="block text-xs font-bold text-on-surface-variant mb-1.5">Motivo del cambio (opcional)</label>
+                    <input
+                      type="text"
+                      maxlength="120"
+                      [value]="credReason()"
+                      (input)="credReason.set($any($event.target).value)"
+                      placeholder="Ej. Salió un miembro del grupo"
+                      class="w-full bg-white rounded-full py-3 px-4 text-sm font-medium text-ink placeholder-on-surface-variant/50 border border-slate-200 hover:border-slate-300 transition-colors focus:outline-none focus:ring-4 focus:ring-pink/10 focus:border-pink"
+                    />
+                    <p class="text-xs text-on-surface-variant mt-1.5">Si cambias el usuario o la contraseña, tus miembros activos reciben un aviso por la app y por correo (sin la contraseña).</p>
+                  </div>
+                }
                 @if (credentialSaveError()) {
                   <p class="text-xs text-red-600 font-semibold">{{ credentialSaveError() }}</p>
                 }
@@ -1093,38 +1077,16 @@
         @if (review.comment) {
           <p class="text-xs text-on-surface-variant leading-relaxed flex-1">{{ review.comment }}</p>
         }
-        @if (review.sellerReply && replyingId() !== review.id) {
+        @if (review.sellerReply) {
           <div class="mt-3 rounded-xl bg-white/70 border border-crema-border/60 px-3 py-2.5">
-            <p class="text-xs font-bold text-pink mb-0.5">Respuesta del vendedor</p>
+            <p class="text-xs font-bold text-pink mb-0.5">Respuesta del vendedor{{ review.sellerReplyAt ? ' · ' + relativeTime(review.sellerReplyAt) : '' }}</p>
             <p class="text-xs text-on-surface-variant leading-relaxed">{{ review.sellerReply }}</p>
           </div>
         }
         @if (isOwner()) {
-          @if (replyingId() === review.id) {
-            <div class="mt-3">
-              <textarea
-                [value]="replyDraft()"
-                (input)="replyDraft.set($any($event.target).value)"
-                maxlength="500"
-                rows="3"
-                placeholder="Escribe tu respuesta pública…"
-                class="w-full rounded-xl bg-white border border-crema-border px-3 py-2 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-pink/30"
-              ></textarea>
-              @if (replyError()) {
-                <p class="text-xs text-red-600 font-semibold mt-1">{{ replyError() }}</p>
-              }
-              <div class="flex items-center gap-2 mt-2">
-                <button type="button" (click)="submitReply(review)" [disabled]="savingReply() || replyDraft().trim().length < 2" class="hover:bg-[#065f46] px-4 py-2 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-60 active:scale-95 transition-all">
-                  {{ savingReply() ? 'Guardando…' : 'Publicar respuesta' }}
-                </button>
-                <button type="button" (click)="replyingId.set(null)" class="px-3 py-2 rounded-lg text-xs font-bold text-on-surface-variant hover:bg-white">Cancelar</button>
-              </div>
-            </div>
-          } @else {
-            <button type="button" (click)="openReply(review)" class="mt-3 self-start inline-flex items-center gap-1 text-xs font-bold text-pink hover:underline">
-              <span class="material-symbols-outlined text-sm">reply</span>{{ review.sellerReply ? 'Editar respuesta' : 'Responder' }}
-            </button>
-          }
+          <button type="button" (click)="replyingReview.set(review)" class="mt-3 self-start inline-flex items-center gap-1 text-xs font-bold text-pink hover:underline">
+            <span class="material-symbols-outlined text-sm">{{ review.sellerReply ? 'edit' : 'reply' }}</span>{{ review.sellerReply ? 'Editar respuesta' : 'Responder' }}
+          </button>
         }
         <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 mt-3">
           <span class="material-symbols-outlined text-xs">check_circle</span>
@@ -1157,25 +1119,18 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5"><div class="ui-skeleton-card lg:col-span-2"><span class="ui-skeleton w-1/3"></span><span class="ui-skeleton w-2/3"></span><span class="ui-skeleton w-1/2"></span></div><div class="ui-skeleton-card"><span class="ui-skeleton w-1/2"></span><span class="ui-skeleton"></span></div></div>
   }
 
-  <!-- Vista previa del comprobante de pago -->
-  @if (receiptPreviewUrl(); as url) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/70 backdrop-blur-sm" (click)="closeReceiptPreview()">
-      <div class="relative w-full max-w-2xl max-h-[85vh] bg-white rounded-2xl shadow-neu-raised-lg overflow-hidden flex flex-col" (click)="$event.stopPropagation()">
-        <div class="flex items-center justify-between gap-3 p-4 border-b border-crema-border">
-          <p class="text-sm font-extrabold text-ink">Comprobante de pago</p>
-          <button type="button" (click)="closeReceiptPreview()" class="active:scale-[0.98] w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-slate-100 transition-colors">
-            <span class="material-symbols-outlined text-lg">close</span>
-          </button>
-        </div>
-        <div class="flex-1 overflow-auto bg-crema-inset">
-          @if (receiptPreviewIsPdf()) {
-            <iframe [src]="receiptPreviewSafeUrl()" class="w-full h-[70vh] border-0" title="Comprobante de pago (PDF)"></iframe>
-          } @else {
-            <img [src]="url" alt="Comprobante de pago" class="w-full h-auto object-contain" />
-          }
-        </div>
-      </div>
-    </div>
+  <!-- Revisar el pago de un comprador -->
+  @if (reviewingPayment(); as rp) {
+    @if (group(); as rg) {
+      <app-payment-review-modal [groupId]="rg.id" [payment]="rp" [freeProfiles]="availableProfiles()" (reviewed)="onPaymentReviewed(rp, $event)" (closed)="reviewingPayment.set(null)" />
+    }
+  }
+
+  <!-- Responder una reseña (vendedor) -->
+  @if (replyingReview(); as rr) {
+    @if (group(); as rg) {
+      <app-review-reply-modal [groupId]="rg.id" [review]="rr" (saved)="onReplySaved($event)" (closed)="replyingReview.set(null)" />
+    }
   }
 
   <!-- Escribir / editar reseña -->

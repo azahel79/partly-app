@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { AuthService } from '../../shared/auth.service';
 import { MailService } from '../../shared/mail.service';
 import { EmailStatus, MailMessageDetail, MailMessageSummary, MailProviderName, MailStatus } from '../../shared/mail.models';
 
@@ -57,6 +58,7 @@ const ENV_SNIPPETS: Record<'resend' | 'brevo' | 'smtp', string> = {
 })
 export class MailOutbox implements OnInit {
   private readonly mailService = inject(MailService);
+  private readonly authService = inject(AuthService);
   private readonly sanitizer = inject(DomSanitizer);
 
   protected readonly filters = FILTERS;
@@ -77,6 +79,9 @@ export class MailOutbox implements OnInit {
   protected readonly notice = signal<string | null>(null);
 
   protected readonly testing = signal(false);
+  /** A quién mandar la prueba; vacío = al correo del admin que la envía. */
+  protected readonly testTo = signal('');
+  protected readonly myEmail = computed(() => this.authService.currentUser()?.email ?? '');
   protected readonly retryingId = signal<string | null>(null);
 
   protected readonly guideOpen = signal(false);
@@ -129,10 +134,15 @@ export class MailOutbox implements OnInit {
 
   protected sendTest(): void {
     if (this.testing()) return;
-    this.testing.set(true);
+    const to = this.testTo().trim();
     this.errorMessage.set(null);
     this.notice.set(null);
-    this.mailService.sendTest().subscribe({
+    if (to && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+      this.errorMessage.set('Escribe un correo válido, o deja el campo vacío para mandarla a tu propio correo.');
+      return;
+    }
+    this.testing.set(true);
+    this.mailService.sendTest(to || undefined).subscribe({
       next: (message) => {
         this.testing.set(false);
         this.notice.set(

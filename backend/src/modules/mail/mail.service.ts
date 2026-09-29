@@ -5,6 +5,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { EmailMessage, EmailStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { describeMailConfig, formatFrom, readMailConfig } from './mail.config';
+import { emailLogoUrl } from './mail-logo';
 import { EmailContent, renderEmail } from './mail-templates';
 import { MailConfig, MailConfigStatus, MailTransport } from './mail.types';
 import { BrevoTransport } from './transports/brevo.transport';
@@ -110,6 +111,7 @@ export class MailService {
     const id = params.id ?? randomUUID();
     const rendered = renderEmail(params.content, {
       appUrl: this.config.appUrl,
+      logoUrl: emailLogoUrl(this.config.appUrl),
       prefsUrl: params.includePrefsLink === false ? undefined : this.prefsUrl,
     });
     // createMany + skipDuplicates (ON CONFLICT DO NOTHING) no rompe la transacción cuando hay duplicado.

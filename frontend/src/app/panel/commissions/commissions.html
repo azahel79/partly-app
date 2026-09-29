@@ -5,7 +5,7 @@
       Comisiones
     </h1>
     <p class="text-sm text-on-surface-variant font-medium mt-1">
-      Partly cobra una comisión (10%–15% según tu grupo) de lo que ganas. Se paga por transferencia cuando el grupo se llena, o a los 7 días de arrancar el ciclo.
+      Partly cobra una comisión del {{ rate()?.rate ?? 9 }}% de cada pago que validas. Se paga por transferencia cuando el grupo se llena, o a los 7 días de arrancar el ciclo.
     </p>
   </div>
 
@@ -17,6 +17,55 @@
       <span class="material-symbols-outlined">check_circle</span>
       <p class="text-sm font-semibold">{{ notice() }}</p>
     </div>
+  }
+
+  <!-- Tu comisión y la solicitud para bajarla -->
+  @if (rate(); as r) {
+    <section class="p-5 sm:p-6 rounded-2xl bg-white shadow-neu-raised space-y-4">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p class="text-sm text-on-surface-variant">Tu comisión</p>
+          <p class="flex items-center gap-2.5 mt-0.5">
+            <span class="text-[28px] font-extrabold text-ink leading-tight tabular-nums">{{ r.rate }}%</span>
+            <span class="ui-pill no-dot" [class]="r.reduced ? 'ui-pill--ok' : ''">{{ r.reduced ? 'Reducida por tu reputación' : 'Comisión general' }}</span>
+          </p>
+        </div>
+        @if (r.lastRequest?.status === 'PENDING') {
+          <span class="ui-pill ui-pill--info">Solicitud en revisión</span>
+        } @else if (r.canRequest) {
+          <button type="button" class="ui-btn ui-btn--secondary ui-btn--sm" [disabled]="requestingRate()" (click)="requestRate()">
+            <span class="material-symbols-outlined">trending_down</span>{{ requestingRate() ? 'Enviando…' : 'Solicitar comisión reducida' }}
+          </button>
+        }
+      </div>
+
+      @if (r.lastRequest?.status === 'REJECTED' && r.lastRequest?.reviewNote) {
+        <p class="text-[13px] text-on-surface-variant p-3 rounded-xl bg-crema-inset">
+          Tu última solicitud no fue aprobada: <strong class="text-ink">{{ r.lastRequest!.reviewNote }}</strong>
+          @if (r.retryAt) { Podrás volver a pedirla a partir del {{ formatDate(r.retryAt) }}. }
+        </p>
+      }
+
+      @if (r.rate > r.minRate && r.lastRequest?.status !== 'PENDING') {
+        <div>
+          <p class="text-[13px] text-on-surface-variant mb-2.5">
+            @if (r.allMet) { Cumples los requisitos para pedir una comisión más baja. } @else { Con buena reputación puedes pedir una comisión más baja (hasta {{ r.minRate }}%). Te falta: }
+          </p>
+          <ul class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            @for (req of r.requirements; track req.key) {
+              <li class="px-3.5 py-3 rounded-xl bg-crema-inset">
+                <p class="flex items-start gap-1.5 text-[13px] font-semibold" [class]="req.met ? 'text-emerald-700' : 'text-ink'">
+                  <span class="material-symbols-outlined text-base">{{ req.met ? 'check_circle' : 'radio_button_unchecked' }}</span>{{ req.label }}
+                </p>
+                @if (!req.met) {
+                  <p class="text-xs text-on-surface-variant mt-1 pl-5">{{ req.key === 'payments' ? req.current + ' de ' + req.target : req.key === 'rating' ? (req.current > 0 ? 'Llevas ' + req.current : 'Aún sin reseñas suficientes') : req.hint }}</p>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </section>
   }
 
   @if (data(); as d) {

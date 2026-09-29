@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { AuthProvider, Role, User } from '@prisma/client';
+import { AuthProvider, PayoutAccountType, Role, User } from '@prisma/client';
 import { Exclude, Expose, Transform } from 'class-transformer';
 
 @Exclude()
@@ -79,7 +79,10 @@ export class UserResponseDto {
   payoutBankName: string | null;
 
   @Expose()
-  payoutClabeLast4: string | null;
+  payoutAccountType: PayoutAccountType | null;
+
+  @Expose()
+  payoutAccountNumberLast4: string | null;
 
   @Expose()
   payoutVerified: boolean;

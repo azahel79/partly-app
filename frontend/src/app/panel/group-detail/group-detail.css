@@ -19,6 +19,10 @@
 .gd-banner--warn .gd-banner-icon { background: #fef0c7; color: #b54708; }
 .gd-banner--warn .gd-banner-title { color: #7a2e0e; }
 .gd-banner--warn .gd-banner-text { color: #93370d; }
+.gd-banner--danger { border-color: #fecdca; background: #fef3f2; }
+.gd-banner--danger .gd-banner-icon { background: #fee4e2; color: #b42318; }
+.gd-banner--danger .gd-banner-title { color: #7a271a; }
+.gd-banner--danger .gd-banner-text { color: #912018; }
 .gd-banner--info { border-color: #b2ddff; background: #eff8ff; }
 .gd-banner--info .gd-banner-icon { background: #d1e9ff; color: #175cd3; }
 .gd-banner--info .gd-banner-title { color: #194185; }
@@ -47,3 +51,14 @@
 :host-context(html.dark) .gd-banner--info .gd-banner-icon { background: rgba(96, 165, 250, 0.16); color: #93c5fd; }
 :host-context(html.dark) .gd-banner--info .gd-banner-title { color: #bfdbfe; }
 :host-context(html.dark) .gd-banner--info .gd-banner-text { color: #93c5fd; }
+
+/* Soltar un lugar apartado: acción secundaria, discreta pero visible */
+.leave-seat { display: inline-flex; align-items: center; gap: 6px; padding: 4px 0; border: 0; background: transparent; color: #b42318; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.leave-seat .material-symbols-outlined { font-size: 17px; }
+.leave-seat:hover { text-decoration: underline; text-underline-offset: 3px; }
+.leave-seat:disabled { opacity: .55; cursor: default; }
+:host-context(html.dark) .leave-seat { color: #fca5a5; }
+:host-context(html.dark) .gd-banner--danger { border-color: rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.08); }
+:host-context(html.dark) .gd-banner--danger .gd-banner-icon { background: rgba(248, 113, 113, 0.16); color: #fca5a5; }
+:host-context(html.dark) .gd-banner--danger .gd-banner-title { color: #fecaca; }
+:host-context(html.dark) .gd-banner--danger .gd-banner-text { color: #fca5a5; }

@@ -130,9 +130,9 @@ Supervisa como mínimo:
 - espacio y antigüedad de comprobantes;
 - inicios de sesión fallidos y eventos administrativos.
 
-Los logs de producción no deben contener tokens, contraseñas, CLABE completa, contenido de credenciales ni cuerpos de comprobantes.
+Los logs de producción no deben contener tokens, contraseñas, números completos de cuentas bancarias, contenido de credenciales ni cuerpos de comprobantes.
 
-La landing incluye una capa neutral para eventos de conversiÃ³n y Web Vitals, pero no instala un proveedor ni cookies. Antes de habilitar la recolecciÃ³n externa, completa la revisiÃ³n de consentimiento, privacidad, CSP y retenciÃ³n descrita en [ANALYTICS.md](ANALYTICS.md). No envÃ­es PII en eventos.
+La landing incluye una capa neutral para eventos de conversión y Web Vitals, pero no instala un proveedor ni cookies. Antes de habilitar la recolección externa, completa la revisión de consentimiento, privacidad, CSP y retención descrita en [ANALYTICS.md](ANALYTICS.md). No envíes PII en eventos.
 
 ## 8. Respaldos
 
@@ -166,15 +166,15 @@ Checklist funcional:
 - exportación/cancelación de cuenta;
 - permisos de usuario, vendedor, proveedor y administrador.
 
-Checklist web pÃºblico:
+Checklist web público:
 
 - confirmar que `/`, `/como-funciona-el-ciclo`, `/seguridad`, `/terminos` y `/privacidad` entreguen HTML prerenderizado;
-- confirmar que `/comparativa`, autenticaciÃ³n, panel y administraciÃ³n carguen el shell cliente correcto;
+- confirmar que `/comparativa`, autenticación, panel y administración carguen el shell cliente correcto;
 - reemplazar `https://partly.mx` si no es el dominio final y validar canonical, Open Graph, Twitter y datos estructurados;
 - revisar teclado, foco visible, zoom al 200 %, lector de pantalla y movimiento reducido;
-- medir LCP, CLS e INP en mÃ³vil y escritorio con el dominio, CDN y API reales;
-- validar eventos de conversiÃ³n sin informaciÃ³n personal;
-- reemplazar o retirar mÃ©tricas, testimonios y enlaces sociales demostrativos pendientes.
+- medir LCP, CLS e INP en móvil y escritorio con el dominio, CDN y API reales;
+- validar eventos de conversión sin información personal;
+- reemplazar o retirar métricas, testimonios y enlaces sociales demostrativos pendientes.
 
 ## 10. Despliegue y reversión
 
@@ -202,7 +202,7 @@ No abras el servicio a usuarios reales hasta tener:
 - monitoreo y alertas con responsable;
 - revisión legal de términos, privacidad, reembolsos, fiscalidad y manejo de credenciales;
 - prueba end-to-end completa con cuentas de ensayo;
-- dominio pÃºblico real reflejado en canonical, metadatos sociales y datos estructurados;
-- analÃ­tica y consentimiento aprobados, o decisiÃ³n documentada de operar sin proveedor;
-- datos comerciales, testimonios y mÃ©tricas demostrativas reemplazados o retirados;
+- dominio público real reflejado en canonical, metadatos sociales y datos estructurados;
+- analítica y consentimiento aprobados, o decisión documentada de operar sin proveedor;
+- datos comerciales, testimonios y métricas demostrativas reemplazados o retirados;
 - procedimiento de soporte y respuesta a incidentes.

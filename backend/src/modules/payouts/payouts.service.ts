@@ -56,14 +56,25 @@ export class PayoutsService {
     const key = this.configService.getOrThrow<string>('credentialsEncryptionKey');
     const owners = await this.prisma.user.findMany({
       where: { id: { in: [...new Set(payouts.map((p) => p.ownerId))] } },
-      select: { id: true, payoutAccountHolder: true, payoutBankName: true, payoutClabeEncrypted: true },
+      select: {
+        id: true,
+        payoutAccountHolder: true,
+        payoutBankName: true,
+        payoutAccountType: true,
+        payoutAccountNumberEncrypted: true,
+      },
     });
     const byId = new Map(owners.map((o) => [o.id, o]));
     return payouts.map((p) => {
       const o = byId.get(p.ownerId);
       const destination =
-        o?.payoutClabeEncrypted && o.payoutBankName && o.payoutAccountHolder
-          ? { holder: o.payoutAccountHolder, bankName: o.payoutBankName, clabe: decrypt(o.payoutClabeEncrypted, key) }
+        o?.payoutAccountNumberEncrypted && o.payoutBankName && o.payoutAccountHolder
+          ? {
+              holder: o.payoutAccountHolder,
+              bankName: o.payoutBankName,
+              accountType: o.payoutAccountType,
+              accountNumber: decrypt(o.payoutAccountNumberEncrypted, key),
+            }
           : null;
       return { ...p, destination };
     });

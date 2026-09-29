@@ -95,6 +95,7 @@ export class NotificationsService {
       sendAfter: rule.defer && !options.immediate ? deferToDaytime(new Date()) : null,
       content: {
         title: rule.title,
+        preheader: params.payload.length > 110 ? `${params.payload.slice(0, 107).trimEnd()}…` : params.payload,
         greeting: name ? `Hola ${name},` : 'Hola,',
         paragraphs: [params.payload],
         cta: cta ? { label: cta.label, url: `${this.mailService.appUrl}${cta.path}` } : undefined,

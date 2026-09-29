@@ -1,3 +1,4 @@
+import { DeliverCredentialsModal } from '../deliver-credentials-modal/deliver-credentials-modal';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ProviderProfilesService } from '../../shared/provider-profiles.service';
@@ -16,7 +17,7 @@ export const COMMON_PLATFORM_NAMES = [
 ];
 
 @Component({
-  imports: [RouterLink, PlatformLogo, MoneyPipe],
+  imports: [RouterLink, PlatformLogo, MoneyPipe, DeliverCredentialsModal],
   selector: 'app-provider-store',
   styleUrl: './provider-store.css',
   templateUrl: './provider-store.html',
@@ -117,12 +118,8 @@ export class ProviderStore implements OnInit {
   protected readonly deciderError = signal<string | null>(null);
   protected readonly deciderErrorOrderId = signal<string | null>(null);
 
-  protected readonly deliveringOrderId = signal<string | null>(null);
-  protected readonly deliverUsername = signal('');
-  protected readonly deliverPassword = signal('');
-  protected readonly deliverNotes = signal('');
-  protected readonly savingDelivery = signal(false);
-  protected readonly deliverError = signal<string | null>(null);
+  /** Pedido cuyo modal de "Entregar credenciales" está abierto. */
+  protected readonly deliveringOrder = signal<ProviderOrder | null>(null);
 
   ngOnInit(): void {
     // Cualquiera que llegue aquí ya pasó el adminGuard de la ruta — activar el perfil de
@@ -274,36 +271,12 @@ export class ProviderStore implements OnInit {
 
   protected openDeliverForm(order: ProviderOrder): void {
     this.menuId.set(null);
-    this.deliveringOrderId.set(order.id);
-    this.deliverUsername.set('');
-    this.deliverPassword.set('');
-    this.deliverNotes.set('');
-    this.deliverError.set(null);
+    this.deliveringOrder.set(order);
   }
 
-  protected closeDeliverForm(): void {
-    this.deliveringOrderId.set(null);
-  }
-
-  protected submitDelivery(order: ProviderOrder): void {
-    const username = this.deliverUsername().trim();
-    const password = this.deliverPassword();
-    if (!username || !password || this.savingDelivery()) {
-      return;
-    }
-    this.savingDelivery.set(true);
-    this.deliverError.set(null);
-    this.providerOrdersService.deliver(order.id, { username, password, notes: this.deliverNotes().trim() || undefined }).subscribe({
-      next: (updated) => {
-        this.savingDelivery.set(false);
-        this.deliveringOrderId.set(null);
-        this.orders.update((list) => (list ?? []).map((o) => (o.id === updated.id ? updated : o)));
-      },
-      error: (message: string) => {
-        this.savingDelivery.set(false);
-        this.deliverError.set(message);
-      },
-    });
+  protected onDelivered(updated: ProviderOrder): void {
+    this.deliveringOrder.set(null);
+    this.orders.update((list) => (list ?? []).map((o) => (o.id === updated.id ? updated : o)));
   }
 
   protected formatDate(iso: string): string {
