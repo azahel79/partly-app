@@ -10,6 +10,6 @@ import { CommissionsService } from './commissions.service';
   imports: [NotificationsModule],
   controllers: [EarningsController, CommissionRateController, CommissionsController, AdminCommissionsController, AdminCommissionRateController],
   providers: [CommissionsService, CommissionRatesService],
-  exports: [CommissionsService],
+  exports: [CommissionsService, CommissionRatesService],
 })
 export class CommissionsModule {}

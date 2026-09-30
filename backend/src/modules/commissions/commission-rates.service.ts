@@ -92,6 +92,16 @@ export class CommissionRatesService {
     return { requirements, allMet: requirements.every((r) => r.met) };
   }
 
+  /**
+   * Grupos de 6 meses o anuales: el comprador paga mucho de una vez y el dinero va directo al vendedor, así que solo
+   * los ofrece quien ya tiene reputación (los mismos requisitos de la comisión reducida, o una comisión ya reducida).
+   */
+  async canOfferLongPeriods(sellerId: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({ where: { id: sellerId }, select: { commissionRate: true } });
+    if (user?.commissionRate !== null && user?.commissionRate !== undefined) return true;
+    return (await this.evaluate(sellerId)).allMet;
+  }
+
   // ------------------------------------------------------------------ lo que ve el vendedor
 
   async getMine(sellerId: string) {

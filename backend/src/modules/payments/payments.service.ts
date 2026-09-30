@@ -239,7 +239,7 @@ export class PaymentsService {
       userId: membership.userId,
       type: NotificationType.PAYMENT_DUE_SOON,
       groupId: membership.groupId,
-      payload: `${intro} Tu lugar en "${group.plan.platform.name}" se renueva el ${this.periodDateLabel(cycle.periodEnd)}: transfiere $${group.pricePerSlot.toString()} y sube tu comprobante antes de esa fecha para seguir usando la cuenta el mes siguiente. Si no quieres renovar, desactiva la renovación automática desde el grupo.`,
+      payload: `${intro} Tu lugar en "${group.plan.platform.name}" se renueva el ${this.periodDateLabel(cycle.periodEnd)}: transfiere $${group.pricePerSlot.toString()} y sube tu comprobante antes de esa fecha para seguir usando la cuenta el siguiente periodo. Si no quieres renovar, desactiva la renovación automática desde el grupo.`,
       emailDedupeKey: `payment-reminder:${payment.id}:1`,
     });
   }
@@ -308,6 +308,7 @@ export class PaymentsService {
       this.notificationsService.create(tx, {
         userId: cycle.group.ownerId,
         type: NotificationType.SYSTEM,
+        email: { subject: 'Los cobros de renovación de tu grupo están en pausa' },
         groupId: cycle.groupId,
         payload: `${RENEWAL_ON_HOLD_PREFIX} de tu grupo de ${cycle.group.plan.platform.name} porque su cuenta de mayoreo ${expired ? 'ya venció' : 'vence'}${account.expiresAt ? ' el ' + this.dateLabel(account.expiresAt) : ''}${expired ? '' : ', antes de que termine el siguiente periodo'}. ${action} en Mayoreo y los cobros saldrán solos esa misma noche; así tus miembros no pagan por una cuenta que puede dejar de funcionar.`,
         emailImmediate: true,
@@ -358,7 +359,7 @@ export class PaymentsService {
       return;
     }
     if (charge.status === PaymentStatus.PAID) {
-      throw new BadRequestException('Ya pagaste tu renovación: tu lugar está asegurado para el mes que viene. Podrás desactivarla en el siguiente ciclo.');
+      throw new BadRequestException('Ya pagaste tu renovación: tu lugar está asegurado para el siguiente periodo. Podrás desactivarla en el siguiente ciclo.');
     }
     if (charge.status === PaymentStatus.PENDING) {
       if (charge.receiptPath) {
@@ -429,6 +430,7 @@ export class PaymentsService {
           await this.notificationsService.create(tx, {
             userId: group.ownerId,
             type: NotificationType.SYSTEM,
+            email: false,
             groupId: group.id,
             payload: `Se liberó un lugar en tu grupo de ${platform} y ya lo tomó un nuevo comprador. Cuando suba su comprobante, apruébalo y asígnale un perfil.`,
           });
@@ -791,7 +793,7 @@ export class PaymentsService {
           payload: memberLeftNotice({ memberName: payment.membership.user.name, platform: platformName, reason: 'unpaid', hadAccess, ...access }),
         });
         if (hadAccess && access.wholesale) {
-          await this.notificationsService.notifyAdmins(tx, { type: NotificationType.SYSTEM, groupId: membership.groupId, payload: wholesaleRotationNotice({ memberName: payment.membership.user.name, platform: platformName, sellerName: access.sellerName }) });
+          await this.notificationsService.notifyAdmins(tx, { type: NotificationType.SYSTEM, email: { subject: 'Cambia la contraseña de una cuenta de mayoreo' }, groupId: membership.groupId, payload: wholesaleRotationNotice({ memberName: payment.membership.user.name, platform: platformName, sellerName: access.sellerName }) });
         }
       });
 
@@ -841,7 +843,7 @@ export class PaymentsService {
           groupId: membership.groupId,
         });
         if (access.wholesale) {
-          await this.notificationsService.notifyAdmins(tx, { type: NotificationType.SYSTEM, groupId: membership.groupId, payload: wholesaleRotationNotice({ memberName: membership.user.name, platform, sellerName: access.sellerName }) });
+          await this.notificationsService.notifyAdmins(tx, { type: NotificationType.SYSTEM, email: { subject: 'Cambia la contraseña de una cuenta de mayoreo' }, groupId: membership.groupId, payload: wholesaleRotationNotice({ memberName: membership.user.name, platform, sellerName: access.sellerName }) });
         }
       });
       this.logger.log(`Membresía ${membership.id} cerrada al terminar su periodo (sin renovación).`);

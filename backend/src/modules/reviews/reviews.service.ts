@@ -81,6 +81,7 @@ export class ReviewsService {
         await this.notificationsService.create(tx, {
           userId: review.authorUserId,
           type: NotificationType.SYSTEM,
+          email: false,
           groupId,
           payload: `El vendedor respondió a tu reseña del grupo de ${review.group.plan.platform.name}.`,
         });
@@ -114,6 +115,7 @@ export class ReviewsService {
         await this.notificationsService.create(tx, {
           userId: membership.userId,
           type: NotificationType.SYSTEM,
+          email: false,
           groupId: membership.groupId,
           payload: `¿Cómo te va con tu cuenta de ${membership.group.plan.platform.name}? Deja tu reseña: le sirve a otros compradores y al vendedor.`,
         });

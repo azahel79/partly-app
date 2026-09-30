@@ -29,7 +29,13 @@ export function nextOccurrenceOfDay(billingDay: number, from: Date = new Date())
   return clampToMonth(from.getUTCFullYear(), from.getUTCMonth() + 1, billingDay);
 }
 
-/** Avanza `from` los meses que corresponden a un `billingPeriod` (1/3/6/12), respetando el día del mes. */
+/** "al mes", "cada 2 meses", "al año": para los textos de avisos y correos según lo que dura el periodo. */
+export function perPeriodLabel(billingPeriod: BillingPeriod): string {
+  const months = BILLING_PERIOD_MONTHS[billingPeriod] ?? 1;
+  return months === 1 ? 'al mes' : months === 12 ? 'al año' : `cada ${months} meses`;
+}
+
+/** Avanza `from` los meses que corresponden a un `billingPeriod` (1/2/3/6/12), respetando el día del mes. */
 export function addBillingPeriod(from: Date, billingPeriod: BillingPeriod): Date {
   const months = BILLING_PERIOD_MONTHS[billingPeriod];
   return clampToMonth(from.getUTCFullYear(), from.getUTCMonth() + months, from.getUTCDate());

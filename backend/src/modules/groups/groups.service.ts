@@ -4,7 +4,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { BillingPeriod, CredentialReviewStatus, GroupApprovalStatus, GroupStatus, MembershipStatus, NotificationType, PaymentStatus, Prisma, ProviderOrderStatus, Role, GroupAccessType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { addBillingPeriod, computeJoinPricing, minEntryDays, nextOccurrenceOfDay } from '../../common/utils/billing.util';
+import { addBillingPeriod, computeJoinPricing, minEntryDays, nextOccurrenceOfDay, perPeriodLabel } from '../../common/utils/billing.util';
 import { decrypt, encrypt } from '../../common/utils/crypto.util';
 import { seatStats } from '../../common/utils/seats.util';
 import { RenewalStatus } from './dto/membership-response.dto';
@@ -13,6 +13,7 @@ import { PaymentsService } from '../payments/payments.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { DEFAULT_COMMISSION_PCT } from '../commissions/commissions.constants';
 import { CommissionsService } from '../commissions/commissions.service';
+import { CommissionRatesService } from '../commissions/commission-rates.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { ListGroupsQueryDto } from './dto/list-groups-query.dto';
@@ -80,6 +81,9 @@ export function slotsRequiredToStart(availableSlots: number): number {
 }
 
 
+/** Periodos que solo ofrecen vendedores con reputación (el comprador paga mucho de una vez). */
+const LONG_PERIODS: BillingPeriod[] = [BillingPeriod.SEMIANNUAL, BillingPeriod.ANNUAL];
+
 @Injectable()
 export class GroupsService {
   private readonly logger = new Logger(GroupsService.name);
@@ -90,10 +94,14 @@ export class GroupsService {
     private readonly paymentsService: PaymentsService,
     private readonly notificationsService: NotificationsService,
     private readonly commissionsService: CommissionsService,
+    private readonly commissionRatesService: CommissionRatesService,
   ) {}
 
   async create(ownerId: string, dto: CreateGroupDto) {
     await this.commissionsService.assertNotRestricted(ownerId, 'crear grupos nuevos');
+    if (LONG_PERIODS.includes(dto.billingPeriod as BillingPeriod) && !(await this.commissionRatesService.canOfferLongPeriods(ownerId))) {
+      throw new ForbiddenException('Los grupos de 6 meses o anuales son para vendedores con reputación (30 pagos validados, calificación de 4.5 o más y sin comisiones vencidas). Mientras tanto puedes ofrecer 1, 2 o 3 meses.');
+    }
     const accessType = dto.accessType ?? GroupAccessType.CREDENTIALS;
     const inviteNotAllowed = (name: string) => accessType === GroupAccessType.INVITE_LINK && !supportsInviteLink(name);
     const INVITE_ONLY_FOR = 'El acceso con link de invitación solo está disponible para YouTube, Spotify y Canva.';
@@ -153,7 +161,8 @@ export class GroupsService {
       await this.notificationsService.create(this.prisma, {
         userId: group.ownerId,
         type: NotificationType.SYSTEM,
-        payload: `Tu grupo de ${platform} quedó en revisión de Partly. Para que puedan revisarlo, envía las credenciales de la cuenta desde "Gestionar grupo".`,
+        email: false,
+        payload: `Tu grupo de ${platform} quedó en revisión de Partly. En cuanto lo revisemos te pediremos las credenciales de la cuenta para comprobar el acceso; te avisaremos por aquí y por correo.`,
         groupId: group.id,
       });
       const admins = await this.prisma.user.findMany({ where: { role: Role.ADMIN, deletedAt: null, id: { not: group.ownerId } }, select: { id: true } });
@@ -162,6 +171,7 @@ export class GroupsService {
           this.notificationsService.create(this.prisma, {
             userId: admin.id,
             type: NotificationType.SYSTEM,
+            email: { subject: 'Nuevo grupo por revisar' },
             payload: `${group.owner.name} creó un grupo de ${platform} (${group.plan.tierName}). Está pendiente de tu revisión.`,
             groupId: group.id,
           }),
@@ -252,6 +262,7 @@ export class GroupsService {
           this.notificationsService.create(tx, {
             userId: admin.id,
             type: NotificationType.SYSTEM,
+            email: { subject: 'Nuevo grupo de mayoreo por revisar' },
             payload: 'Un vendedor creó un grupo a partir de una compra de mayoreo, con credenciales ya cargadas. Está listo para tu revisión.',
             groupId: created.id,
           }),
@@ -559,6 +570,8 @@ export class GroupsService {
     await this.notificationsService.create(this.prisma, {
       userId: group.ownerId,
       type: NotificationType.SYSTEM,
+      email: { subject: 'Mensaje de Partly sobre tu grupo' },
+      emailImmediate: true,
       payload: message,
       groupId: group.id,
     });
@@ -589,6 +602,7 @@ export class GroupsService {
       await this.notificationsService.create(tx, {
         userId: group.ownerId,
         type: NotificationType.SYSTEM,
+        email: { subject: 'Partly te pide las credenciales de tu grupo' },
         payload:
           `El equipo de Partly solicita las credenciales de ${group.plan.platform.name}. Entra a tu grupo y usa el botón "Enviar credenciales al administrador" para continuar con la revisión.` +
           ` ${this.commissionSummary({ ...group, commissionPercentage })}`,
@@ -597,11 +611,11 @@ export class GroupsService {
     });
   }
 
-  /** Texto para el vendedor: comisión propuesta y cuánto recibiría al mes con el grupo lleno. */
-  private commissionSummary(group: { commissionPercentage: Prisma.Decimal | null; pricePerSlot: Prisma.Decimal; availableSlots: number }): string {
+  /** Texto para el vendedor: comisión propuesta y cuánto recibiría por periodo con el grupo lleno. */
+  private commissionSummary(group: { commissionPercentage: Prisma.Decimal | null; pricePerSlot: Prisma.Decimal; availableSlots: number; plan: { billingPeriod: BillingPeriod } }): string {
     const pct = Number(group.commissionPercentage);
     const gross = Number(group.pricePerSlot) * group.availableSlots;
-    return `Comisión de Partly para tu grupo: ${pct}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirías $${(gross * (1 - pct / 100)).toFixed(2)} al mes; si quieres, ajusta tu precio.`;
+    return `Comisión de Partly para tu grupo: ${pct}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirías $${(gross * (1 - pct / 100)).toFixed(2)} ${perPeriodLabel(group.plan.billingPeriod)}; si quieres, ajusta tu precio.`;
   }
 
   /** Aprueba o rechaza un grupo nuevo — solo ADMIN. Avisa al dueño por notificación. */
@@ -656,9 +670,10 @@ export class GroupsService {
       await this.notificationsService.create(tx, {
         userId: group.ownerId,
         type: NotificationType.SYSTEM,
+        email: { subject: newStatus === GroupApprovalStatus.APPROVED ? '¡Tu grupo fue aprobado!' : 'Tu grupo no fue aprobado' },
         payload:
           newStatus === GroupApprovalStatus.APPROVED
-            ? `Tu grupo de ${group.plan.platform.name} fue aprobado con una comisión de Partly del ${commissionPercentage}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirás $${(Number(group.pricePerSlot) * group.availableSlots * (1 - commissionPercentage / 100)).toFixed(2)} al mes, y ya puede aparecer en el marketplace.`
+            ? `Tu grupo de ${group.plan.platform.name} fue aprobado con una comisión de Partly del ${commissionPercentage}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirás $${(Number(group.pricePerSlot) * group.availableSlots * (1 - commissionPercentage / 100)).toFixed(2)} ${perPeriodLabel(group.plan.billingPeriod)}, y ya puede aparecer en el marketplace.`
             : `Tu grupo de ${group.plan.platform.name} fue rechazado: ${reason!.trim()}`,
         groupId: group.id,
       });
@@ -840,6 +855,7 @@ export class GroupsService {
         await this.notificationsService.create(tx, {
           userId: group.ownerId,
           type: NotificationType.SYSTEM,
+          email: false,
           groupId,
           payload: `${membership.user.name} apartó el lugar que se libera el ${freeingOn} en tu grupo de ${platform}. No ha pagado nada: cuando el lugar quede libre se le generará su pago y tendrá 48 horas para cubrirlo.`,
         });
@@ -919,7 +935,7 @@ export class GroupsService {
         : memberLeftNotice({ memberName: membership.user.name, platform, reason: 'left', hadAccess: true, ...access }),
     });
     if (!wasReserved && access.wholesale) {
-      await this.notificationsService.notifyAdmins(tx, { type: NotificationType.SYSTEM, groupId, payload: wholesaleRotationNotice({ memberName: membership.user.name, platform, sellerName: access.sellerName }) });
+      await this.notificationsService.notifyAdmins(tx, { type: NotificationType.SYSTEM, email: { subject: 'Cambia la contraseña de una cuenta de mayoreo' }, groupId, payload: wholesaleRotationNotice({ memberName: membership.user.name, platform, sellerName: access.sellerName }) });
     }
   }
 
@@ -1014,11 +1030,13 @@ export class GroupsService {
     }
 
     const platform = group.plan.platform.name;
-    let alert: { type: NotificationType; payload: string } | null = null;
+    // Solo el primer aviso de que ya se puede iniciar sale por correo; si luego se llena, eso ya se ve en la app.
+    let alert: { type: NotificationType; payload: string; email: boolean } | null = null;
     if (isFull && cooledDown(group.fullNotifiedAt)) {
       alert = {
         type: NotificationType.GROUP_FULL,
         payload: `¡Tu grupo de ${platform} se llenó! Los ${group.availableSlots} cupos ya están reservados. Inícialo cuando quieras para empezar a cobrar con todos.`,
+        email: becameReady,
       };
       data.fullNotifiedAt = now;
       data.readyNotifiedAt = now;
@@ -1026,6 +1044,7 @@ export class GroupsService {
       alert = {
         type: NotificationType.GROUP_READY_TO_START,
         payload: `Tu grupo de ${platform} ya tiene ${reserved} de ${group.availableSlots} cupos reservados. Puedes iniciarlo ahora y empezar a cobrar, o esperar a llenarlo.`,
+        email: true,
       };
       data.readyNotifiedAt = now;
     }
@@ -1040,6 +1059,7 @@ export class GroupsService {
         payload: alert.payload,
         groupId,
         emailDedupeKey: `group-start-alert:${groupId}:${now.getTime()}`,
+        ...(alert.email ? {} : { email: false as const }),
       });
     }
   }
@@ -1425,6 +1445,7 @@ export class GroupsService {
       await this.notificationsService.create(this.prisma, {
         userId: membership.group.ownerId,
         type: NotificationType.SYSTEM,
+        email: false,
         payload: autoRenew
           ? `${membership.user.name} volvió a activar la renovación de su lugar en tu grupo de ${platform}.${cancelledReservations > 0 ? ' Como conserva su lugar, se canceló la reserva de quien lo había apartado.' : ''}`
           : `${membership.user.name} no renovará su lugar en tu grupo de ${platform}. Tendrá acceso hasta el ${until} y después el lugar quedará libre: ya se puede apartar desde el marketplace.`,
@@ -1564,6 +1585,7 @@ export class GroupsService {
             this.notificationsService.create(tx, {
               userId: admin.id,
               type: NotificationType.SYSTEM,
+              email: { subject: 'Credenciales listas para revisar' },
               payload: `El vendedor envió las credenciales del grupo. Ya están listas para que las revises antes de aprobarlo.`,
               groupId,
             }),

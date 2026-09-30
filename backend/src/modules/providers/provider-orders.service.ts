@@ -9,6 +9,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { decrypt, encrypt } from '../../common/utils/crypto.util';
 import { buildReceiptFilename, deleteReceiptFile, receiptMatchesType, resolveReceiptPath, saveReceiptFile } from '../../common/utils/receipt-storage.util';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from '../mail/mail.service';
 import { GroupsService } from '../groups/groups.service';
 import { CommissionsService } from '../commissions/commissions.service';
 import { WholesaleAccessService } from './wholesale-access.service';
@@ -108,6 +109,7 @@ export class ProviderOrdersService {
     private readonly groupsService: GroupsService,
     private readonly commissionsService: CommissionsService,
     private readonly wholesaleAccessService: WholesaleAccessService,
+    private readonly mailService: MailService,
   ) {}
 
   private get receiptsDir(): string {
@@ -689,6 +691,8 @@ export class ProviderOrdersService {
     // Por panel el acceso del grupo lo administra el vendedor: no se toca su contraseña.
     const groupId = copy ? order.resultingGroupId : null;
 
+    // Quienes reportaron algo de esta cuenta: además del aviso en la app, reciben la respuesta por correo.
+    const answered: { id: string; subject: string; email: string }[] = [];
     await this.prisma.$transaction(async (tx) => {
       await tx.providerOrderCredential.upsert({ where: { orderId }, create: { orderId, ...data }, update: data });
 
@@ -725,7 +729,7 @@ export class ProviderOrdersService {
           status: { in: [IncidentStatus.OPEN, IncidentStatus.IN_REVIEW, IncidentStatus.ESCALATED] },
           OR: [{ providerOrderId: orderId }, ...(groupId ? [{ groupMembership: { groupId } }] : [])],
         },
-        select: { id: true, status: true, subject: true, reportedByUserId: true, providerOrderId: true },
+        select: { id: true, status: true, subject: true, reportedByUserId: true, providerOrderId: true, reportedBy: { select: { email: true } } },
       });
       for (const incident of openIncidents) {
         const aboutOrder = incident.providerOrderId === orderId;
@@ -747,8 +751,20 @@ export class ProviderOrdersService {
           type: NotificationType.INCIDENT_MESSAGE,
           payload: `Partly respondió tu reporte "${incident.subject}": ya actualizó las credenciales.`,
         });
+        answered.push({ id: incident.id, subject: incident.subject, email: incident.reportedBy.email });
       }
     });
+
+    for (const incident of answered) {
+      await this.mailService
+        .sendNotice(
+          incident.email,
+          `Partly respondió tu reporte: ${incident.subject}`,
+          `Actualizamos las credenciales de la cuenta${reason ? ` (${reason})` : ''}. Revisa que ya funcionen y, si todo está bien, cierra el reporte con "Ya quedó".`,
+          { label: 'Ver el reporte', path: `/panel/soporte/${incident.id}` },
+        )
+        .catch((error: Error) => this.logger.warn(`No se pudo avisar por correo del reporte ${incident.id}: ${error.message}`));
+    }
 
     return this.findById(orderId);
   }
@@ -889,6 +905,7 @@ export class ProviderOrdersService {
             await this.notificationsService.create(tx, {
               userId: member.userId,
               type: NotificationType.SYSTEM,
+              email: false,
               groupId: order.resultingGroupId,
               payload: `La cuenta de ${order.listing.plan.platform?.name ?? 'tu grupo'} venció y el vendedor la está renovando. Mientras tanto no se te cobrará la renovación. Si la cuenta deja de funcionar, avísale desde Soporte.`,
             });

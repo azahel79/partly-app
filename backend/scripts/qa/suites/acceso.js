@@ -1,6 +1,7 @@
 /* Tipo de acceso y duración: invitación al grupo familiar, grupos de 2 meses, mayoreo por panel y Partly
  * actualizando las credenciales de una cuenta de su tienda (con aviso en el reporte). */
-const { QA_PREFIX, prisma, token, call, receipt } = require('../lib');
+const path = require('path');
+const { BACKEND, DAY, HOUR, QA_PREFIX, prisma, token, call, receipt, setCycleEndIn } = require('../lib');
 
 const TAG = 'QA-ACCESO';
 const CLABE = '646180112345678901';
@@ -28,6 +29,9 @@ async function joinAndPay(groupId, user, S) {
   r = await call('PUT', `/groups/${groupId}/payments/${payment.id}/review`, S, { approve: true, profileId: profile.id });
   if (r.status >= 300) throw new Error('No se pudo aprobar el pago: ' + JSON.stringify(r.body));
 }
+
+/** Meses entre dos fechas (UTC), para comprobar lo que dura un periodo. */
+const monthsBetween = (from, to) => (to.getUTCFullYear() - from.getUTCFullYear()) * 12 + to.getUTCMonth() - from.getUTCMonth();
 
 module.exports = {
   title: 'Acceso por invitación, duraciones, panel y credenciales de Partly',
@@ -130,6 +134,73 @@ module.exports = {
       }
       r = await call('PUT', `/incidents/${sellerReport}/status`, S, { status: 'RESOLVED' });
       check('el vendedor cierra su reporte con "Ya quedó"', r.status === 200);
+
+      console.log('\n[3] Grupos de 3 meses y anuales: renovación, avisos y cierre');
+      const { EMAIL_RULES } = require(path.join(BACKEND, 'dist/modules/notifications/email-rules.js'));
+      const daily = () => run.services.payments().processDailyBilling();
+      const [, , caro, dani] = run.buyers;
+      const periodGroup = async (name, billingPeriod, member) => {
+        const created = await call('POST', '/groups', S, { ...base, platformName: 'Netflix', tierName: QA_PREFIX + name, billingPeriod });
+        if (created.status >= 300) throw new Error(`No se pudo crear el grupo ${name}: ` + JSON.stringify(created.body));
+        const id = run.track(created.body.id);
+        await approve(id, S, A, { username: 'qa@partly.test', password: 'Secreta123' });
+        await joinAndPay(id, member, S);
+        return id;
+      };
+
+      const quarterly = await periodGroup('Trimestral', 'QUARTERLY', caro);
+      let open = await prisma.billingCycle.findFirst({ where: { groupId: quarterly, status: 'OPEN' } });
+      check('el primer periodo del grupo trimestral dura 3 meses', monthsBetween(open.periodStart, open.periodEnd) === 3);
+      await setCycleEndIn(quarterly, 4 * DAY);
+      await daily();
+      check('a 4 días del corte todavía no hay cobro', (await prisma.payment.count({ where: { forNextCycle: true, membership: { groupId: quarterly } } })) === 0);
+      await setCycleEndIn(quarterly, 2.5 * DAY);
+      await daily();
+      const renewal = await prisma.payment.findFirst({ where: { forNextCycle: true, membership: { groupId: quarterly, userId: caro.id } } });
+      check('3 días antes del corte se genera el cobro de renovación', !!renewal && Number(renewal.amount) === 60);
+      check('el cobro cubre los 3 meses siguientes', !!renewal && monthsBetween(renewal.coveredFrom, renewal.coveredUntil) === 3);
+      const due = await prisma.notification.findFirst({ where: { userId: caro.id, groupId: quarterly, type: 'PAYMENT_DUE_SOON', payload: { contains: 'se renueva' } } });
+      check('el aviso del cobro habla del "siguiente periodo", no del mes', !!due && /siguiente periodo/.test(due.payload) && !/mes siguiente/.test(due.payload), due?.payload);
+      check('y ese aviso también sale por correo', !!EMAIL_RULES.PAYMENT_DUE_SOON);
+      await receipt(quarterly, token(caro));
+      r = await call('PUT', `/groups/${quarterly}/payments/${renewal.id}/review`, S, { approve: true });
+      check('el vendedor aprueba la renovación', r.status === 200, JSON.stringify(r.body).slice(0, 120));
+      check('el comprador recibe "renovación confirmada" (también por correo)', !!(await prisma.notification.findFirst({ where: { userId: caro.id, groupId: quarterly, type: 'RENEWAL_CONFIRMED' } })) && !!EMAIL_RULES.RENEWAL_CONFIRMED);
+      // El periodo se cierra pasada la gracia de 48 horas después del corte.
+      await setCycleEndIn(quarterly, -(48 * HOUR + HOUR));
+      await daily();
+      open = await prisma.billingCycle.findFirst({ where: { groupId: quarterly, status: 'OPEN' } });
+      // Las fechas se movieron con el calendario del grupo: se vuelve a leer el cobro.
+      const paid = await prisma.payment.findUnique({ where: { id: renewal.id } });
+      const caroMembership = await prisma.groupMembership.findFirst({ where: { groupId: quarterly, userId: caro.id } });
+      check('al cortar, el grupo pasa a un nuevo periodo de 3 meses', !!open && monthsBetween(open.periodStart, open.periodEnd) === 3 && open.periodStart.getTime() === paid.coveredFrom.getTime());
+      check('y el comprador sigue activo hasta el fin del nuevo periodo', caroMembership.status === 'ACTIVE' && caroMembership.currentPeriodEnd.getTime() === open.periodEnd.getTime(), `${caroMembership.status} ${caroMembership.currentPeriodEnd?.toISOString()} vs ${open.periodEnd.toISOString()}`);
+
+      // Quien nunca ha vendido (el vendedor de la corrida pudo ganar reputación en otras pruebas).
+      const newSeller = token(ana);
+      r = await call('POST', '/groups', newSeller, { ...base, platformName: 'Netflix', tierName: QA_PREFIX + 'Anual sin reputación', billingPeriod: 'ANNUAL' });
+      check('sin reputación no se puede crear un grupo anual', r.status === 403);
+      r = await call('POST', '/groups', newSeller, { ...base, platformName: 'Netflix', tierName: QA_PREFIX + 'Semestral sin reputación', billingPeriod: 'SEMIANNUAL' });
+      check('ni uno de 6 meses', r.status === 403);
+      check('y el rechazo no deja planes vacíos', (await prisma.plan.count({ where: { tierName: { endsWith: 'sin reputación' } } })) === 0);
+      // Un vendedor con comisión reducida ya demostró su reputación.
+      const sellerRate = (await prisma.user.findUnique({ where: { id: run.seller.id } })).commissionRate;
+      await prisma.user.update({ where: { id: run.seller.id }, data: { commissionRate: 7 } });
+      const annual = await periodGroup('Anual', 'ANNUAL', dani);
+      await prisma.user.update({ where: { id: run.seller.id }, data: { commissionRate: sellerRate } });
+      open = await prisma.billingCycle.findFirst({ where: { groupId: annual, status: 'OPEN' } });
+      check('el periodo del grupo anual dura 12 meses', monthsBetween(open.periodStart, open.periodEnd) === 12);
+      r = await call('PUT', `/groups/${annual}/my-membership/auto-renew`, token(dani), { autoRenew: false });
+      check('el comprador apaga la renovación del anual', r.status === 200 && r.body.autoRenew === false);
+      await setCycleEndIn(annual, 2.5 * DAY);
+      await daily();
+      check('quien no renueva no recibe cobro', (await prisma.payment.count({ where: { forNextCycle: true, membership: { groupId: annual } } })) === 0);
+      await setCycleEndIn(annual, -HOUR);
+      await daily();
+      const daniMembership = await prisma.groupMembership.findFirst({ where: { groupId: annual, userId: dani.id } });
+      check('al terminar el año, sale del grupo', daniMembership.status === 'CANCELLED');
+      const left = await prisma.notification.findFirst({ where: { userId: run.seller.id, groupId: annual, type: 'MEMBER_LEFT' } });
+      check('al vendedor le llega el aviso de cambiar la contraseña (también por correo)', !!left && !!EMAIL_RULES.MEMBER_LEFT);
     } finally {
       await prisma.notification.deleteMany({ where: { payload: { contains: TAG } } });
       await prisma.emailMessage.deleteMany({ where: { subject: { contains: TAG } } });

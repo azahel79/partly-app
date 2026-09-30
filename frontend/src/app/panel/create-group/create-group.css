@@ -134,4 +134,10 @@ h1 em { color: inherit; }
 :host-context(html.dark) .period-options button { border-color: var(--dm-line-strong); background: var(--dm-surface); color: var(--dm-text); }
 :host-context(html.dark) .period-options button.selected { border-color: #34d399; color: #6ee7b7; background: rgba(16, 185, 129, 0.14); }
 :host-context(html.dark) .access-note { color: #93c5fd; background: rgba(96, 165, 250, 0.12); }
+.period-options button.locked { display: inline-flex; align-items: center; gap: 4px; color: #98a2b3; background: #f8f9fb; border-style: dashed; }
+.period-options button.locked .material-symbols-outlined { font-size: 15px; }
+.period-lock-note { grid-column: 1 / -1; display: flex; gap: 8px; margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; color: #b54708; background: #fffaeb; font-size: 12px; line-height: 1.5; }
+.period-lock-note .material-symbols-outlined { font-size: 17px; }
+:host-context(html.dark) .period-options button.locked { color: #7d8a86; background: transparent; }
+:host-context(html.dark) .period-lock-note { color: #fcd34d; background: rgba(245, 158, 11, 0.12); }
 

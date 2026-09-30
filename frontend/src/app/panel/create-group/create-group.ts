@@ -52,6 +52,20 @@ export class CreateGroup implements OnInit {
   /** Cada cuánto se cobra: 1, 2, 3, 6 o 12 meses (en el mayoreo lo define la cuenta comprada). */
   protected readonly billingPeriod = signal<BillingPeriod>('MONTHLY');
   protected readonly billingPeriodOptions = BILLING_PERIOD_OPTIONS;
+  /** 6 meses y anual: solo para vendedores con reputación (el comprador paga mucho de una vez). */
+  protected readonly canOfferLongPeriods = signal(false);
+  protected isLongPeriod(period: BillingPeriod): boolean {
+    return period === 'SEMIANNUAL' || period === 'ANNUAL';
+  }
+  protected pickPeriod(period: BillingPeriod): void {
+    if (this.isLongPeriod(period) && !this.canOfferLongPeriods()) {
+      this.longPeriodHint.set(true);
+      return;
+    }
+    this.longPeriodHint.set(false);
+    this.billingPeriod.set(period);
+  }
+  protected readonly longPeriodHint = signal(false);
   protected readonly periodNoun = computed(() => periodNoun(this.billingPeriod()));
   protected readonly perPeriod = computed(() => perPeriod(this.billingPeriod()));
   /** YouTube, Spotify y Canva: el acceso puede ser con correo y contraseña o con invitación al grupo familiar. */
@@ -164,7 +178,10 @@ export class CreateGroup implements OnInit {
 
   ngOnInit(): void {
     this.commissionsService.getMyRate().subscribe({
-      next: (rate) => this.commissionPct.set(rate.rate),
+      next: (rate) => {
+        this.commissionPct.set(rate.rate);
+        this.canOfferLongPeriods.set(rate.reduced || rate.allMet);
+      },
       error: () => undefined,
     });
     this.usersService.getPayoutAccount().subscribe({

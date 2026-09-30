@@ -3,7 +3,7 @@
  * empieza con "QA " y los cobros de comisión pendientes que quedaron sin ninguna entrada.
  * Uso (desde backend/): node scripts/qa/limpiar.js
  */
-const { prisma, QA_PREFIX, deleteGroup, deleteQaUsers, strayQaUserIds, ENV } = require('./lib');
+const { prisma, QA_PREFIX, deleteGroup, deleteQaUsers, strayQaUserIds, unmuteRealAdmins, ENV } = require('./lib');
 
 (async () => {
   if (ENV.NODE_ENV === 'production') {
@@ -15,6 +15,8 @@ const { prisma, QA_PREFIX, deleteGroup, deleteQaUsers, strayQaUserIds, ENV } = r
   const orphans = await prisma.commissionCharge.deleteMany({ where: { status: 'PENDING', entries: { none: {} } } });
   const strayUsers = await strayQaUserIds();
   await deleteQaUsers(strayUsers);
+  const unmuted = await unmuteRealAdmins();
+  if (unmuted) console.log(`Se les devolvieron los correos a ${unmuted} admin(s) que una corrida cortada dejó silenciados.`);
   console.log(`Grupos de prueba borrados: ${groups.length}. Cobros de comisión vacíos borrados: ${orphans.count}. Cuentas de prueba borradas: ${strayUsers.length}.`);
   await prisma.$disconnect();
 })().catch(async (error) => {

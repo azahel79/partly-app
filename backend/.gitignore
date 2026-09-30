@@ -3,3 +3,4 @@ dist/
 .env
 *.log
 uploads/
+scripts/qa/.admins-silenciados.json

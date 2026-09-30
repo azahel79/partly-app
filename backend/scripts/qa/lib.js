@@ -11,6 +11,8 @@ const HOUR = 3_600_000;
 const QA_PREFIX = 'QA ';
 /** Correo de las cuentas desechables de cada corrida (dominio reservado que no existe: nunca recibe nada). */
 const QA_EMAIL_DOMAIN = '@partly-qa.test';
+/** Admins reales a los que se les apagaron los correos durante una corrida (para devolvérselos aunque se corte). */
+const MUTED_ADMINS_FILE = path.join(__dirname, '.admins-silenciados.json');
 
 function readEnv() {
   const env = {};
@@ -67,6 +69,27 @@ async function setCycleEndIn(groupId, ms) {
 }
 
 /**
+ * Las pruebas crean grupos reales y la app avisa a todos los admins (también por correo): mientras corren, a los admins
+ * reales se les apagan los correos para no llenarles la bandeja. Se anotan en un archivo para devolvérselos al final,
+ * o en la siguiente corrida / limpieza si esta se cortó.
+ */
+async function muteRealAdmins() {
+  const previous = fs.existsSync(MUTED_ADMINS_FILE) ? JSON.parse(fs.readFileSync(MUTED_ADMINS_FILE, 'utf8')) : [];
+  const admins = await prisma.user.findMany({ where: { role: 'ADMIN', emailNotifications: true, NOT: { email: { endsWith: QA_EMAIL_DOMAIN } } }, select: { id: true } });
+  const ids = [...new Set([...previous, ...admins.map((a) => a.id)])];
+  fs.writeFileSync(MUTED_ADMINS_FILE, JSON.stringify(ids));
+  await prisma.user.updateMany({ where: { id: { in: ids } }, data: { emailNotifications: false } });
+}
+
+async function unmuteRealAdmins() {
+  if (!fs.existsSync(MUTED_ADMINS_FILE)) return 0;
+  const ids = JSON.parse(fs.readFileSync(MUTED_ADMINS_FILE, 'utf8'));
+  await prisma.user.updateMany({ where: { id: { in: ids } }, data: { emailNotifications: true } });
+  fs.unlinkSync(MUTED_ADMINS_FILE);
+  return ids.length;
+}
+
+/**
  * Contexto de una corrida: usuarios de prueba, servicios de Nest (para correr las tareas programadas a mano),
  * verificaciones y registro de todo lo creado para limpiarlo al final.
  */
@@ -77,6 +100,7 @@ async function createRun() {
   }
   const health = await fetch(`${API}/health/live`).catch(() => null);
   if (!health || !health.ok) throw new Error(`La API no responde en ${API}. Arráncala (npm run start:dev) antes de correr las pruebas.`);
+  await muteRealAdmins();
 
   // Cuentas desechables solo para esta corrida: nunca se usan personas reales (con el correo real encendido les
   // llegarían avisos de prueba). Tienen los correos apagados, así la app no les manda nada, y se borran al final.
@@ -249,6 +273,7 @@ async function cleanup(run) {
   const newPlatforms = await prisma.platform.findMany({ where: { id: { notIn: [...run.platformIdsBefore] } }, include: { _count: { select: { plans: true } } } });
   for (const p of newPlatforms) if (p._count.plans === 0) await prisma.platform.delete({ where: { id: p.id } }).catch(() => {});
   await deleteQaUsers(run.users.map((u) => u.id));
+  await unmuteRealAdmins();
   return groups.size;
 }
 
@@ -279,5 +304,5 @@ async function strayQaUserIds() {
 module.exports = {
   BACKEND, ENV, API, DAY, HOUR, QA_PREFIX, prisma,
   token, call, receipt, travel, setCycleEndIn,
-  createRun, createApprovedGroup, buildGroup, deleteGroup, tidyCommissionCharges, cleanup, deleteQaUsers, strayQaUserIds,
+  createRun, createApprovedGroup, buildGroup, deleteGroup, tidyCommissionCharges, cleanup, deleteQaUsers, strayQaUserIds, unmuteRealAdmins,
 };

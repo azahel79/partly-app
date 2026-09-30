@@ -74,9 +74,18 @@
               <div class="field-copy"><strong>¿Cada cuánto se cobra?</strong><small>Lo que dura cada periodo del grupo: al terminar, tus miembros renuevan.</small></div>
               <div class="period-options" role="radiogroup" aria-label="Duración del periodo">
                 @for (option of billingPeriodOptions; track option.value) {
-                  <button type="button" role="radio" [attr.aria-checked]="billingPeriod() === option.value" [class.selected]="billingPeriod() === option.value" (click)="billingPeriod.set(option.value)">{{ option.label }}</button>
+                  @let locked = isLongPeriod(option.value) && !canOfferLongPeriods();
+                  <button type="button" role="radio" [attr.aria-checked]="billingPeriod() === option.value" [attr.aria-disabled]="locked" [class.selected]="billingPeriod() === option.value" [class.locked]="locked" (click)="pickPeriod(option.value)">
+                    @if (locked) { <span class="material-symbols-outlined">lock</span> }{{ option.label }}
+                  </button>
                 }
               </div>
+              @if (longPeriodHint()) {
+                <p class="period-lock-note">
+                  <span class="material-symbols-outlined">workspace_premium</span>
+                  <span>6 meses y anual son para vendedores con reputación: 30 pagos validados, calificación de 4.5 o más (con 5 reseñas) y sin comisiones vencidas. Mientras tanto puedes ofrecer 1, 2 o 3 meses. <a routerLink="/panel/comisiones" class="font-bold underline">Ver mi avance</a></span>
+                </p>
+              }
             </div>
           }
 

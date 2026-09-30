@@ -5,9 +5,12 @@ import { MailService } from '../mail/mail.service';
 import { firstName } from '../mail/mail-templates';
 import { deferToDaytime } from '../mail/quiet-hours';
 import { ListNotificationsQueryDto } from './dto/list-notifications-query.dto';
-import { EMAIL_RULES } from './email-rules';
+import { emailForNotification } from './email-rules';
 
 type PrismaOrTx = PrismaService | Prisma.TransactionClient;
+
+/** Correo de un aviso: su propio asunto, o `false` para dejarlo solo en la app. */
+export type EmailOptions = { subject: string } | false;
 
 @Injectable()
 export class NotificationsService {
@@ -21,10 +24,12 @@ export class NotificationsService {
    * transacción. Además del aviso en la app, si el tipo lo amerita (ver EMAIL_RULES) y la persona
    * no desactivó los correos, deja el mismo mensaje en la bandeja de salida. Cada canal respeta su
    * propio interruptor: apagar los avisos en la app no apaga los correos, ni al revés.
+   * `email` afina el correo de ese aviso: `{ subject }` le da su propio asunto (útil en los avisos generales) y
+   * `false` lo deja solo en la app (avisos informativos que no ameritan llenar la bandeja).
    */
   async create(
     client: PrismaOrTx,
-    params: { userId: string; type: NotificationType; payload: string; groupId?: string; emailDedupeKey?: string; emailImmediate?: boolean },
+    params: { userId: string; type: NotificationType; payload: string; groupId?: string; emailDedupeKey?: string; emailImmediate?: boolean; email?: EmailOptions },
   ) {
     const preferences = await client.user.findUnique({
       where: { id: params.userId },
@@ -65,14 +70,16 @@ export class NotificationsService {
     if (params.type === NotificationType.CREDENTIAL_UPDATED && !preferences.notifyCredentials) return null;
     if (params.type === NotificationType.PAYOUT_PAID && !preferences.notifyPayouts) return null;
 
-    const { emailDedupeKey, emailImmediate, ...data } = params;
+    const { emailDedupeKey, emailImmediate, email, ...data } = params;
     const notification = preferences.inAppNotifications ? await client.notification.create({ data }) : null;
-    await this.mirrorToEmail(client, preferences, params, { dedupeKey: emailDedupeKey, immediate: emailImmediate });
+    if (email !== false) {
+      await this.mirrorToEmail(client, preferences, data, { dedupeKey: emailDedupeKey, immediate: emailImmediate, subject: email?.subject });
+    }
     return notification;
   }
 
   /** El mismo aviso para cada admin activo (dentro de la transacción de quien lo pide). */
-  async notifyAdmins(client: PrismaOrTx, params: { type: NotificationType; payload: string; groupId?: string }): Promise<void> {
+  async notifyAdmins(client: PrismaOrTx, params: { type: NotificationType; payload: string; groupId?: string; email?: EmailOptions }): Promise<void> {
     const admins = await client.user.findMany({ where: { role: Role.ADMIN, deletedAt: null }, select: { id: true } });
     for (const admin of admins) {
       await this.create(client, { userId: admin.id, ...params });
@@ -84,25 +91,22 @@ export class NotificationsService {
     client: PrismaOrTx,
     user: { email: string; name: string; role: Role; deletedAt: Date | null; emailNotifications: boolean },
     params: { userId: string; type: NotificationType; payload: string; groupId?: string },
-    options: { dedupeKey?: string; immediate?: boolean } = {},
+    options: { dedupeKey?: string; immediate?: boolean; subject?: string } = {},
   ): Promise<void> {
-    const rule = EMAIL_RULES[params.type];
-    if (!rule || !user.emailNotifications || user.deletedAt) return;
-    const isAdmin = user.role === Role.ADMIN;
-    if ((rule.audience === 'user' && isAdmin) || (rule.audience === 'admin' && !isAdmin)) return;
-
-    const cta = rule.cta?.(params, user.role) ?? null;
+    const email = emailForNotification(params, user, options.subject);
+    if (!email) return;
+    const { title, cta } = email;
     const name = firstName(user.name);
     await this.mailService.enqueue(client, {
       to: user.email,
       toUserId: params.userId,
       template: `notification-${params.type.toLowerCase()}`,
-      subject: rule.title,
+      subject: title,
       dedupeKey: options.dedupeKey,
       // Un aviso que un admin manda a propósito sale ya; los automáticos esperan a la mañana.
-      sendAfter: rule.defer && !options.immediate ? deferToDaytime(new Date()) : null,
+      sendAfter: email.defer && !options.immediate ? deferToDaytime(new Date()) : null,
       content: {
-        title: rule.title,
+        title,
         preheader: params.payload.length > 110 ? `${params.payload.slice(0, 107).trimEnd()}…` : params.payload,
         greeting: name ? `Hola ${name},` : 'Hola,',
         paragraphs: [params.payload],

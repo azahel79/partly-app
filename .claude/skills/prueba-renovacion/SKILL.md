@@ -47,6 +47,8 @@ Responde en español y sin jerga. Da primero el resultado global ("pasaron las 5
 
 Si una prueba falla por un cambio intencional de las reglas de negocio, actualiza la prueba en `backend/scripts/qa/suites/` en vez de "arreglar" la app, y menciónalo.
 
+Mientras corren, a los admins reales se les apagan los correos (la app avisa a todos los admins de cada grupo nuevo) y se les devuelven al terminar; si la corrida se corta, `limpiar.js` o la siguiente corrida se los devuelve.
+
 ## Si algo quedó a medias
 
 Si la corrida se interrumpió, puede haber grupos de prueba sueltos (su plan empieza con `QA `) y cuentas `@partly-qa.test`. Límpialos con:

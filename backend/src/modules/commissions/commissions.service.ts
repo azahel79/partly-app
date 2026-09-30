@@ -173,6 +173,8 @@ export class CommissionsService {
     await this.notificationsService.create(db, {
       userId: sellerId,
       type: NotificationType.COMMISSION_DUE,
+      // Un solo correo por cobro: cada pago validado después solo suma en la app (el recordatorio lleva el total).
+      ...(open ? { email: false as const } : {}),
       payload: open
         ? `Se sumaron $${amount.toFixed(2)} a tu comisión por pagar: ahora son $${total.toFixed(2)}. Págala antes del ${this.dateLabel(payBy)}.`
         : `Tienes una comisión de $${total.toFixed(2)} por pagar a Partly. Transfiérela y sube tu comprobante antes del ${this.dateLabel(payBy)} para que tus grupos sigan recibiendo miembros.`,
@@ -698,6 +700,7 @@ export class CommissionsService {
       await this.notificationsService.create(tx, {
         userId: membership.userId,
         type: NotificationType.SYSTEM,
+        email: false,
         groupId: membership.groupId,
         payload: halted
           ? `El grupo de ${platform} donde apartaste tu cupo está detenido: el vendedor tiene un pendiente con Partly y no puede iniciarlo por ahora. Tu reserva sigue en pie y no pagas nada. Si prefieres no esperar, puedes salirte sin costo y buscar otro grupo.`
