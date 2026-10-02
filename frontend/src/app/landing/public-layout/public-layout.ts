@@ -110,7 +110,7 @@ export class PublicLayout {
     if (canonical) {
       // `HTMLLinkElement.href` is not implemented by Angular's prerender DOM.
       // Build from the absolute value in index.html and update the attribute directly.
-      const canonicalUrl = new URL(path, canonical.getAttribute('href') ?? 'https://partly.mx/').href;
+      const canonicalUrl = new URL(path, canonical.getAttribute('href') ?? 'https://tequio.com.mx/').href;
       canonical.setAttribute('href', canonicalUrl);
       this.metaService.updateTag({ property: 'og:url', content: canonicalUrl }, 'property="og:url"');
     }
