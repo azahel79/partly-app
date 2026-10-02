@@ -621,7 +621,7 @@ export class PaymentsService {
         }
 
         // El dinero ya cayó directo a la cuenta del vendedor: aquí solo se anota cuánto fue
-        // suyo y cuánto es comisión de Partly (que el vendedor transfiere aparte).
+        // suyo y cuánto es comisión de Tequio (que el vendedor transfiere aparte).
         await this.commissionsService.recordEarning(tx, {
           paymentId: paid.id,
           sellerId: group.ownerId,
@@ -644,7 +644,7 @@ export class PaymentsService {
           ...(assignedProfileLabel
             ? {
                 type: NotificationType.MEMBERSHIP_ACTIVATED,
-                payload: `El vendedor confirmó tu pago de ${amount} y ya eres parte del grupo de ${platform}. Tu perfil es "${assignedProfileLabel}". Entra a Partly para ver el correo y la contraseña de la cuenta.`,
+                payload: `El vendedor confirmó tu pago de ${amount} y ya eres parte del grupo de ${platform}. Tu perfil es "${assignedProfileLabel}". Entra a Tequio para ver el correo y la contraseña de la cuenta.`,
                 emailImmediate: true,
               }
             : payment.forNextCycle && payment.coveredUntil
@@ -1056,8 +1056,8 @@ export class PaymentsService {
     const platform = payment.membership.group.plan.platform.name;
     const amount = `$${payment.amount.toString()}`;
     const payload = toSeller
-      ? `Recordatorio de Partly: ${payment.membership.user.name} subió su comprobante de ${amount} de "${platform}" y sigue esperando tu revisión. Apruébalo para activar su lugar.`
-      : `Recordatorio de Partly: tu pago de ${amount} de "${platform}"${payment.graceUntil ? ` vence el ${this.dateLabel(payment.graceUntil)}` : ' está pendiente'}. Transfiere y sube tu comprobante para conservar tu lugar.`;
+      ? `Recordatorio de Tequio: ${payment.membership.user.name} subió su comprobante de ${amount} de "${platform}" y sigue esperando tu revisión. Apruébalo para activar su lugar.`
+      : `Recordatorio de Tequio: tu pago de ${amount} de "${platform}"${payment.graceUntil ? ` vence el ${this.dateLabel(payment.graceUntil)}` : ' está pendiente'}. Transfiere y sube tu comprobante para conservar tu lugar.`;
 
     await this.prisma.$transaction(async (tx) => {
       await this.notificationsService.create(tx, {

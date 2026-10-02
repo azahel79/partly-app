@@ -8,7 +8,7 @@ export class ReviewGroupApprovalDto {
   status: GroupApprovalStatus;
 
   @ApiPropertyOptional({
-    example: 'La plataforma que describes no está permitida en el catálogo de Partly.',
+    example: 'La plataforma que describes no está permitida en el catálogo de Tequio.',
     description: 'Obligatorio si status es REJECTED — el vendedor lo ve tal cual.',
   })
   @IsOptional()

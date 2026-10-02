@@ -1,11 +1,11 @@
 <section class="audience-section" aria-labelledby="audience-title">
   <div class="audience-shell">
     <header appReveal>
-      <h2 id="audience-title">¿Qué quieres hacer con Partly?</h2>
+      <h2 id="audience-title">¿Qué quieres hacer con Tequio?</h2>
       <p>Elige tu objetivo y te mostramos el recorrido, los beneficios y el siguiente paso que te corresponde.</p>
     </header>
 
-    <div appReveal appRevealVariant="blur" class="audience-switch" aria-label="Selecciona cómo usarás Partly">
+    <div appReveal appRevealVariant="blur" class="audience-switch" aria-label="Selecciona cómo usarás Tequio">
       <button type="button" [class.active]="audience() === 'buyer'" [attr.aria-pressed]="audience() === 'buyer'" (click)="selectAudience('buyer')">
         <span class="material-symbols-outlined">person_search</span>
         Quiero unirme a un grupo

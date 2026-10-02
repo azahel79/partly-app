@@ -28,7 +28,7 @@ export class SupportList implements OnInit {
   }
 
   protected statusLabel(status: Incident['status']): string {
-    return { OPEN: 'Abierta', IN_REVIEW: 'En revisión', RESOLVED: 'Resuelta', ESCALATED: 'Escalada a Partly' }[status];
+    return { OPEN: 'Abierta', IN_REVIEW: 'En revisión', RESOLVED: 'Resuelta', ESCALATED: 'Escalada a Tequio' }[status];
   }
 
   protected statusClass(status: Incident['status']): string {

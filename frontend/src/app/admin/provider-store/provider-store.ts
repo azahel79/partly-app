@@ -129,7 +129,7 @@ export class ProviderStore implements OnInit {
     this.providerProfilesService.findMine().subscribe({
       next: () => this.afterProfileReady(),
       error: () => {
-        this.providerProfilesService.activate('Partly').subscribe({
+        this.providerProfilesService.activate('Tequio').subscribe({
           next: () => this.afterProfileReady(),
           error: (message: string) => this.errorMessage.set(message),
         });

@@ -1,7 +1,7 @@
 import { EMAIL_LOGO_HEIGHT, EMAIL_LOGO_WIDTH } from './mail-logo';
 
 /**
- * Plantillas de correo: una sola estructura visual (tarjeta con el logo de Partly, título, texto, botón y pie con
+ * Plantillas de correo: una sola estructura visual (tarjeta con el logo de Tequio, título, texto, botón y pie con
  * enlace a las preferencias) y el contenido de cada aviso encima. HTML con tablas y estilos en línea porque es lo
  * único que se ve igual en todos los clientes de correo.
  */
@@ -75,8 +75,8 @@ export function renderEmail(content: EmailContent, ctx: RenderContext): Rendered
     : '';
 
   const footerPrefs = ctx.prefsUrl
-    ? `Recibes este correo porque tienes una cuenta en Partly.<br><a href="${escapeHtml(ctx.prefsUrl)}" style="color:${SOFT};text-decoration:underline;">Administra tus avisos</a>`
-    : 'Recibes este correo porque tienes una cuenta en Partly.';
+    ? `Recibes este correo porque tienes una cuenta en Tequio.<br><a href="${escapeHtml(ctx.prefsUrl)}" style="color:${SOFT};text-decoration:underline;">Administra tus avisos</a>`
+    : 'Recibes este correo porque tienes una cuenta en Tequio.';
 
   const html = `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -90,7 +90,7 @@ export function renderEmail(content: EmailContent, ctx: RenderContext): Rendered
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
         <tr><td style="height:5px;line-height:5px;font-size:0;background:${BRAND};border-radius:18px 18px 0 0;">&nbsp;</td></tr>
         <tr><td style="padding:26px 32px 20px;border-bottom:1px solid ${LINE};">
-          <a href="${escapeHtml(ctx.appUrl)}" style="text-decoration:none;"><img src="${escapeHtml(ctx.logoUrl)}" width="${EMAIL_LOGO_WIDTH}" height="${EMAIL_LOGO_HEIGHT}" alt="Partly" style="display:block;border:0;outline:none;width:${EMAIL_LOGO_WIDTH}px;height:${EMAIL_LOGO_HEIGHT}px;font-size:22px;font-weight:900;color:${INK};"></a>
+          <a href="${escapeHtml(ctx.appUrl)}" style="text-decoration:none;"><img src="${escapeHtml(ctx.logoUrl)}" width="${EMAIL_LOGO_WIDTH}" height="${EMAIL_LOGO_HEIGHT}" alt="Tequio" style="display:block;border:0;outline:none;width:${EMAIL_LOGO_WIDTH}px;height:${EMAIL_LOGO_HEIGHT}px;font-size:22px;font-weight:900;color:${INK};"></a>
         </td></tr>
         <tr><td style="padding:28px 32px 32px;">
           <h1 style="margin:0 0 18px;font-size:22px;line-height:1.3;font-weight:800;color:${INK};">${escapeHtml(content.title)}</h1>
@@ -104,7 +104,7 @@ export function renderEmail(content: EmailContent, ctx: RenderContext): Rendered
     </td></tr>
     <tr><td style="padding:22px 16px 0;font-size:12px;line-height:1.7;color:${SOFT};text-align:center;">
       ${footerPrefs}<br>
-      <span style="color:#a3abbd;">Partly · Suscripciones compartidas, pagos directos y seguros</span>
+      <span style="color:#a3abbd;">Tequio · Suscripciones compartidas, pagos directos y seguros</span>
     </td></tr>
   </table>
 </td></tr></table></body></html>`;
@@ -119,7 +119,7 @@ export function renderEmail(content: EmailContent, ctx: RenderContext): Rendered
     content.note ?? '',
     '',
     ctx.prefsUrl ? `Administra tus avisos: ${ctx.prefsUrl}` : '',
-    '— Partly',
+    '— Tequio',
   ]
     .filter((line, index, all) => line !== '' || (index > 0 && all[index - 1] !== ''))
     .join('\n')

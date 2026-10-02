@@ -52,7 +52,7 @@ export const EMAIL_RULES: Partial<Record<NotificationType, EmailRule>> = {
   // Solo cuando se llena de golpe (primer aviso para iniciar); si ya estaba listo, se crea con `email: false`.
   GROUP_FULL: { title: 'Tu grupo se llenó: ya puedes iniciarlo', audience: 'user', cta: startGroup },
   GROUP_START_REMINDER: { title: 'Tus compradores esperan que inicies el grupo', audience: 'user', defer: true, cta: startGroup },
-  // comisión de Partly
+  // comisión de Tequio
   COMMISSION_DUE: { title: 'Tienes una comisión por pagar', audience: 'user', defer: true, cta: commissions },
   COMMISSION_REMINDER: { title: 'Tu comisión vence pronto', audience: 'user', defer: true, cta: commissions },
   COMMISSION_OVERDUE: { title: 'Tu comisión está vencida', audience: 'user', cta: commissions },
@@ -71,7 +71,7 @@ export const EMAIL_RULES: Partial<Record<NotificationType, EmailRule>> = {
   // avisos generales (aprobación de grupos, credenciales, etc.): cada uno trae su propio asunto. También les llegan
   // a los admins (grupo por revisar, credenciales enviadas, contraseña de mayoreo por cambiar).
   SYSTEM: {
-    title: 'Aviso de Partly',
+    title: 'Aviso de Tequio',
     audience: 'any',
     cta: (n, role) => (n.groupId ? { label: 'Ver el grupo', path: role === Role.ADMIN ? `/admin/grupos/${n.groupId}` : `/panel/grupos/${n.groupId}` } : null),
   },

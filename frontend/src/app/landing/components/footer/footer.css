@@ -7,7 +7,7 @@
 .wave-green{fill:#087a69}.wave-dark{fill:#0d1123}
 .footer-shell{max-width:1600px;margin:auto;padding:75px clamp(24px,5vw,82px) 25px}
 .footer-grid{display:grid;grid-template-columns:1.9fr 1fr 1fr 1fr;gap:48px;padding-bottom:40px}
-.footer-logo{position:relative;display:block;width:160px;margin-bottom:22px}
+.footer-logo{position:relative;display:block;width:125px;margin-bottom:22px}
 .footer-logo img{display:block;width:100%;height:auto;filter:brightness(0) invert(1)}
 .footer-logo .logo-color{position:absolute;inset:0;filter:none;clip-path:inset(0 74% 0 0)}
 .footer-brand>p{max-width:475px;margin:0;font-size:15px;line-height:1.6}

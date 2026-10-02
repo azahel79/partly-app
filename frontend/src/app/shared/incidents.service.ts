@@ -40,7 +40,7 @@ export class IncidentsService {
       .pipe(catchError((error: HttpErrorResponse) => throwError(() => toErrorMessage(error))));
   }
 
-  /** `audience` distinto de ALL = mensaje privado entre Partly y una de las partes. */
+  /** `audience` distinto de ALL = mensaje privado entre Tequio y una de las partes. */
   addMessage(id: string, body: string, audience: IncidentMessageAudience = 'ALL'): Observable<IncidentMessage> {
     return this.http
       .post<IncidentMessage>(`${API_BASE_URL}/incidents/${id}/messages`, { body, audience })

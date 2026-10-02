@@ -1,4 +1,4 @@
-# AnalÃ­tica pÃºblica de Partly
+# AnalÃ­tica pÃºblica de Tequio
 
 La landing ya emite eventos de conversiÃ³n y Web Vitals mediante una capa neutral. El cÃ³digo no instala un proveedor, no crea cookies y no envÃ­a datos por sÃ­ solo. Antes de conectar GA4, Matomo u otra herramienta, deben aprobarse el proveedor, la polÃ­tica de privacidad, el mecanismo de consentimiento y la retenciÃ³n.
 

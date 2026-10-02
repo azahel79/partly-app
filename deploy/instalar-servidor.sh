@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Instala Partly en un servidor Debian/Ubuntu nuevo (Amazon Lightsail). Se corre UNA vez, con tu usuario
+# Instala Tequio en un servidor Debian/Ubuntu nuevo (Amazon Lightsail). Se corre UNA vez, con tu usuario
 # normal (no root), desde la carpeta del repo ya clonado:
 #
 #   cd /var/www/partly && bash deploy/instalar-servidor.sh
@@ -33,7 +33,7 @@ pg() { (cd /tmp && sudo -u postgres "$@"); }
 [ "$(id -u)" -ne 0 ] || falla "Córrelo con tu usuario normal (por ejemplo admin), no como root ni con sudo."
 [ -f "$REPO_DIR/backend/package.json" ] || falla "No encuentro el backend en $REPO_DIR. Corre el script desde la carpeta del repo."
 
-echo "Partly se instalará para https://$DOMINIO desde $REPO_DIR"
+echo "Tequio se instalará para https://$DOMINIO desde $REPO_DIR"
 
 # ---------------------------------------------------------------------------------------------------------------
 paso "1/8 Paquetes del sistema (git, nginx, PostgreSQL, certbot)"
@@ -97,7 +97,7 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=$GMAIL_USER
 SMTP_PASS=$GMAIL_PASS
-MAIL_FROM_NAME=Partly
+MAIL_FROM_NAME=Tequio
 MAIL_FROM_ADDRESS=$GMAIL_USER"
   else
     RESEND_KEY=""
@@ -105,7 +105,7 @@ MAIL_FROM_ADDRESS=$GMAIL_USER"
     read -rp "  Correo remitente [no-reply@$DOMINIO]: " MAIL_FROM
     MAIL_BLOQUE="MAIL_PROVIDER=resend
 RESEND_API_KEY=$RESEND_KEY
-MAIL_FROM_NAME=Partly
+MAIL_FROM_NAME=Tequio
 MAIL_FROM_ADDRESS=${MAIL_FROM:-no-reply@$DOMINIO}"
   fi
   GOOGLE_ID=""

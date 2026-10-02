@@ -1,5 +1,5 @@
 /*
- * Pruebas de extremo a extremo de Partly (cobros, renovaciones, reseñas, comisiones y seguridad).
+ * Pruebas de extremo a extremo de Tequio (cobros, renovaciones, reseñas, comisiones y seguridad).
  * Uso (desde backend/, con la API corriendo y `npm run build` al día):
  *   node scripts/qa/run.js              → todas
  *   node scripts/qa/run.js renovacion   → solo algunas (renovacion, entrada, resenas, seguridad, comision)

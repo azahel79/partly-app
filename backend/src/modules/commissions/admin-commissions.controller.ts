@@ -32,13 +32,13 @@ export class AdminCommissionsController {
   }
 
   @Get('bank-account')
-  @ApiOperation({ summary: 'Cuenta bancaria de Partly donde los vendedores transfieren la comisión' })
+  @ApiOperation({ summary: 'Cuenta bancaria de Tequio donde los vendedores transfieren la comisión' })
   getBankAccount() {
     return this.commissionsService.getBankAccount();
   }
 
   @Put('bank-account')
-  @ApiOperation({ summary: 'Configura la cuenta bancaria de Partly' })
+  @ApiOperation({ summary: 'Configura la cuenta bancaria de Tequio' })
   updateBankAccount(@Body() dto: UpdateBankAccountDto, @CurrentUser() admin: AuthenticatedUser) {
     return this.commissionsService.updateBankAccount(dto, admin);
   }

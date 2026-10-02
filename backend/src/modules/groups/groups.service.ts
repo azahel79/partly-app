@@ -129,7 +129,7 @@ export class GroupsService {
       data: {
         planId,
         ownerId,
-        // Comisión fija de Partly (9%, o la reducida del vendedor): la conoce desde que crea el grupo.
+        // Comisión fija de Tequio (9%, o la reducida del vendedor): la conoce desde que crea el grupo.
         commissionPercentage,
         pricePerSlot: dto.pricePerSlot,
         availableSlots: dto.availableSlots,
@@ -162,7 +162,7 @@ export class GroupsService {
         userId: group.ownerId,
         type: NotificationType.SYSTEM,
         email: false,
-        payload: `Tu grupo de ${platform} quedó en revisión de Partly. En cuanto lo revisemos te pediremos las credenciales de la cuenta para comprobar el acceso; te avisaremos por aquí y por correo.`,
+        payload: `Tu grupo de ${platform} quedó en revisión de Tequio. En cuanto lo revisemos te pediremos las credenciales de la cuenta para comprobar el acceso; te avisaremos por aquí y por correo.`,
         groupId: group.id,
       });
       const admins = await this.prisma.user.findMany({ where: { role: Role.ADMIN, deletedAt: null, id: { not: group.ownerId } }, select: { id: true } });
@@ -231,7 +231,7 @@ export class GroupsService {
           bankAccountNumber: dto.bankAccountNumber,
           approvalStatus: GroupApprovalStatus.PENDING,
           // Entregada con credenciales: se copian y quedan listas para revisión. Por panel: el vendedor da el acceso,
-          // así que Partly le pide las credenciales como en cualquier grupo.
+          // así que Tequio le pide las credenciales como en cualquier grupo.
           credentialReviewStatus: byPanel ? CredentialReviewStatus.REQUESTED : CredentialReviewStatus.SUBMITTED,
           credentialsRequestedAt: byPanel ? new Date() : null,
           credentialsSubmittedAt: byPanel ? null : new Date(),
@@ -570,7 +570,7 @@ export class GroupsService {
     await this.notificationsService.create(this.prisma, {
       userId: group.ownerId,
       type: NotificationType.SYSTEM,
-      email: { subject: 'Mensaje de Partly sobre tu grupo' },
+      email: { subject: 'Mensaje de Tequio sobre tu grupo' },
       emailImmediate: true,
       payload: message,
       groupId: group.id,
@@ -602,9 +602,9 @@ export class GroupsService {
       await this.notificationsService.create(tx, {
         userId: group.ownerId,
         type: NotificationType.SYSTEM,
-        email: { subject: 'Partly te pide las credenciales de tu grupo' },
+        email: { subject: 'Tequio te pide las credenciales de tu grupo' },
         payload:
-          `El equipo de Partly solicita las credenciales de ${group.plan.platform.name}. Entra a tu grupo y usa el botón "Enviar credenciales al administrador" para continuar con la revisión.` +
+          `El equipo de Tequio solicita las credenciales de ${group.plan.platform.name}. Entra a tu grupo y usa el botón "Enviar credenciales al administrador" para continuar con la revisión.` +
           ` ${this.commissionSummary({ ...group, commissionPercentage })}`,
         groupId: group.id,
       });
@@ -615,7 +615,7 @@ export class GroupsService {
   private commissionSummary(group: { commissionPercentage: Prisma.Decimal | null; pricePerSlot: Prisma.Decimal; availableSlots: number; plan: { billingPeriod: BillingPeriod } }): string {
     const pct = Number(group.commissionPercentage);
     const gross = Number(group.pricePerSlot) * group.availableSlots;
-    return `Comisión de Partly para tu grupo: ${pct}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirías $${(gross * (1 - pct / 100)).toFixed(2)} ${perPeriodLabel(group.plan.billingPeriod)}; si quieres, ajusta tu precio.`;
+    return `Comisión de Tequio para tu grupo: ${pct}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirías $${(gross * (1 - pct / 100)).toFixed(2)} ${perPeriodLabel(group.plan.billingPeriod)}; si quieres, ajusta tu precio.`;
   }
 
   /** Aprueba o rechaza un grupo nuevo — solo ADMIN. Avisa al dueño por notificación. */
@@ -673,7 +673,7 @@ export class GroupsService {
         email: { subject: newStatus === GroupApprovalStatus.APPROVED ? '¡Tu grupo fue aprobado!' : 'Tu grupo no fue aprobado' },
         payload:
           newStatus === GroupApprovalStatus.APPROVED
-            ? `Tu grupo de ${group.plan.platform.name} fue aprobado con una comisión de Partly del ${commissionPercentage}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirás $${(Number(group.pricePerSlot) * group.availableSlots * (1 - commissionPercentage / 100)).toFixed(2)} ${perPeriodLabel(group.plan.billingPeriod)}, y ya puede aparecer en el marketplace.`
+            ? `Tu grupo de ${group.plan.platform.name} fue aprobado con una comisión de Tequio del ${commissionPercentage}%. Con el grupo lleno (${group.availableSlots} × $${Number(group.pricePerSlot).toFixed(2)}) recibirás $${(Number(group.pricePerSlot) * group.availableSlots * (1 - commissionPercentage / 100)).toFixed(2)} ${perPeriodLabel(group.plan.billingPeriod)}, y ya puede aparecer en el marketplace.`
             : `Tu grupo de ${group.plan.platform.name} fue rechazado: ${reason!.trim()}`,
         groupId: group.id,
       });
@@ -692,7 +692,7 @@ export class GroupsService {
   /**
    * Detalle de un grupo según quién mira. Un grupo sin aprobar (en revisión o rechazado) no es público: solo lo
    * ven su vendedor, quien ya tiene relación con él y un ADMIN. La cuenta bancaria se muestra a quien le tiene
-   * que pagar al vendedor (pago pendiente, activo o suspendido) y la comisión, solo al vendedor y a Partly.
+   * que pagar al vendedor (pago pendiente, activo o suspendido) y la comisión, solo al vendedor y a Tequio.
    */
   async findForViewer(id: string, viewer?: AuthenticatedUser) {
     const group = await this.findById(id);
@@ -780,7 +780,7 @@ export class GroupsService {
         throw new BadRequestException('Este grupo no está buscando miembros ahora mismo.');
       }
       if (group.approvalStatus !== GroupApprovalStatus.APPROVED) {
-        throw new BadRequestException('Este grupo todavía no ha sido aprobado por Partly.');
+        throw new BadRequestException('Este grupo todavía no ha sido aprobado por Tequio.');
       }
       if (!group.credential) {
         throw new BadRequestException('El vendedor todavía no ha subido las credenciales de acceso a la cuenta.');
@@ -1165,7 +1165,7 @@ export class GroupsService {
 
   /**
    * Números que ve el vendedor antes de decidir si inicia: cuánto cobraría con los cupos ya
-   * reservados, cuánto se lleva Partly y qué le queda contra lo que le costó la cuenta.
+   * reservados, cuánto se lleva Tequio y qué le queda contra lo que le costó la cuenta.
    */
   async getStartPreview(groupId: string, requester: AuthenticatedUser) {
     const group = await this.prisma.group.findUnique({
@@ -1250,7 +1250,7 @@ export class GroupsService {
       throw new BadRequestException('Este grupo ya inició.');
     }
     if (group.approvalStatus !== GroupApprovalStatus.APPROVED) {
-      throw new BadRequestException('Partly todavía no aprueba este grupo.');
+      throw new BadRequestException('Tequio todavía no aprueba este grupo.');
     }
     if (!group.credential) {
       throw new BadRequestException('Sube las credenciales de la cuenta antes de iniciar el grupo.');
@@ -1513,15 +1513,15 @@ export class GroupsService {
     if (group.ownerId !== requester.id) {
       throw new ForbiddenException('Solo el owner de este grupo puede establecer la credencial compartida.');
     }
-    // Las cuentas de mayoreo que Partly entregó con credenciales son de Partly: se cambian desde su tienda (y se
+    // Las cuentas de mayoreo que Tequio entregó con credenciales son de Tequio: se cambian desde su tienda (y se
     // copian aquí). Las que se entregan por panel las administra el vendedor.
     if ((await memberLeftContext(this.prisma, groupId)).wholesale) {
-      throw new ForbiddenException('Las credenciales de una cuenta de mayoreo las administra Partly. Si necesitas cambiarlas, pídelo desde Mayoreo → Mis compras → Reportar.');
+      throw new ForbiddenException('Las credenciales de una cuenta de mayoreo las administra Tequio. Si necesitas cambiarlas, pídelo desde Mayoreo → Mis compras → Reportar.');
     }
-    // Con el grupo en revisión, las credenciales solo se envían cuando Partly las pide (o para corregir unas
+    // Con el grupo en revisión, las credenciales solo se envían cuando Tequio las pide (o para corregir unas
     // ya enviadas): antes de eso el vendedor todavía no sabe si acepta la comisión.
     if (group.approvalStatus === GroupApprovalStatus.PENDING && group.credentialReviewStatus === CredentialReviewStatus.NOT_REQUESTED) {
-      throw new ForbiddenException('Partly todavía no te pide las credenciales. Te avisaremos cuando definan tu comisión y puedas enviarlas.');
+      throw new ForbiddenException('Tequio todavía no te pide las credenciales. Te avisaremos cuando definan tu comisión y puedas enviarlas.');
     }
     const key = this.configService.get<string>('credentialsEncryptionKey')!;
     const byInvite = group.accessType === GroupAccessType.INVITE_LINK;
@@ -1554,7 +1554,7 @@ export class GroupsService {
       });
 
       // Grupo ya aprobado y con un acceso nuevo: los miembros que siguen deben saber que la contraseña cambió.
-      // El aviso no incluye la contraseña; la ven dentro de Partly.
+      // El aviso no incluye la contraseña; la ven dentro de Tequio.
       if (group.approvalStatus === GroupApprovalStatus.APPROVED && previous && accessChanged) {
         const platform = (await tx.plan.findUniqueOrThrow({ where: { id: group.planId }, select: { platform: { select: { name: true } } } })).platform.name;
         const members = await tx.groupMembership.findMany({

@@ -294,7 +294,7 @@ export class Profile implements OnInit {
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement('a');
         anchor.href = url;
-        anchor.download = `partly-datos-${new Date().toISOString().slice(0, 10)}.json`;
+        anchor.download = `tequio-datos-${new Date().toISOString().slice(0, 10)}.json`;
         anchor.click();
         URL.revokeObjectURL(url);
         this.saving.set(null);

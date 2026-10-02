@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateBankAccountDto {
-  @ApiProperty({ example: 'Partly Tecnología SA de CV' })
+  @ApiProperty({ example: 'Tequio Tecnología SA de CV' })
   @IsString()
   @MinLength(3)
   @MaxLength(100)

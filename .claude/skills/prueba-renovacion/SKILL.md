@@ -1,11 +1,11 @@
 ---
 name: prueba-renovacion
-description: Corre las pruebas de extremo a extremo de Partly (renovación por adelantado, lugares por liberarse, entrada a mitad de ciclo, gracia de 48 horas, reseñas, comisión vencida, comisión del 9% y reducida, lugares apartados, cambio de contraseña cuando alguien sale y reglas de seguridad) contra la API local, con grupos temporales que se borran al terminar. Úsala siempre que se cambie algo de cobros, pagos, comprobantes, membresías, renovaciones, comisiones, reseñas o permisos, antes de hacer commit o de publicar, o cuando el usuario pida "probar", "verificar que no se rompió nada", "correr las pruebas" o "revisar la renovación", aunque no nombre la skill.
+description: Corre las pruebas de extremo a extremo de Tequio (renovación por adelantado, lugares por liberarse, entrada a mitad de ciclo, gracia de 48 horas, reseñas, comisión vencida, comisión del 9% y reducida, lugares apartados, cambio de contraseña cuando alguien sale y reglas de seguridad) contra la API local, con grupos temporales que se borran al terminar. Úsala siempre que se cambie algo de cobros, pagos, comprobantes, membresías, renovaciones, comisiones, reseñas o permisos, antes de hacer commit o de publicar, o cuando el usuario pida "probar", "verificar que no se rompió nada", "correr las pruebas" o "revisar la renovación", aunque no nombre la skill.
 ---
 
-# Pruebas de extremo a extremo de Partly
+# Pruebas de extremo a extremo de Tequio
 
-Las pruebas unitarias (`npm test`) solo cubren funciones sueltas. Lo delicado de Partly son los flujos que cruzan días: un cobro que se genera 3 días antes del corte, un lugar que se libera al cortar, una gracia de 48 horas. Estos scripts arman grupos reales por la API, "viajan en el tiempo" moviendo solo las fechas de esos grupos, corren a mano las tareas programadas y revisan el resultado. Al final borran todo lo que crearon.
+Las pruebas unitarias (`npm test`) solo cubren funciones sueltas. Lo delicado de Tequio son los flujos que cruzan días: un cobro que se genera 3 días antes del corte, un lugar que se libera al cortar, una gracia de 48 horas. Estos scripts arman grupos reales por la API, "viajan en el tiempo" moviendo solo las fechas de esos grupos, corren a mano las tareas programadas y revisan el resultado. Al final borran todo lo que crearon.
 
 ## Antes de correr
 
@@ -34,7 +34,7 @@ Elige las pruebas según lo que cambió, para no esperar de más:
 | Comisiones, restricciones del vendedor | `comision` |
 | Permisos, datos privados, credenciales, validación de archivos | `seguridad` |
 | Incidencias de soporte: privados, pedir respuesta, recordatorios y escalada automática | `soporte` |
-| Acceso por invitación, duración del periodo, mayoreo por panel o credenciales que actualiza Partly | `acceso` |
+| Acceso por invitación, duración del periodo, mayoreo por panel o credenciales que actualiza Tequio | `acceso` |
 | Comisión fija o reducida, apartar/soltar lugares, aviso de misma plataforma | `apartados` |
 | Salidas del grupo y cambio de contraseña (avisos al vendedor y a los miembros) | `credenciales` |
 | Antes de un commit grande o de publicar | todas |

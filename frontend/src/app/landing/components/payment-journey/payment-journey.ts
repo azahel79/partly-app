@@ -23,7 +23,7 @@ export class PaymentJourney {
       icon: 'calculate',
       label: 'Monto calculado',
       title: 'Sabes cuánto pagar antes de continuar',
-      description: 'Partly muestra el precio del cupo y calcula el primer periodo según los días restantes.',
+      description: 'Tequio muestra el precio del cupo y calcula el primer periodo según los días restantes.',
     },
     {
       icon: 'account_balance',
@@ -41,7 +41,7 @@ export class PaymentJourney {
       icon: 'fact_check',
       label: 'Revisión',
       title: 'El titular confirma el depósito',
-      description: 'Partly registra la decisión. Si existe un problema, el historial permite abrir una incidencia.',
+      description: 'Tequio registra la decisión. Si existe un problema, el historial permite abrir una incidencia.',
     },
     {
       icon: 'key',

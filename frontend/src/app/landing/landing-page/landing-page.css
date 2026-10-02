@@ -36,7 +36,7 @@
   :host ::ng-deep .plan-tabs button:hover{translate:0 -4px;box-shadow:0 12px 24px #008d7026}
 }
 
-/* Partly polish: geometría sobria, profundidad puntual y una sola voz de marca. */
+/* Tequio polish: geometría sobria, profundidad puntual y una sola voz de marca. */
 :host ::ng-deep :is(h1,h2){letter-spacing:-.04em!important;text-wrap:balance}
 :host ::ng-deep h3{letter-spacing:-.02em;text-wrap:balance}
 :host ::ng-deep p{text-wrap:pretty}

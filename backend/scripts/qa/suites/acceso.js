@@ -1,4 +1,4 @@
-/* Tipo de acceso y duración: invitación al grupo familiar, grupos de 2 meses, mayoreo por panel y Partly
+/* Tipo de acceso y duración: invitación al grupo familiar, grupos de 2 meses, mayoreo por panel y Tequio
  * actualizando las credenciales de una cuenta de su tienda (con aviso en el reporte). */
 const path = require('path');
 const { BACKEND, DAY, HOUR, QA_PREFIX, prisma, token, call, receipt, setCycleEndIn } = require('../lib');
@@ -6,7 +6,7 @@ const { BACKEND, DAY, HOUR, QA_PREFIX, prisma, token, call, receipt, setCycleEnd
 const TAG = 'QA-ACCESO';
 const CLABE = '646180112345678901';
 
-/** Aprueba un grupo: si se da `access`, antes Partly lo pide y el vendedor lo envía (si no, ya estaba enviado). */
+/** Aprueba un grupo: si se da `access`, antes Tequio lo pide y el vendedor lo envía (si no, ya estaba enviado). */
 async function approve(groupId, S, A, access) {
   for (const [method, route, tok, body] of [
     ...(access ? [['POST', `/groups/${groupId}/request-credentials`, A, {}], ['PUT', `/groups/${groupId}/credential`, S, access]] : []),
@@ -34,7 +34,7 @@ async function joinAndPay(groupId, user, S) {
 const monthsBetween = (from, to) => (to.getUTCFullYear() - from.getUTCFullYear()) * 12 + to.getUTCMonth() - from.getUTCMonth();
 
 module.exports = {
-  title: 'Acceso por invitación, duraciones, panel y credenciales de Partly',
+  title: 'Acceso por invitación, duraciones, panel y credenciales de Tequio',
   async run(run) {
     const { check } = run;
     const [ana, beto] = run.buyers;
@@ -65,7 +65,7 @@ module.exports = {
       r = await call('PUT', `/groups/${invite}/credential`, S, { inviteLink: link });
       check('el vendedor envía el link de invitación', r.status === 200 || r.status === 201, JSON.stringify(r.body).slice(0, 120));
       const review = await call('GET', `/groups/${invite}/credential`, A);
-      check('Partly ve el link al revisar el grupo', review.body.inviteLink === link && review.body.accessType === 'INVITE_LINK');
+      check('Tequio ve el link al revisar el grupo', review.body.inviteLink === link && review.body.accessType === 'INVITE_LINK');
       await approve(invite, S, A, null);
       await joinAndPay(invite, ana, S);
       const seen = await call('GET', `/groups/${invite}/credential`, token(ana));
@@ -74,7 +74,7 @@ module.exports = {
       const months = cycle ? (cycle.periodEnd.getUTCFullYear() - cycle.periodStart.getUTCFullYear()) * 12 + cycle.periodEnd.getUTCMonth() - cycle.periodStart.getUTCMonth() : 0;
       check('su periodo dura 2 meses', months === 2, cycle ? `${cycle.periodStart.toISOString().slice(0, 10)} → ${cycle.periodEnd.toISOString().slice(0, 10)}` : 'sin ciclo');
 
-      console.log('\n[2] Mayoreo por panel y credenciales que actualiza Partly');
+      console.log('\n[2] Mayoreo por panel y credenciales que actualiza Tequio');
       const platform = await prisma.platform.findFirst({ where: { name: 'Spotify' } });
       const profile = await prisma.providerProfile.create({ data: { userId: run.admin.id, businessName: `${TAG} tienda`, status: 'APPROVED' } });
       extra.profile = profile.id;
@@ -90,7 +90,7 @@ module.exports = {
       r = await call('PUT', `/provider-orders/${panelOrder.id}/deliver`, A, { notes: 'sin nada' });
       check('para entregar hace falta la contraseña o el link del panel', r.status === 400);
       r = await call('PUT', `/provider-orders/${panelOrder.id}/deliver`, A, { panelUrl: 'https://panel.qa.test/alta', username: 'vendedor', password: 'Panel123' });
-      check('Partly entrega una cuenta por panel', r.status === 200, JSON.stringify(r.body).slice(0, 120));
+      check('Tequio entrega una cuenta por panel', r.status === 200, JSON.stringify(r.body).slice(0, 120));
       const panelCred = await call('GET', `/provider-orders/${panelOrder.id}/credential`, S);
       check('el vendedor ve el link y los datos del panel', panelCred.body.panelUrl === 'https://panel.qa.test/alta' && panelCred.body.username === 'vendedor');
       r = await call('POST', `/provider-orders/${panelOrder.id}/create-group`, S, { pricePerSlot: 60, availableSlots: 1, bankAccountNumber: CLABE });
@@ -109,7 +109,7 @@ module.exports = {
       await approve(managed, S, A, null);
       await joinAndPay(managed, beto, S);
       r = await call('PUT', `/groups/${managed}/credential`, S, { username: 'cuenta@qa.test', password: 'MiCambio1' });
-      check('el vendedor no puede cambiar la contraseña de una cuenta de Partly', r.status === 403);
+      check('el vendedor no puede cambiar la contraseña de una cuenta de Tequio', r.status === 403);
 
       r = await call('POST', '/incidents', S, { context: 'PROVIDER_ORDER', providerOrderId: credOrder.id, subject: `${TAG} no entra`, message: 'La contraseña ya no funciona.' });
       if (r.status >= 300) throw new Error('No se pudo reportar la compra: ' + JSON.stringify(r.body));
@@ -118,19 +118,19 @@ module.exports = {
       r = await call('POST', '/incidents', token(beto), { context: 'GROUP_MEMBERSHIP', groupMembershipId: membership.id, subject: `${TAG} miembro sin acceso`, message: 'No puedo entrar.' });
       const memberReport = r.body.id;
       const aboutMember = await call('GET', `/incidents/${memberReport}`, S);
-      check('el reporte del miembro indica que la contraseña la administra Partly', aboutMember.body.about?.credentialsManagedByPartly === true);
+      check('el reporte del miembro indica que la contraseña la administra Tequio', aboutMember.body.about?.credentialsManagedByPartly === true);
 
       r = await call('PUT', `/provider-orders/${credOrder.id}/credential`, S, { username: 'cuenta@qa.test', password: 'Nueva123' });
-      check('solo Partly actualiza las credenciales de su cuenta', r.status === 403);
+      check('solo Tequio actualiza las credenciales de su cuenta', r.status === 403);
       r = await call('PUT', `/provider-orders/${credOrder.id}/credential`, A, { username: 'cuenta@qa.test', password: 'Nueva123', changeReason: `${TAG} contraseña bloqueada` });
-      check('Partly actualiza las credenciales desde Mi tienda', r.status === 200, JSON.stringify(r.body).slice(0, 160));
+      check('Tequio actualiza las credenciales desde Mi tienda', r.status === 200, JSON.stringify(r.body).slice(0, 160));
       const groupCred = await call('GET', `/groups/${managed}/credential`, token(beto));
       check('el grupo del vendedor recibe la contraseña nueva', groupCred.body.password === 'Nueva123');
       const memberNotice = await prisma.notification.findFirst({ where: { userId: beto.id, type: 'CREDENTIAL_UPDATED', groupId: managed } });
       check('a los miembros se les avisa del cambio', !!memberNotice);
       for (const [id, who] of [[sellerReport, 'del vendedor'], [memberReport, 'del miembro']]) {
         const inc = await prisma.incident.findUnique({ where: { id }, include: { messages: { orderBy: { createdAt: 'desc' }, take: 1 } } });
-        check(`el reporte ${who} recibe la respuesta de Partly y pasa a revisión`, inc.status === 'IN_REVIEW' && /actualiz/i.test(inc.messages[0]?.body ?? ''), inc.messages[0]?.body);
+        check(`el reporte ${who} recibe la respuesta de Tequio y pasa a revisión`, inc.status === 'IN_REVIEW' && /actualiz/i.test(inc.messages[0]?.body ?? ''), inc.messages[0]?.body);
       }
       r = await call('PUT', `/incidents/${sellerReport}/status`, S, { status: 'RESOLVED' });
       check('el vendedor cierra su reporte con "Ya quedó"', r.status === 200);

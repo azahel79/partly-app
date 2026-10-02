@@ -21,12 +21,12 @@ export interface Incident {
   about: IncidentAbout | null;
   /** Última vez que escribió el responsable. */
   lastAssigneeReplyAt: string | null;
-  /** Partly le pidió respuesta al responsable: cuándo, y hasta cuándo tiene (null si ya contestó o venció). */
+  /** Tequio le pidió respuesta al responsable: cuándo, y hasta cuándo tiene (null si ya contestó o venció). */
   responseRequestedAt: string | null;
   responseDueAt: string | null;
 }
 
-/** ALL = lo ven todos; REPORTER / ASSIGNEE = privado entre Partly y esa persona. */
+/** ALL = lo ven todos; REPORTER / ASSIGNEE = privado entre Tequio y esa persona. */
 export type IncidentMessageAudience = 'ALL' | 'REPORTER' | 'ASSIGNEE';
 
 export interface IncidentAbout {
@@ -37,7 +37,7 @@ export interface IncidentAbout {
   groupId: string | null;
   profileLabel: string | null;
   providerOrderId: string | null;
-  /** El grupo usa una cuenta de mayoreo cuya contraseña administra Partly. */
+  /** El grupo usa una cuenta de mayoreo cuya contraseña administra Tequio. */
   credentialsManagedByPartly: boolean;
 }
 

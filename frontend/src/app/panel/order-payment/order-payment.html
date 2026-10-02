@@ -79,7 +79,7 @@
               } @else {
                 <div class="flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-50 border border-amber-100 text-amber-900">
                   <span class="material-symbols-outlined text-lg">hourglass_top</span>
-                  <p class="text-xs"><strong>Partly todavía no publica su cuenta.</strong> Vuelve en un momento.</p>
+                  <p class="text-xs"><strong>Tequio todavía no publica su cuenta.</strong> Vuelve en un momento.</p>
                 </div>
               }
             </div>
@@ -138,7 +138,7 @@
           <span class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-2xl">payments</span></span>
           <div>
             <p class="text-sm font-extrabold text-ink">Pago validado{{ o.paidAt ? ' el ' + formatDate(o.paidAt) : '' }}</p>
-            <p class="text-xs text-on-surface-variant mt-0.5">Ya solo falta que Partly te entregue la cuenta. Te avisaremos en cuanto esté lista.</p>
+            <p class="text-xs text-on-surface-variant mt-0.5">Ya solo falta que Tequio te entregue la cuenta. Te avisaremos en cuanto esté lista.</p>
           </div>
         </section>
       }
@@ -164,7 +164,7 @@
       @case ('REJECTED') {
         <section class="p-6 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-3">
           <span class="material-symbols-outlined text-red-600 text-2xl">cancel</span>
-          <div><p class="text-sm font-extrabold text-ink">Solicitud rechazada</p><p class="text-xs text-on-surface-variant mt-0.5">Partly no aceptó esta compra. La cuenta volvió al inventario; puedes intentarlo de nuevo o escribir a soporte.</p></div>
+          <div><p class="text-sm font-extrabold text-ink">Solicitud rechazada</p><p class="text-xs text-on-surface-variant mt-0.5">Tequio no aceptó esta compra. La cuenta volvió al inventario; puedes intentarlo de nuevo o escribir a soporte.</p></div>
         </section>
       }
 
@@ -174,7 +174,7 @@
           <div>
             <p class="text-sm font-extrabold text-ink">Compra cancelada</p>
             @if (o.paidAt && !o.refundedAt) {
-              <p class="text-xs text-on-surface-variant mt-0.5">Como ya habías pagado, Partly te devolverá {{ money(o.unitPrice) }} por transferencia a tu cuenta.</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">Como ya habías pagado, Tequio te devolverá {{ money(o.unitPrice) }} por transferencia a tu cuenta.</p>
             } @else if (o.refundedAt) {
               <p class="text-xs text-on-surface-variant mt-0.5">Te devolvimos {{ money(o.unitPrice) }} el {{ formatDate(o.refundedAt) }}.</p>
             } @else {

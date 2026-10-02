@@ -1,4 +1,4 @@
-/* Utilidades de las pruebas de extremo a extremo (QA) de Partly: API, base de datos, viaje en el tiempo y limpieza. */
+/* Utilidades de las pruebas de extremo a extremo (QA) de Tequio: API, base de datos, viaje en el tiempo y limpieza. */
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');

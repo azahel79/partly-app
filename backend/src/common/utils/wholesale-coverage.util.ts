@@ -13,7 +13,7 @@ export const WHOLESALE_COVER_MARGIN_MS = 7 * DAY_MS;
 /**
  * true si la cuenta del grupo sigue vigente (casi) todo el siguiente periodo, o si el grupo no viene del mayoreo.
  * Mientras sea false no se cobra la renovación a los miembros: pagarían un periodo de una cuenta que va a dejar de
- * funcionar a medio camino, y como el dinero va directo al vendedor, Partly no podría devolverlo.
+ * funcionar a medio camino, y como el dinero va directo al vendedor, Tequio no podría devolverlo.
  */
 export function wholesaleCoversNextPeriod(expiresAt: Date | null | undefined, periodEnd: Date, billingPeriod: BillingPeriod): boolean {
   if (!expiresAt) return true;

@@ -12,7 +12,7 @@
 .back-link .material-symbols-outlined { font-size: 21px; }
 .register-card { position: relative; z-index: 1; width: min(100%,650px); padding: 48px 48px 40px; border: 1px solid rgba(255,255,255,.95); border-radius: 34px; background: rgba(255,255,255,.8); box-shadow: 0 28px 68px rgba(34,39,72,.11),inset 0 1px 0 rgba(255,255,255,.96); backdrop-filter: blur(24px); zoom: 0.8; }
 .register-header { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.register-logo { display: block; width: 145px; height: auto; margin-bottom: 20px; }
+.register-logo { display: block; width: 113px; height: auto; margin-bottom: 20px; }
 .register-header h1 { margin: 0; font-size: 36px; line-height: 1.12; letter-spacing: -.045em; font-weight: 850; }
 .register-header h1 span { color: #079a72; }
 .register-header p { margin: 13px 0 0; color: #73778f; font-size: 17px; line-height: 1.45; font-weight: 550; }
@@ -62,7 +62,7 @@
   .register-page { justify-content: flex-start; padding: 88px 14px 28px; }
   .back-link { top: 20px; right: 18px; height: 42px; padding: 0 17px; font-size: 12px; }
   .register-card { padding: 35px 21px 30px; border-radius: 27px; }
-  .register-logo { width: 125px; }
+  .register-logo { width: 98px; }
   .register-header h1 { font-size: 29px; }
   .register-header p { font-size: 15px; }
   .google-button { height: 56px; padding: 0 19px; font-size: 14px; }

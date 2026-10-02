@@ -2,7 +2,7 @@
   <header class="panel-header sticky top-0 z-40">
     <div class="panel-header-row max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
       <a routerLink="/" class="flex items-center shrink-0">
-        <img [src]="theme.isDark() ? 'partly-wordmark-dark.png' : 'partly-wordmark.png'" alt="Partly" class="panel-logo w-auto" />
+        <img [src]="theme.isDark() ? 'tequio-wordmark-dark.png' : 'tequio-wordmark.png'" alt="Tequio" class="panel-logo w-auto" />
       </a>
 
       <nav aria-label="Panel" class="panel-navigation">
@@ -76,7 +76,7 @@
             <div class="profile-dropdown">
               <header><span class="profile-trigger-avatar">@if (authService.currentUser()?.avatarUrl) { <img [src]="authService.currentUser()?.avatarUrl" alt="" /> } @else { {{ initials() }} }</span><div><strong>{{ authService.currentUser()?.name }}</strong><small>{{ authService.currentUser()?.email }}</small></div></header>
               <a routerLink="/panel/ganancias" (click)="closeProfileMenu()"><span class="material-symbols-outlined">savings</span><div><strong>Mis ganancias</strong><small>Lo que ganas por tus grupos</small></div><i class="material-symbols-outlined">chevron_right</i></a>
-              <a routerLink="/panel/comisiones" (click)="closeProfileMenu()"><span class="material-symbols-outlined">request_quote</span><div><strong>Comisiones</strong><small>Lo que le pagas a Partly</small></div><i class="material-symbols-outlined">chevron_right</i></a>
+              <a routerLink="/panel/comisiones" (click)="closeProfileMenu()"><span class="material-symbols-outlined">request_quote</span><div><strong>Comisiones</strong><small>Lo que le pagas a Tequio</small></div><i class="material-symbols-outlined">chevron_right</i></a>
               <a routerLink="/panel/perfil" (click)="closeProfileMenu()"><span class="material-symbols-outlined">manage_accounts</span><div><strong>Editar perfil</strong><small>Datos, seguridad y preferencias</small></div><i class="material-symbols-outlined">chevron_right</i></a>
               <a routerLink="/panel/soporte" class="mobile-only" (click)="closeProfileMenu()"><span class="material-symbols-outlined">support_agent</span><div><strong>Soporte</strong><small>Tus tickets y ayuda</small></div><i class="material-symbols-outlined">chevron_right</i></a>
               <a routerLink="/panel/perfil" [queryParams]="{ tab: 'notifications' }" (click)="closeProfileMenu()"><span class="material-symbols-outlined">notifications</span><div><strong>Notificaciones</strong><small>Configura tus avisos</small></div><i class="material-symbols-outlined">chevron_right</i></a>

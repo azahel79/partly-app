@@ -1,4 +1,4 @@
-# Salida a producción de Partly
+# Salida a producción de Tequio
 
 Esta guía convierte el repositorio en un despliegue reproducible, pero no sustituye la revisión legal, financiera y de seguridad correspondiente al país donde opere el servicio.
 

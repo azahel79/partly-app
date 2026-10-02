@@ -27,12 +27,12 @@ const WITH_RELATIONS = {
 const STATUS_LABEL: Record<IncidentStatus, string> = {
   OPEN: 'abierta',
   IN_REVIEW: 'en revisión',
-  ESCALATED: 'escalada a Partly',
+  ESCALATED: 'escalada a Tequio',
   RESOLVED: 'resuelta',
 };
 
 const HOUR_MS = 60 * 60 * 1000;
-/** Plazo que da Partly al responsable cuando le pide respuesta. */
+/** Plazo que da Tequio al responsable cuando le pide respuesta. */
 const RESPONSE_WINDOW_MS = 24 * HOUR_MS;
 /** Sin respuesta del vendedor: recordatorio al día y escalada automática a los 3 días. */
 const REMINDER_AFTER_MS = 24 * HOUR_MS;
@@ -175,7 +175,7 @@ export class IncidentsService {
   }
 
   /**
-   * Hilo de la incidencia. Partly ve todo; cada parte ve los mensajes para todos y los privados entre ella y Partly.
+   * Hilo de la incidencia. Tequio ve todo; cada parte ve los mensajes para todos y los privados entre ella y Tequio.
    */
   async findMessages(id: string, requester: AuthenticatedUser) {
     const incident = await this.findWithAccessCheck(id, requester);
@@ -195,7 +195,7 @@ export class IncidentsService {
     return [incident.reportedByUserId, incident.assignedToUserId].filter((id) => id !== excludeUserId);
   }
 
-  /** Partly ya está metido: la incidencia está escalada o le pidió respuesta al responsable. */
+  /** Tequio ya está metido: la incidencia está escalada o le pidió respuesta al responsable. */
   private partlyInvolved(incident: { status: IncidentStatus; responseRequestedAt: Date | null }): boolean {
     return incident.status === IncidentStatus.ESCALATED || incident.responseRequestedAt !== null;
   }
@@ -205,8 +205,8 @@ export class IncidentsService {
   }
 
   /**
-   * Un mensaje puede ir a todos o ser privado entre Partly y una de las partes. Partly escribe en privado cuando quiere;
-   * quien reportó o el responsable pueden contestarle en privado a Partly una vez que Partly intervino.
+   * Un mensaje puede ir a todos o ser privado entre Tequio y una de las partes. Tequio escribe en privado cuando quiere;
+   * quien reportó o el responsable pueden contestarle en privado a Tequio una vez que Tequio intervino.
    */
   async addMessage(id: string, dto: AddIncidentMessageDto, requester: AuthenticatedUser) {
     const incident = await this.findWithAccessCheck(id, requester);
@@ -221,14 +221,14 @@ export class IncidentsService {
     if (audience !== IncidentMessageAudience.ALL && !isAdmin) {
       const ownAudience = isReporter ? IncidentMessageAudience.REPORTER : IncidentMessageAudience.ASSIGNEE;
       if (audience !== ownAudience) {
-        throw new ForbiddenException('Solo puedes escribirle en privado a Partly, no a la otra persona.');
+        throw new ForbiddenException('Solo puedes escribirle en privado a Tequio, no a la otra persona.');
       }
       if (!this.partlyInvolved(incident)) {
-        throw new BadRequestException('Podrás escribirle en privado a Partly cuando intervenga en esta incidencia.');
+        throw new BadRequestException('Podrás escribirle en privado a Tequio cuando intervenga en esta incidencia.');
       }
     }
 
-    // A quién le llega: las partes que pueden ver el mensaje (menos quien escribe) y Partly si ya está involucrado.
+    // A quién le llega: las partes que pueden ver el mensaje (menos quien escribe) y Tequio si ya está involucrado.
     const parties = [incident.reportedBy, incident.assignedTo].filter(
       (u, i, all) => all.findIndex((x) => x.id === u.id) === i && u.id !== requester.id,
     );
@@ -244,7 +244,7 @@ export class IncidentsService {
         include: { author: { select: { id: true, name: true } } },
       });
       if (isAssignee) {
-        // Contestó el responsable: cuenta para los recordatorios y cumple si Partly le había pedido respuesta.
+        // Contestó el responsable: cuenta para los recordatorios y cumple si Tequio le había pedido respuesta.
         await tx.incident.update({ where: { id }, data: { lastAssigneeReplyAt: new Date(), responseDueAt: null } });
         // En cuanto el responsable contesta, el reporte deja de estar "abierto": ya lo está atendiendo.
         if (incident.status === IncidentStatus.OPEN) {
@@ -258,8 +258,8 @@ export class IncidentsService {
           type: NotificationType.INCIDENT_MESSAGE,
           payload: isPrivate
             ? isAdmin
-              ? `Partly te escribió en privado sobre "${incident.subject}".`
-              : `${created.author.name} le escribió en privado a Partly sobre "${incident.subject}".`
+              ? `Tequio te escribió en privado sobre "${incident.subject}".`
+              : `${created.author.name} le escribió en privado a Tequio sobre "${incident.subject}".`
             : `Nuevo mensaje en la incidencia "${incident.subject}".`,
         });
       }
@@ -269,8 +269,8 @@ export class IncidentsService {
     for (const recipient of [...partyRecipients, ...admins]) {
       await this.mailService.sendNotice(
         recipient.email,
-        isPrivate && isAdmin ? `Partly te escribió: ${incident.subject}` : `Nuevo mensaje: ${incident.subject}`,
-        isPrivate && isAdmin ? `Mensaje privado (solo tú y Partly lo ven): ${dto.body}` : dto.body,
+        isPrivate && isAdmin ? `Tequio te escribió: ${incident.subject}` : `Nuevo mensaje: ${incident.subject}`,
+        isPrivate && isAdmin ? `Mensaje privado (solo tú y Tequio lo ven): ${dto.body}` : dto.body,
         { label: 'Ver la conversación', path: incidentPath(incident.id, recipient.role === Role.ADMIN) },
       );
     }
@@ -279,8 +279,8 @@ export class IncidentsService {
   }
 
   /**
-   * Partly le pide al responsable que conteste en 24 horas. Queda anotado en la incidencia; si no contesta a tiempo,
-   * el seguimiento automático le avisa al equipo de Partly.
+   * Tequio le pide al responsable que conteste en 24 horas. Queda anotado en la incidencia; si no contesta a tiempo,
+   * el seguimiento automático le avisa al equipo de Tequio.
    */
   async requestResponse(id: string, requester: AuthenticatedUser) {
     const incident = await this.findWithAccessCheck(id, requester);
@@ -288,7 +288,7 @@ export class IncidentsService {
       throw new BadRequestException('Esta incidencia ya está resuelta.');
     }
     if (incident.assignedTo.role === Role.ADMIN) {
-      throw new BadRequestException('El responsable de esta incidencia es Partly.');
+      throw new BadRequestException('El responsable de esta incidencia es Tequio.');
     }
     const now = new Date();
     const due = new Date(now.getTime() + RESPONSE_WINDOW_MS);
@@ -297,19 +297,19 @@ export class IncidentsService {
       await this.notificationsService.create(tx, {
         userId: incident.assignedToUserId,
         type: NotificationType.INCIDENT_STATUS_CHANGED,
-        payload: `Partly te pide responder la incidencia "${incident.subject}" de ${incident.reportedBy.name} antes del ${this.dateTimeLabel(due)}.`,
+        payload: `Tequio te pide responder la incidencia "${incident.subject}" de ${incident.reportedBy.name} antes del ${this.dateTimeLabel(due)}.`,
       });
       await this.notificationsService.create(tx, {
         userId: incident.reportedByUserId,
         type: NotificationType.INCIDENT_STATUS_CHANGED,
-        payload: `Partly le pidió a ${incident.assignedTo.name} que responda tu reporte "${incident.subject}" en las próximas 24 horas.`,
+        payload: `Tequio le pidió a ${incident.assignedTo.name} que responda tu reporte "${incident.subject}" en las próximas 24 horas.`,
       });
       return result;
     });
     await this.mailService.sendNotice(
       incident.assignedTo.email,
-      `Partly te pide responder: ${incident.subject}`,
-      `${incident.reportedBy.name} reportó un problema y todavía no tiene respuesta. Contesta antes del ${this.dateTimeLabel(due)}; si no respondes, Partly decidirá con la información que tenga.`,
+      `Tequio te pide responder: ${incident.subject}`,
+      `${incident.reportedBy.name} reportó un problema y todavía no tiene respuesta. Contesta antes del ${this.dateTimeLabel(due)}; si no respondes, Tequio decidirá con la información que tenga.`,
       { label: 'Responder ahora', path: incidentPath(id) },
     );
     return updated;
@@ -318,8 +318,8 @@ export class IncidentsService {
   /**
    * Seguimiento automático de las incidencias de grupos (cada hora):
    *  - 24 h sin respuesta del vendedor: se le recuerda.
-   *  - 72 h sin respuesta: se escala sola a Partly.
-   *  - Partly le pidió respuesta y venció el plazo: se le avisa al equipo de Partly.
+   *  - 72 h sin respuesta: se escala sola a Tequio.
+   *  - Tequio le pidió respuesta y venció el plazo: se le avisa al equipo de Tequio.
    */
   @Cron(CronExpression.EVERY_HOUR)
   async processFollowUps(now: Date = new Date()): Promise<void> {
@@ -344,13 +344,13 @@ export class IncidentsService {
           this.notificationsService.create(tx, {
             userId: incident.assignedToUserId,
             type: NotificationType.INCIDENT_STATUS_CHANGED,
-            payload: `Tienes un reporte sin responder de ${incident.reportedBy.name}: "${incident.subject}". Si no contestas en 2 días, pasa a Partly.`,
+            payload: `Tienes un reporte sin responder de ${incident.reportedBy.name}: "${incident.subject}". Si no contestas en 2 días, pasa a Tequio.`,
           }),
         );
         await this.mailService.sendNotice(
           incident.assignedTo.email,
           `Tienes un reporte sin responder: ${incident.subject}`,
-          `${incident.reportedBy.name} lleva un día esperando tu respuesta. Si no contestas en 2 días, el reporte pasa al equipo de Partly.`,
+          `${incident.reportedBy.name} lleva un día esperando tu respuesta. Si no contestas en 2 días, el reporte pasa al equipo de Tequio.`,
           { label: 'Responder', path: incidentPath(incident.id) },
         );
       }
@@ -369,12 +369,12 @@ export class IncidentsService {
           await this.notificationsService.create(tx, {
             userId: admin.id,
             type: NotificationType.INCIDENT_STATUS_CHANGED,
-            payload: `${incident.assignedTo.name} no respondió a tiempo la incidencia "${incident.subject}" que le pidió Partly.`,
+            payload: `${incident.assignedTo.name} no respondió a tiempo la incidencia "${incident.subject}" que le pidió Tequio.`,
           });
         }
       });
       for (const admin of admins) {
-        await this.mailService.sendNotice(admin.email, `Sin respuesta del vendedor: ${incident.subject}`, `${incident.assignedTo.name} no contestó en las 24 horas que le dio Partly. Revisa la incidencia y decide con la información que tengas.`, {
+        await this.mailService.sendNotice(admin.email, `Sin respuesta del vendedor: ${incident.subject}`, `${incident.assignedTo.name} no contestó en las 24 horas que le dio Tequio. Revisa la incidencia y decide con la información que tengas.`, {
           label: 'Revisar incidencia',
           path: incidentPath(incident.id, true),
         });
@@ -382,7 +382,7 @@ export class IncidentsService {
     }
   }
 
-  /** 72 horas sin respuesta del responsable: la incidencia pasa sola a Partly. */
+  /** 72 horas sin respuesta del responsable: la incidencia pasa sola a Tequio. */
   private async autoEscalate(incident: Prisma.IncidentGetPayload<{ include: typeof WITH_RELATIONS }>): Promise<void> {
     const admins = await this.activeAdmins();
     const moved = await this.prisma.$transaction(async (tx) => {
@@ -391,7 +391,7 @@ export class IncidentsService {
         data: { status: IncidentStatus.ESCALATED, followUpStage: 2 },
       });
       if (result.count === 0) return false;
-      const payload = `"${incident.subject}" pasó a Partly porque ${incident.assignedTo.name} no respondió en 3 días.`;
+      const payload = `"${incident.subject}" pasó a Tequio porque ${incident.assignedTo.name} no respondió en 3 días.`;
       for (const userId of [incident.reportedByUserId, incident.assignedToUserId, ...admins.map((a) => a.id)]) {
         await this.notificationsService.create(tx, { userId, type: NotificationType.INCIDENT_STATUS_CHANGED, payload });
       }
@@ -399,7 +399,7 @@ export class IncidentsService {
     });
     if (!moved) return;
     for (const admin of admins) {
-      await this.mailService.sendNotice(admin.email, `Incidencia escalada sola: ${incident.subject}`, `${incident.assignedTo.name} no respondió en 3 días el reporte de ${incident.reportedBy.name}. Ahora la atiende Partly.`, {
+      await this.mailService.sendNotice(admin.email, `Incidencia escalada sola: ${incident.subject}`, `${incident.assignedTo.name} no respondió en 3 días el reporte de ${incident.reportedBy.name}. Ahora la atiende Tequio.`, {
         label: 'Revisar incidencia',
         path: incidentPath(incident.id, true),
       });
@@ -442,19 +442,19 @@ export class IncidentsService {
           payload: `La incidencia "${incident.subject}" ahora está ${STATUS_LABEL[newStatus]}.`,
         });
       }
-      // Escalada: la atiende Partly, así que se le avisa al equipo (antes solo aparecía en su cola).
+      // Escalada: la atiende Tequio, así que se le avisa al equipo (antes solo aparecía en su cola).
       for (const admin of admins.filter((a) => a.id !== requester.id)) {
         await this.notificationsService.create(tx, {
           userId: admin.id,
           type: NotificationType.INCIDENT_STATUS_CHANGED,
-          payload: `${incident.reportedBy.name} y ${incident.assignedTo.name} necesitan ayuda con "${incident.subject}": la incidencia se escaló a Partly.`,
+          payload: `${incident.reportedBy.name} y ${incident.assignedTo.name} necesitan ayuda con "${incident.subject}": la incidencia se escaló a Tequio.`,
         });
       }
 
       return updated;
     }).then(async (updated) => {
       for (const admin of admins.filter((a) => a.id !== requester.id)) {
-        await this.mailService.sendNotice(admin.email, `Incidencia escalada: ${incident.subject}`, `${incident.reportedBy.name} (reportó) y ${incident.assignedTo.name} (responsable) no lograron resolverla y pidieron ayuda a Partly.`, {
+        await this.mailService.sendNotice(admin.email, `Incidencia escalada: ${incident.subject}`, `${incident.reportedBy.name} (reportó) y ${incident.assignedTo.name} (responsable) no lograron resolverla y pidieron ayuda a Tequio.`, {
           label: 'Revisar incidencia',
           path: incidentPath(incident.id, true),
         });

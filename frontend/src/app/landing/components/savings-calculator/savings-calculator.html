@@ -2,7 +2,7 @@
   <div class="savings-shell">
     <header appReveal>
       <h2 id="savings-title">Calcula tu parte con precios del catálogo</h2>
-      <p>Selecciona un plan activo y ajusta cuántas personas compartirían el costo. El cálculo usa información disponible en Partly, no cifras inventadas para la landing.</p>
+      <p>Selecciona un plan activo y ajusta cuántas personas compartirían el costo. El cálculo usa información disponible en Tequio, no cifras inventadas para la landing.</p>
     </header>
 
     @if (plans() === null) {
@@ -33,7 +33,7 @@
           <input id="share-count" type="range" min="2" [max]="plan.maxSlots" [value]="shareCount()" (input)="updateShareCount($any($event.target).value)" (change)="trackShareCount()" />
           <div class="range-scale"><span>2 personas</span><span>{{ plan.maxSlots }} personas</span></div>
 
-          <p class="catalog-source"><span class="material-symbols-outlined">database</span>Precio oficial configurado en el catálogo activo de Partly.</p>
+          <p class="catalog-source"><span class="material-symbols-outlined">database</span>Precio oficial configurado en el catálogo activo de Tequio.</p>
         </div>
 
         <div class="calculator-result" aria-live="polite">

@@ -52,7 +52,7 @@ export class ReviewResponseDto {
     this.id = review.id;
     this.author = {
       id: review.author.id,
-      name: review.author.profileNameVisible ? review.author.name : 'Miembro de Partly',
+      name: review.author.profileNameVisible ? review.author.name : 'Miembro de Tequio',
       avatarUrl: review.author.profileAvatarVisible ? review.author.avatarUrl : null,
     };
     this.rating = review.rating;

@@ -25,7 +25,7 @@ export interface IncidentAbout {
   /** Perfil de la cuenta que tiene asignado quien reportó. */
   profileLabel: string | null;
   providerOrderId: string | null;
-  /** El grupo usa una cuenta de mayoreo cuya contraseña administra Partly: el vendedor pide el cambio, no lo hace. */
+  /** El grupo usa una cuenta de mayoreo cuya contraseña administra Tequio: el vendedor pide el cambio, no lo hace. */
   credentialsManagedByPartly: boolean;
 }
 
@@ -85,7 +85,7 @@ export class IncidentResponseDto {
   @Expose()
   lastAssigneeReplyAt: Date | null;
 
-  @ApiProperty({ nullable: true, description: 'Cuándo le pidió Partly una respuesta al responsable.' })
+  @ApiProperty({ nullable: true, description: 'Cuándo le pidió Tequio una respuesta al responsable.' })
   @Expose()
   responseRequestedAt: Date | null;
 

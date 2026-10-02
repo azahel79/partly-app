@@ -76,7 +76,7 @@
                 <div class="connected-provider"><span class="google-mark">G</span><div><strong>Cuenta conectada con Google</strong><p>La contraseña y la verificación en dos pasos se administran directamente desde tu cuenta de Google.</p></div><span class="status-pill">Protegida</span></div>
               }
 
-              <div class="subsection-heading"><div><h3>Sesiones activas</h3><p>Revisa los dispositivos que todavía pueden acceder a Partly.</p></div><button type="button" class="text-button danger" [disabled]="saving() === 'logout-all'" (click)="logoutEverywhere()">Cerrar todas</button></div>
+              <div class="subsection-heading"><div><h3>Sesiones activas</h3><p>Revisa los dispositivos que todavía pueden acceder a Tequio.</p></div><button type="button" class="text-button danger" [disabled]="saving() === 'logout-all'" (click)="logoutEverywhere()">Cerrar todas</button></div>
               <div class="session-list">
                 @if (sessions() === null) { <p class="empty-line">Cargando sesiones…</p> }
                 @else { @for (session of sessions(); track session.id; let first = $first) {
@@ -90,7 +90,7 @@
             <section class="profile-section">
               <header><span class="section-icon material-symbols-outlined">notifications</span><div><h2>Notificaciones</h2><p>Elige qué avisos necesitas y por dónde quieres recibirlos.</p></div></header>
               <div class="preference-group"><h3>Canales</h3>
-                <label class="switch-row"><span class="material-symbols-outlined">inbox</span><div><strong>Dentro de Partly</strong><small>Centro de notificaciones del panel.</small></div><input type="checkbox" [checked]="inAppNotifications()" (change)="inAppNotifications.set($any($event.target).checked)" /><i></i></label>
+                <label class="switch-row"><span class="material-symbols-outlined">inbox</span><div><strong>Dentro de Tequio</strong><small>Centro de notificaciones del panel.</small></div><input type="checkbox" [checked]="inAppNotifications()" (change)="inAppNotifications.set($any($event.target).checked)" /><i></i></label>
                 <label class="switch-row"><span class="material-symbols-outlined">alternate_email</span><div><strong>Correo electrónico</strong><small>Recibe los avisos importantes aunque no tengas la app abierta. Los correos de seguridad (como restablecer tu contraseña) siempre se envían.</small></div><input type="checkbox" [checked]="emailNotifications()" (change)="emailNotifications.set($any($event.target).checked)" /><i></i></label>
               </div>
               <div class="preference-group"><h3>Tipos de aviso</h3>

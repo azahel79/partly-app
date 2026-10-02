@@ -12,7 +12,7 @@ import { PlatformLogo } from '../../shared/platform-logo/platform-logo';
 import { MoneyPipe } from '../../shared/money';
 import { CommissionsService } from '../../shared/commissions.service';
 
-/** Comisión general de Partly mientras llega la del vendedor (puede tener una reducida). */
+/** Comisión general de Tequio mientras llega la del vendedor (puede tener una reducida). */
 const DEFAULT_COMMISSION_PCT = 9;
 
 @Component({
@@ -95,7 +95,7 @@ export class CreateGroup implements OnInit {
 
   /**
    * Prioriza el precio de venta que tú defines; si no lo diste, cae a un reparto parejo de tu costo. Con una cuenta
-   * de mayoreo (para revender) sugiere el precio que recupera lo que pagaste ya descontada la comisión de Partly.
+   * de mayoreo (para revender) sugiere el precio que recupera lo que pagaste ya descontada la comisión de Tequio.
    */
   protected readonly suggestedPrice = computed(() => {
     const slots = this.maxSlots();
@@ -116,7 +116,7 @@ export class CreateGroup implements OnInit {
     return 0;
   });
 
-  /** Lo que pagan en total tus miembros (bruto, antes de la comisión de Partly). */
+  /** Lo que pagan en total tus miembros (bruto, antes de la comisión de Tequio). */
   protected readonly totalCollected = computed(() => this.pricePerSlot() * this.availableSlots());
 
   /** Lo que llegaría a tu wallet por un mes completo: va de la comisión más alta a la más baja. */

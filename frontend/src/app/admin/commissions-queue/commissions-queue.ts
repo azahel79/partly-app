@@ -27,7 +27,7 @@ const STATUS: Record<CommissionChargeStatus, { label: string; tone: string }> = 
   PAID: { label: 'Pagada', tone: 'bg-emerald-100 text-emerald-800' },
 };
 
-/** Cola del admin: revisa los comprobantes de comisión de los vendedores y configura la cuenta de Partly. */
+/** Cola del admin: revisa los comprobantes de comisión de los vendedores y configura la cuenta de Tequio. */
 @Component({
   selector: 'app-commissions-queue',
   styleUrl: './commissions-queue.css',
@@ -53,7 +53,7 @@ export class CommissionsQueue implements OnInit {
   protected readonly minRate = signal(6);
   protected readonly rateActingId = signal<string | null>(null);
 
-  // cuenta bancaria de Partly
+  // cuenta bancaria de Tequio
   protected readonly bank = signal<PlatformBankAccount | null | undefined>(undefined);
   protected readonly editingBank = signal(false);
   protected readonly savingBank = signal(false);

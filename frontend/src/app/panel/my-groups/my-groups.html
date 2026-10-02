@@ -69,7 +69,7 @@
               <span class="ui-pill" [class]="groupStatus(group).tone">{{ groupStatus(group).label }}</span>
             </div>
             @if (group.approvalStatus === 'PENDING') {
-              <p class="text-[13px] text-on-surface-variant -mt-2">No aparece en el marketplace hasta que Partly lo apruebe.</p>
+              <p class="text-[13px] text-on-surface-variant -mt-2">No aparece en el marketplace hasta que Tequio lo apruebe.</p>
             } @else if (!group.hasCredentials) {
               <p class="text-[13px] text-on-surface-variant -mt-2">Sube el correo y la contraseña de la cuenta para que aparezca en el marketplace.</p>
             }

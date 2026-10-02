@@ -5,7 +5,7 @@
       Volver a Soporte
     </a>
     <h1 class="flex items-center gap-2"><span class="material-symbols-outlined text-pink">report_problem</span>Reportar un problema</h1>
-    <p class="text-sm text-on-surface-variant mt-1">Elige la suscripción y cuéntanos qué pasa. Si es de un grupo, le llega a su vendedor; si es una cuenta que compraste al mayoreo, le llega al equipo de Partly.</p>
+    <p class="text-sm text-on-surface-variant mt-1">Elige la suscripción y cuéntanos qué pasa. Si es de un grupo, le llega a su vendedor; si es una cuenta que compraste al mayoreo, le llega al equipo de Tequio.</p>
   </div>
 
   @if (errorMessage()) {
@@ -45,7 +45,7 @@
       @if (selected(); as opt) {
         <p class="ui-note ui-note--info -mt-2">
           <span class="material-symbols-outlined">{{ opt.kind === 'WHOLESALE' ? 'support_agent' : 'storefront' }}</span>
-          <span>Tu reporte le llega <strong>{{ opt.recipient }}</strong>{{ opt.kind === 'WHOLESALE' ? ', que te vendió la cuenta.' : '. Si no se resuelve, desde la conversación puedes pedir ayuda a Partly.' }}</span>
+          <span>Tu reporte le llega <strong>{{ opt.recipient }}</strong>{{ opt.kind === 'WHOLESALE' ? ', que te vendió la cuenta.' : '. Si no se resuelve, desde la conversación puedes pedir ayuda a Tequio.' }}</span>
         </p>
       }
 

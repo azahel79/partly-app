@@ -26,7 +26,7 @@
         @if (canFixCredentials()) {
           <div class="ui-note ui-note--info flex-wrap">
             <span class="material-symbols-outlined">key</span>
-            <span class="flex-1 min-w-48">{{ about.kind === 'WHOLESALE' ? 'Es una cuenta de Mi tienda: si el acceso falla, corrígelo tú.' : 'Este grupo usa una cuenta de Mi tienda: la contraseña la administra Partly.' }} Al guardar le dejamos la respuesta en esta conversación y avisamos {{ about.kind === 'WHOLESALE' ? 'al vendedor' : 'al vendedor y a los miembros del grupo' }}.</span>
+            <span class="flex-1 min-w-48">{{ about.kind === 'WHOLESALE' ? 'Es una cuenta de Mi tienda: si el acceso falla, corrígelo tú.' : 'Este grupo usa una cuenta de Mi tienda: la contraseña la administra Tequio.' }} Al guardar le dejamos la respuesta en esta conversación y avisamos {{ about.kind === 'WHOLESALE' ? 'al vendedor' : 'al vendedor y a los miembros del grupo' }}.</span>
             <button type="button" class="ui-btn ui-btn--secondary ui-btn--sm" [disabled]="loadingOrder()" (click)="openCredentialUpdate(about.providerOrderId!)">
               <span class="material-symbols-outlined">key</span>{{ loadingOrder() ? 'Abriendo…' : 'Actualizar credenciales' }}
             </button>
@@ -43,7 +43,7 @@
       </div>
 
       @if (inc.status === 'ESCALATED') {
-        <p class="ui-note ui-note--danger"><span class="material-symbols-outlined">shield_person</span><span>Pidieron ayuda a Partly: solo tú puedes resolverla o regresársela al responsable. Explícales en la conversación qué se decidió.</span></p>
+        <p class="ui-note ui-note--danger"><span class="material-symbols-outlined">shield_person</span><span>Pidieron ayuda a Tequio: solo tú puedes resolverla o regresársela al responsable. Explícales en la conversación qué se decidió.</span></p>
       } @else if (inc.status === 'RESOLVED') {
         <p class="ui-note ui-note--info"><span class="material-symbols-outlined">check_circle</span><span>Resuelta el {{ inc.resolvedAt ? formatDateTime(inc.resolvedAt) : '' }}.</span></p>
       }
@@ -85,10 +85,10 @@
       } @else {
         @for (message of messages(); track message.id) {
           @let role = roleOf(message.author.id);
-          <div class="max-w-[85%] p-4 rounded-2xl" [class]="role === 'Partly' ? 'ml-auto bg-emerald-50 border border-emerald-200/70' : 'bg-white shadow-neu-raised'">
+          <div class="max-w-[85%] p-4 rounded-2xl" [class]="role === 'Tequio' ? 'ml-auto bg-emerald-50 border border-emerald-200/70' : 'bg-white shadow-neu-raised'">
             <div class="flex items-center justify-between gap-3 mb-1">
               <strong class="text-xs font-bold text-ink">
-                {{ message.author.name }} <span class="ui-pill no-dot ml-1" [class.ui-pill--info]="role === 'Partly'">{{ role }}</span>
+                {{ message.author.name }} <span class="ui-pill no-dot ml-1" [class.ui-pill--info]="role === 'Tequio'">{{ role }}</span>
                 @if (privateWith(message); as who) {
                   <span class="ui-pill ui-pill--violet no-dot ml-1"><span class="material-symbols-outlined text-sm!">lock</span>Privado con {{ who }}</span>
                 }
@@ -111,7 +111,7 @@
             </div>
           }
           <div class="flex items-end gap-2.5">
-            <textarea rows="2" class="ui-input flex-1 py-2.5! resize-none" [placeholder]="audience() === 'ALL' ? 'Escribe como Partly; les llega a los dos…' : 'Mensaje privado: solo lo ve ' + (audience() === 'REPORTER' ? inc.reportedBy.name : inc.assignedTo.name) + '…'" [value]="reply()" (input)="reply.set($any($event.target).value)"></textarea>
+            <textarea rows="2" class="ui-input flex-1 py-2.5! resize-none" [placeholder]="audience() === 'ALL' ? 'Escribe como Tequio; les llega a los dos…' : 'Mensaje privado: solo lo ve ' + (audience() === 'REPORTER' ? inc.reportedBy.name : inc.assignedTo.name) + '…'" [value]="reply()" (input)="reply.set($any($event.target).value)"></textarea>
             <button type="button" class="ui-btn ui-btn--primary shrink-0" [disabled]="!reply().trim() || sending()" (click)="sendMessage()">
               <span class="material-symbols-outlined">send</span>{{ sending() ? 'Enviando…' : 'Enviar' }}
             </button>

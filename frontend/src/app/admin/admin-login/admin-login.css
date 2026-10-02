@@ -81,7 +81,7 @@
   text-align: center;
 }
 
-.admin-logo { display: block; width: 145px; height: auto; margin-bottom: 16px; }
+.admin-logo { display: block; width: 113px; height: auto; margin-bottom: 16px; }
 
 .staff-badge {
   min-height: 36px;
@@ -305,7 +305,7 @@
   .admin-login-page { justify-content: flex-start; padding: 88px 20px 28px; }
   .back-link { top: 20px; right: 18px; height: 40px; padding: 0 16px; }
   .login-card { padding: 31px 22px 27px; border-radius: 25px; }
-  .admin-logo { width: 125px; }
+  .admin-logo { width: 98px; }
   .login-heading h1 { font-size: 26px; }
   .form-options { align-items: flex-start; flex-direction: column; }
   .forgot-link { align-self: flex-end; }

@@ -18,28 +18,28 @@ const PUBLIC_LINKS: Omit<NavLink, 'active'>[] = [
 
 const PUBLIC_SEO: Record<string, { title: string; description: string }> = {
   '/': {
-    title: 'Partly — Comparte suscripciones y paga solo tu parte',
-    description: 'Explora grupos, conoce el monto antes de transferir y administra comprobantes y accesos compartidos desde Partly México.',
+    title: 'Tequio — Comparte suscripciones y paga solo tu parte',
+    description: 'Explora grupos, conoce el monto antes de transferir y administra comprobantes y accesos compartidos desde Tequio México.',
   },
   '/como-funciona-el-ciclo': {
-    title: 'Cómo funcionan los pagos y accesos | Partly',
-    description: 'Conoce el ciclo completo de Partly: cálculo proporcional, transferencia, comprobante, revisión del titular, renovación y acceso.',
+    title: 'Cómo funcionan los pagos y accesos | Tequio',
+    description: 'Conoce el ciclo completo de Tequio: cálculo proporcional, transferencia, comprobante, revisión del titular, renovación y acceso.',
   },
   '/comparativa': {
-    title: 'Comparativa de planes y precios | Partly',
-    description: 'Compara el precio completo de planes activos con el costo estimado por cupo usando información disponible en Partly.',
+    title: 'Comparativa de planes y precios | Tequio',
+    description: 'Compara el precio completo de planes activos con el costo estimado por cupo usando información disponible en Tequio.',
   },
   '/seguridad': {
-    title: 'Seguridad, comprobantes y credenciales | Partly',
-    description: 'Consulta cómo Partly protege credenciales, registra comprobantes, controla el acceso y conserva el historial de incidencias.',
+    title: 'Seguridad, comprobantes y credenciales | Tequio',
+    description: 'Consulta cómo Tequio protege credenciales, registra comprobantes, controla el acceso y conserva el historial de incidencias.',
   },
   '/terminos': {
-    title: 'Términos de servicio | Partly',
-    description: 'Consulta las reglas de Partly para cuentas, grupos, pagos, credenciales, comisiones, cancelaciones e incidencias.',
+    title: 'Términos de servicio | Tequio',
+    description: 'Consulta las reglas de Tequio para cuentas, grupos, pagos, credenciales, comisiones, cancelaciones e incidencias.',
   },
   '/privacidad': {
-    title: 'Privacidad y derechos ARCO | Partly',
-    description: 'Conoce qué datos trata Partly, cómo los protege y cómo ejercer tus derechos de acceso, rectificación, cancelación y oposición.',
+    title: 'Privacidad y derechos ARCO | Tequio',
+    description: 'Conoce qué datos trata Tequio, cómo los protege y cómo ejercer tus derechos de acceso, rectificación, cancelación y oposición.',
   },
 };
 

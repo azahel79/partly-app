@@ -33,7 +33,7 @@ module.exports = {
     check('con contraseña nueva, a los miembros activos les llega el aviso con el motivo', r.status < 300 && !!na && !!nc && na.payload.includes('Salió un miembro'));
     check('el aviso no incluye la contraseña', !na.payload.includes('NuevaClave456'));
     check(`${b.name}, que ya salió, no recibe el aviso`, !(await credentialNotice(gid, b)));
-    check('el miembro ve la contraseña nueva en Partly', (await call('GET', `/groups/${gid}/credential`, token(a))).body?.password === 'NuevaClave456');
+    check('el miembro ve la contraseña nueva en Tequio', (await call('GET', `/groups/${gid}/credential`, token(a))).body?.password === 'NuevaClave456');
     check('el aviso pendiente se quita solo', (await status(gid)).rotationPending === false);
 
     console.log('\n[3] Alguien no paga su renovación');

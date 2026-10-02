@@ -14,7 +14,7 @@
       } @else if (inventoryError()) {
         <p class="inventory-message error">No pudimos actualizar la disponibilidad. <button type="button" (click)="loadInventory()">Intentar de nuevo</button></p>
       } @else {
-        <p>Precios y cupos obtenidos del catálogo público de Partly.<br />La disponibilidad puede cambiar cuando una persona reserva un espacio.</p>
+        <p>Precios y cupos obtenidos del catálogo público de Tequio.<br />La disponibilidad puede cambiar cuando una persona reserva un espacio.</p>
       }
       <a class="platforms-comparison-link" routerLink="/comparativa" appTrackEvent="landing_context_link_clicked" [trackEventParams]="{ location: 'platforms', destination: 'comparison' }">Abrir comparativa completa<span class="material-symbols-outlined">arrow_forward</span></a>
     </header>

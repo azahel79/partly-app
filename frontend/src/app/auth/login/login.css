@@ -65,7 +65,7 @@
 }
 
 .login-header { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.login-logo { display: block; width: 145px; height: auto; margin-bottom: 20px; }
+.login-logo { display: block; width: 113px; height: auto; margin-bottom: 20px; }
 .login-header h1 { margin: 0; font-size: 36px; line-height: 1.12; letter-spacing: -.045em; font-weight: 850; }
 .login-header h1 span { color: #079a72; }
 .login-header p { margin: 13px 0 0; color: #73778f; font-size: 17px; line-height: 1.45; font-weight: 550; }
@@ -201,7 +201,7 @@ a.submit-button { margin-top: 18px; text-decoration: none; }
   .app-login-page { justify-content: flex-start; padding: 88px 14px 28px; }
   .back-link { top: 20px; right: 18px; height: 42px; padding: 0 17px; font-size: 12px; }
   .login-card { padding: 35px 21px 30px; border-radius: 27px; }
-  .login-logo { width: 125px; }
+  .login-logo { width: 98px; }
   .login-header h1 { font-size: 29px; }
   .login-header p { font-size: 15px; }
   .google-button { height: 56px; padding: 0 19px; font-size: 14px; }

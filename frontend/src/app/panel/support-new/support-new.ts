@@ -12,7 +12,7 @@ interface ReportOption {
   key: string;
   kind: 'GROUP' | 'WHOLESALE';
   label: string;
-  /** A quién le llega el reporte ("al vendedor…", "al equipo de Partly"). */
+  /** A quién le llega el reporte ("al vendedor…", "al equipo de Tequio"). */
   recipient: string;
   input: Pick<CreateIncidentInput, 'context' | 'groupMembershipId' | 'providerOrderId'>;
   /** Para preseleccionar desde otra pantalla (?grupo= o ?compra=). */
@@ -21,7 +21,7 @@ interface ReportOption {
 
 /**
  * Reportar un problema. El comprador lo hace sobre un grupo al que pertenece (le llega al vendedor); el vendedor,
- * además, sobre una cuenta que le compró a Partly al mayoreo (le llega al equipo de Partly).
+ * además, sobre una cuenta que le compró a Tequio al mayoreo (le llega al equipo de Tequio).
  */
 @Component({
   imports: [RouterLink],
@@ -99,7 +99,7 @@ export class SupportNew implements OnInit {
               key: `w:${o.id}`,
               kind: 'WHOLESALE',
               label: `${o.listing.platform.name} · ${o.listing.tierName}`,
-              recipient: 'al equipo de Partly',
+              recipient: 'al equipo de Tequio',
               input: { context: 'PROVIDER_ORDER', providerOrderId: o.id },
               refId: o.id,
             })),

@@ -9,7 +9,7 @@ module.exports = {
     const S = token(seller), A = token(admin);
     const settings = await prisma.platformSettings.findFirst();
     if (!settings?.bankClabe) {
-      console.log('  (sin cuenta bancaria de Partly configurada no se restringe a nadie: se omite esta prueba)');
+      console.log('  (sin cuenta bancaria de Tequio configurada no se restringe a nadie: se omite esta prueba)');
       return;
     }
     if ((await call('GET', '/commissions/status', S)).body?.restricted) {

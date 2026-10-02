@@ -95,7 +95,7 @@ export class GroupResponseDto {
   @Expose()
   approvalStatus: GroupApprovalStatus;
 
-  @ApiProperty({ nullable: true, example: 'La plataforma que describes no está permitida en el catálogo de Partly.' })
+  @ApiProperty({ nullable: true, example: 'La plataforma que describes no está permitida en el catálogo de Tequio.' })
   @Expose()
   rejectionReason: string | null;
 
@@ -179,7 +179,7 @@ export class GroupResponseDto {
   @Expose()
   startedAt: Date | null;
 
-  @ApiProperty({ nullable: true, example: '12.00', description: '% que se queda Partly de cada cobro a tus miembros — lo asigna un ADMIN al aprobar el grupo. Null mientras no se ha aprobado.' })
+  @ApiProperty({ nullable: true, example: '12.00', description: '% que se queda Tequio de cada cobro a tus miembros — lo asigna un ADMIN al aprobar el grupo. Null mientras no se ha aprobado.' })
   @Expose()
   commissionPercentage: string | null;
 
@@ -189,7 +189,7 @@ export class GroupResponseDto {
 
   @ApiProperty({
     nullable: true,
-    description: 'Cuenta de mayoreo de la que salió el grupo: cuándo vence y si se renueva o se repone. Solo la ven el vendedor y Partly.',
+    description: 'Cuenta de mayoreo de la que salió el grupo: cuándo vence y si se renueva o se repone. Solo la ven el vendedor y Tequio.',
   })
   @Expose()
   wholesaleAccount: { orderId: string; expiresAt: Date | null; renewable: boolean; expired: boolean; coversNextPeriod: boolean; managedByPartly: boolean } | null;
@@ -209,7 +209,7 @@ export class GroupResponseDto {
     };
     this.owner = {
       id: group.owner.id,
-      name: group.owner.profileNameVisible ? group.owner.name : 'Miembro de Partly',
+      name: group.owner.profileNameVisible ? group.owner.name : 'Miembro de Tequio',
       avatarUrl: group.owner.profileAvatarVisible ? group.owner.avatarUrl : null,
       ratingAvg: group.owner.ratingAvg.toString(),
       memberSince: group.owner.createdAt,
@@ -253,15 +253,15 @@ export class GroupResponseDto {
           renewable: account.renewable,
           expired: !!account.expiresAt && account.expiresAt.getTime() < Date.now(),
           coversNextPeriod: wholesaleCoversNextPeriod(account.expiresAt, group.nextRenewalDate, group.plan.billingPeriod),
-          // Entregada con credenciales: la contraseña la cambia Partly desde su tienda (por panel la maneja el vendedor).
+          // Entregada con credenciales: la contraseña la cambia Tequio desde su tienda (por panel la maneja el vendedor).
           managedByPartly: !!account.credential && !account.credential.panelUrlEncrypted,
         }
       : null;
   }
 
   /**
-   * La cuenta bancaria del vendedor solo la ven él, Partly y quien le tiene que pagar; la comisión pactada, solo
-   * el vendedor y Partly. Cualquier otra vista (marketplace, visitantes) recibe esos campos vacíos.
+   * La cuenta bancaria del vendedor solo la ven él, Tequio y quien le tiene que pagar; la comisión pactada, solo
+   * el vendedor y Tequio. Cualquier otra vista (marketplace, visitantes) recibe esos campos vacíos.
    */
   restrictTo(viewer: { canSeeBankAccount: boolean; canSeeCommission: boolean }): this {
     if (!viewer.canSeeBankAccount) this.bankAccountNumber = null;

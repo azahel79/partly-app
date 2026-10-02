@@ -129,7 +129,7 @@ export class GroupDetail implements OnInit {
   /** Grupos con acceso por invitación: el link al grupo familiar en lugar de correo y contraseña. */
   protected readonly credInviteLink = signal('');
   protected readonly isInviteGroup = computed(() => this.group()?.accessType === 'INVITE_LINK');
-  /** Cuenta de mayoreo entregada con credenciales: la contraseña la administra Partly. */
+  /** Cuenta de mayoreo entregada con credenciales: la contraseña la administra Tequio. */
   protected readonly credentialsByPartly = computed(() => !!this.group()?.wholesaleAccount?.managedByPartly);
   protected readonly canSaveCredential = computed(() =>
     this.isInviteGroup() ? /^https?:\/\/\S+\.\S+/.test(this.credInviteLink().trim()) : !!this.credUsername().trim() && !!this.credPassword(),
@@ -716,7 +716,7 @@ export class GroupDetail implements OnInit {
     });
   }
 
-  /** Copia el enlace público de este grupo para que el owner lo comparta fuera de Partly. */
+  /** Copia el enlace público de este grupo para que el owner lo comparta fuera de Tequio. */
   protected shareGroupLink(): void {
     const group = this.group();
     if (!group) {

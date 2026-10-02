@@ -120,10 +120,10 @@ export class ProviderOrdersService {
     return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City' });
   }
 
-  /** Sin la cuenta de Partly publicada no hay a dónde pagar: no se abre ninguna compra. */
+  /** Sin la cuenta de Tequio publicada no hay a dónde pagar: no se abre ninguna compra. */
   private async assertPaymentAccount(): Promise<void> {
     if (!(await this.commissionsService.getBankAccount())) {
-      throw new BadRequestException('El mayoreo todavía no está disponible: Partly no ha publicado su cuenta para recibir el pago.');
+      throw new BadRequestException('El mayoreo todavía no está disponible: Tequio no ha publicado su cuenta para recibir el pago.');
     }
   }
 
@@ -669,7 +669,7 @@ export class ProviderOrdersService {
   }
 
   /**
-   * Partly (dueño de las credenciales de sus cuentas de mayoreo) las corrige o las cambia. Se le avisa al vendedor;
+   * Tequio (dueño de las credenciales de sus cuentas de mayoreo) las corrige o las cambia. Se le avisa al vendedor;
    * si ya la publicó como grupo, también cambia la contraseña del grupo y se les avisa a sus miembros; y si el
    * vendedor tiene un reporte abierto de esa cuenta, se le escribe ahí para que confirme que ya quedó.
    */
@@ -699,7 +699,7 @@ export class ProviderOrdersService {
       if (groupId && copy) {
         await tx.credential.upsert({ where: { groupId }, create: { groupId, ...copy }, update: copy });
         await tx.credentialHistory.create({
-          data: { groupId, changedByUserId: providerUserId, changeReason: reason ? `Partly: ${reason}` : 'Partly actualizó las credenciales de la cuenta de mayoreo' },
+          data: { groupId, changedByUserId: providerUserId, changeReason: reason ? `Tequio: ${reason}` : 'Tequio actualizó las credenciales de la cuenta de mayoreo' },
         });
         const members = await tx.groupMembership.findMany({
           where: { groupId, status: { in: [MembershipStatus.ACTIVE, MembershipStatus.SUSPENDED] } },
@@ -719,7 +719,7 @@ export class ProviderOrdersService {
         userId: order.buyerUserId,
         type: NotificationType.CREDENTIAL_UPDATED,
         ...(groupId ? { groupId } : {}),
-        payload: `Partly actualizó las credenciales de tu cuenta "${name}"${reason ? ` (${reason})` : ''}. ${groupId ? 'Ya las cambiamos también en tu grupo y les avisamos a tus miembros.' : 'Revísalas en Mayoreo → Mis compras.'}`,
+        payload: `Tequio actualizó las credenciales de tu cuenta "${name}"${reason ? ` (${reason})` : ''}. ${groupId ? 'Ya las cambiamos también en tu grupo y les avisamos a tus miembros.' : 'Revísalas en Mayoreo → Mis compras.'}`,
       });
 
       // Reportes abiertos de esta cuenta (del vendedor) o de su grupo (de un miembro): se deja la respuesta en la
@@ -739,7 +739,7 @@ export class ProviderOrdersService {
             authorUserId: providerUserId,
             body: aboutOrder
               ? `Actualizamos las credenciales de esta cuenta${reason ? ` (${reason})` : ''}. Revísalas en Mayoreo → Mis compras${groupId ? ' (tu grupo ya tiene las nuevas)' : ''} y, si ya funcionan, cierra el reporte con "Ya quedó".`
-              : `Partly actualizó la contraseña de esta cuenta${reason ? ` (${reason})` : ''}. Revisa el acceso en tu grupo y, si ya funciona, cierra el reporte con "Ya quedó".`,
+              : `Tequio actualizó la contraseña de esta cuenta${reason ? ` (${reason})` : ''}. Revisa el acceso en tu grupo y, si ya funciona, cierra el reporte con "Ya quedó".`,
           },
         });
         await tx.incident.update({
@@ -749,7 +749,7 @@ export class ProviderOrdersService {
         await this.notificationsService.create(tx, {
           userId: incident.reportedByUserId,
           type: NotificationType.INCIDENT_MESSAGE,
-          payload: `Partly respondió tu reporte "${incident.subject}": ya actualizó las credenciales.`,
+          payload: `Tequio respondió tu reporte "${incident.subject}": ya actualizó las credenciales.`,
         });
         answered.push({ id: incident.id, subject: incident.subject, email: incident.reportedBy.email });
       }
@@ -759,7 +759,7 @@ export class ProviderOrdersService {
       await this.mailService
         .sendNotice(
           incident.email,
-          `Partly respondió tu reporte: ${incident.subject}`,
+          `Tequio respondió tu reporte: ${incident.subject}`,
           `Actualizamos las credenciales de la cuenta${reason ? ` (${reason})` : ''}. Revisa que ya funcionen y, si todo está bien, cierra el reporte con "Ya quedó".`,
           { label: 'Ver el reporte', path: `/panel/soporte/${incident.id}` },
         )

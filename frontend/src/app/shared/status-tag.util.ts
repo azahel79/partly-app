@@ -8,10 +8,10 @@ export interface StatusTag {
 
 /**
  * Estado de un grupo visto por su vendedor. Colores: verde = en orden,
- * ámbar = le toca hacer algo, azul = esperando a Partly, rojo = rechazado.
+ * ámbar = le toca hacer algo, azul = esperando a Tequio, rojo = rechazado.
  */
 export function ownerGroupStatus(group: Group): StatusTag {
-  if (group.approvalStatus === 'PENDING') return { label: 'En revisión de Partly', tone: 'ui-pill--info' };
+  if (group.approvalStatus === 'PENDING') return { label: 'En revisión de Tequio', tone: 'ui-pill--info' };
   if (group.approvalStatus === 'REJECTED') return { label: 'Rechazado', tone: 'ui-pill--danger' };
   if (!group.hasCredentials) return { label: 'Falta subir acceso', tone: 'ui-pill--warn' };
   switch (group.status) {

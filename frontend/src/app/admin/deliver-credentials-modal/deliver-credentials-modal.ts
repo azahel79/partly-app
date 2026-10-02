@@ -47,7 +47,7 @@ type DeliveryKind = 'CREDENTIALS' | 'PANEL';
       } @else if (order().kind === 'REPLACEMENT') {
         <p class="ui-note ui-note--info">
           <span class="material-symbols-outlined">sync</span>
-          <span>Es una <strong>reposición</strong>: estas credenciales sustituyen a la cuenta anterior. Si el vendedor ya la publicó como grupo, Partly actualiza la contraseña del grupo y avisa a sus miembros.</span>
+          <span>Es una <strong>reposición</strong>: estas credenciales sustituyen a la cuenta anterior. Si el vendedor ya la publicó como grupo, Tequio actualiza la contraseña del grupo y avisa a sus miembros.</span>
         </p>
       }
 
@@ -105,7 +105,7 @@ export class DeliverCredentialsModal implements OnInit {
   private readonly providerOrdersService = inject(ProviderOrdersService);
 
   readonly order = input.required<ProviderOrder>();
-  /** 'update' = la cuenta ya se entregó y Partly corrige o cambia sus credenciales. */
+  /** 'update' = la cuenta ya se entregó y Tequio corrige o cambia sus credenciales. */
   readonly mode = input<'deliver' | 'update'>('deliver');
   readonly delivered = output<ProviderOrder>();
   readonly closed = output<void>();

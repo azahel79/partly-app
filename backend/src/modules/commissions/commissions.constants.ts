@@ -1,5 +1,5 @@
 /**
- * Reglas de la comisión de Partly (el vendedor la paga por transferencia, no se descuenta de
+ * Reglas de la comisión de Tequio (el vendedor la paga por transferencia, no se descuenta de
  * ningún saldo). Todo el calendario vive aquí para poder ajustarlo en un solo lugar.
  */
 
@@ -16,7 +16,7 @@ export const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const round2 = (value: number): number => Math.round(value * 100) / 100;
 
-/** Comisión de Partly para todos los grupos, salvo que el vendedor tenga una reducida autorizada. */
+/** Comisión de Tequio para todos los grupos, salvo que el vendedor tenga una reducida autorizada. */
 export const DEFAULT_COMMISSION_PCT = 9;
 
 /** Lo más bajo que puede autorizarse al rebajar la comisión de un vendedor. */

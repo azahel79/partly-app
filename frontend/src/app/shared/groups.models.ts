@@ -41,7 +41,7 @@ export interface Group {
   commissionPercentage: string | null;
   /** Cómo reciben el acceso los miembros: correo y contraseña, o link de invitación al grupo familiar. */
   accessType: 'CREDENTIALS' | 'INVITE_LINK';
-  /** Cuenta de mayoreo de la que salió el grupo (solo la ven el vendedor y Partly). */
+  /** Cuenta de mayoreo de la que salió el grupo (solo la ven el vendedor y Tequio). */
   wholesaleAccount?: {
     orderId: string;
     expiresAt: string | null;
@@ -49,7 +49,7 @@ export interface Group {
     expired: boolean;
     /** false = no se cobra la renovación a los miembros hasta que el vendedor la renueve o la reponga. */
     coversNextPeriod: boolean;
-    /** Entregada con credenciales: la contraseña la cambia Partly (el vendedor se la pide desde un reporte). */
+    /** Entregada con credenciales: la contraseña la cambia Tequio (el vendedor se la pide desde un reporte). */
     managedByPartly: boolean;
   } | null;
   /** Cupos ya apartados (reservados o pagando): el avance hacia el 75% antes de iniciar. */

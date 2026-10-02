@@ -1,7 +1,7 @@
 <div class="admin-shell">
   @if (sidebarOpen()) { <button class="sidebar-overlay" aria-label="Cerrar menú" (click)="closeSidebar()"></button> }
   <aside id="admin-sidebar" class="admin-sidebar" [class.is-open]="sidebarOpen()">
-    <div class="brand-row"><img [src]="theme.isDark() ? 'partly-wordmark-dark.png' : 'partly-wordmark.png'" alt="Partly" /><span>Staff</span></div>
+    <div class="brand-row"><img [src]="theme.isDark() ? 'tequio-wordmark-dark.png' : 'tequio-wordmark.png'" alt="Tequio" /><span>Staff</span></div>
     <nav class="side-nav" aria-label="Administración">
       @for (item of sections; track item.route) {
         <a [routerLink]="item.route" [routerLinkActiveOptions]="{ exact: item.route === '/admin' }" routerLinkActive="is-active" (click)="closeSidebar()">

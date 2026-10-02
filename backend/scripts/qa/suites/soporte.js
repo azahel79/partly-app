@@ -1,4 +1,4 @@
-/* Soporte: quién puede cerrar, mensajes privados con Partly, "pedir respuesta" y seguimiento automático al vendedor. */
+/* Soporte: quién puede cerrar, mensajes privados con Tequio, "pedir respuesta" y seguimiento automático al vendedor. */
 const path = require('path');
 const { BACKEND, HOUR, prisma, token, call, buildGroup } = require('../lib');
 
@@ -22,13 +22,13 @@ module.exports = {
       let r = await call('PUT', `/incidents/${i1}/status`, S, { status: 'RESOLVED' });
       check('el vendedor no puede cerrar el reporte (solo quien reportó)', r.status === 403);
       r = await call('POST', `/incidents/${i1}/messages`, S, { body: 'privado antes de tiempo', audience: 'ASSIGNEE' });
-      check('antes de que Partly intervenga, nadie le escribe en privado', r.status === 400);
+      check('antes de que Tequio intervenga, nadie le escribe en privado', r.status === 400);
       check('solo el admin puede pedir respuesta', (await call('POST', `/incidents/${i1}/request-response`, S, {})).status === 403);
       r = await call('POST', `/incidents/${i1}/request-response`, A, {});
       check('el admin pide respuesta y el vendedor tiene 24 horas', r.status === 201 && !!r.body.responseDueAt);
       check('el admin le escribe en privado al vendedor', (await call('POST', `/incidents/${i1}/messages`, A, { body: 'Aloy, ¿qué pasó?', audience: 'ASSIGNEE' })).status === 201);
       check('el comprador no puede mandarle un privado al vendedor', (await call('POST', `/incidents/${i1}/messages`, B, { body: 'x', audience: 'ASSIGNEE' })).status === 403);
-      check('el vendedor le contesta en privado a Partly', (await call('POST', `/incidents/${i1}/messages`, S, { body: 'No ha pagado completo', audience: 'ASSIGNEE' })).status === 201);
+      check('el vendedor le contesta en privado a Tequio', (await call('POST', `/incidents/${i1}/messages`, S, { body: 'No ha pagado completo', audience: 'ASSIGNEE' })).status === 201);
       const seen = async (tok) => (await call('GET', `/incidents/${i1}/messages`, tok)).body.length;
       check('el comprador no ve los mensajes privados', (await seen(B)) === 1);
       check('el vendedor ve los suyos y el admin todo', (await seen(S)) === 3 && (await seen(A)) === 3);
@@ -51,7 +51,7 @@ module.exports = {
       check('a las 24 h sin respuesta se le recuerda al vendedor (una sola vez)', reminders === 1);
       await prisma.incident.update({ where: { id: i3 }, data: { createdAt: new Date(Date.now() - 73 * HOUR) } });
       await incidents.processFollowUps();
-      check('a las 72 h sin respuesta se escala sola a Partly', (await prisma.incident.findUnique({ where: { id: i3 } })).status === 'ESCALATED');
+      check('a las 72 h sin respuesta se escala sola a Tequio', (await prisma.incident.findUnique({ where: { id: i3 } })).status === 'ESCALATED');
 
       const i4 = await open('contestada');
       await call('POST', `/incidents/${i4}/messages`, S, { body: 'Ya lo reviso' });

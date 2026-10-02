@@ -151,7 +151,7 @@
             <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-crema-border/60">
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-crema-inset text-on-surface-variant text-xs font-semibold">
                 <span class="material-symbols-outlined text-sm">percent</span>
-                Comisión de Partly: {{ +g.commissionPercentage }}%
+                Comisión de Tequio: {{ +g.commissionPercentage }}%
               </span>
               <span class="text-xs text-on-surface-variant font-medium">
                 Recibes ~{{ ((+g.pricePerSlot) * (1 - (+g.commissionPercentage) / 100)) | money }} por cupo después de comisión.
@@ -279,9 +279,9 @@
                   {{ rotation()!.departures === 1 ? rotation()!.lastMemberName + ' salió del grupo' : rotation()!.departures + ' personas salieron del grupo' }} el {{ paymentDateLabel(rotation()!.since!) }}. Quítal{{ rotation()!.departures === 1 ? 'o' : 'os' }} del grupo familiar en {{ g.plan.platform.name }} para que dejen de tener acceso y confírmalo aquí.
                 </p>
               } @else if (credentialsByPartly()) {
-                <p class="gd-banner-title">Partly cambiará la contraseña</p>
+                <p class="gd-banner-title">Tequio cambiará la contraseña</p>
                 <p class="gd-banner-text">
-                  {{ rotation()!.departures === 1 ? rotation()!.lastMemberName + ' salió del grupo' : rotation()!.departures + ' personas salieron del grupo' }} el {{ paymentDateLabel(rotation()!.since!) }}. Como es una cuenta de mayoreo, Partly ya recibió el aviso y actualizará la contraseña; tus miembros recibirán el aviso.
+                  {{ rotation()!.departures === 1 ? rotation()!.lastMemberName + ' salió del grupo' : rotation()!.departures + ' personas salieron del grupo' }} el {{ paymentDateLabel(rotation()!.since!) }}. Como es una cuenta de mayoreo, Tequio ya recibió el aviso y actualizará la contraseña; tus miembros recibirán el aviso.
                 </p>
               } @else {
                 <p class="gd-banner-title">Cambio de contraseña pendiente</p>
@@ -304,29 +304,29 @@
           @if (g.credentialReviewStatus === 'SUBMITTED') {
             <div class="p-5 rounded-2xl bg-blue-50 border border-blue-200 flex items-start gap-3">
               <span class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-lg">fact_check</span></span>
-              <div><p class="text-sm font-extrabold text-ink">Credenciales enviadas al administrador</p><p class="text-xs text-on-surface-variant font-medium mt-0.5">Partly las está revisando. El grupo seguirá oculto hasta que se confirme que el acceso funciona.</p></div>
+              <div><p class="text-sm font-extrabold text-ink">Credenciales enviadas al administrador</p><p class="text-xs text-on-surface-variant font-medium mt-0.5">Tequio las está revisando. El grupo seguirá oculto hasta que se confirme que el acceso funciona.</p></div>
             </div>
           } @else {
             <div class="p-5 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center gap-3">
               <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-lg">key</span></span>
               <div class="flex-1">
-                <p class="text-sm font-extrabold text-ink">{{ g.credentialReviewStatus === 'REQUESTED' ? 'Partly solicitó las credenciales' : 'Este grupo está en revisión de Partly' }}</p>
+                <p class="text-sm font-extrabold text-ink">{{ g.credentialReviewStatus === 'REQUESTED' ? 'Tequio solicitó las credenciales' : 'Este grupo está en revisión de Tequio' }}</p>
                 <p class="text-xs text-on-surface-variant font-medium mt-0.5">
                   @if (g.credentialReviewStatus === 'REQUESTED') {
                     Envía el correo y la contraseña de {{ g.plan.platform.name }} para que el equipo compruebe el acceso y apruebe tu grupo.
                   } @else {
-                    El equipo de Partly revisará tu grupo y te pedirá las credenciales de {{ g.plan.platform.name }} para comprobar el acceso. Te avisamos por aquí.
+                    El equipo de Tequio revisará tu grupo y te pedirá las credenciales de {{ g.plan.platform.name }} para comprobar el acceso. Te avisamos por aquí.
                   }
                 </p>
               </div>
               <button
                 type="button"
                 [disabled]="g.credentialReviewStatus !== 'REQUESTED'"
-                [attr.title]="g.credentialReviewStatus !== 'REQUESTED' ? 'Se habilita cuando Partly te pida las credenciales' : null"
+                [attr.title]="g.credentialReviewStatus !== 'REQUESTED' ? 'Se habilita cuando Tequio te pida las credenciales' : null"
                 (click)="scrollToCredentials(); openCredentialForm()"
                 class="active:scale-[0.98] transition-colors hover:bg-[#065f46] shrink-0 py-2.5 px-5 rounded-lg bg-pink text-white text-xs font-bold disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:bg-pink disabled:active:scale-100"
               >
-                {{ g.credentialReviewStatus === 'REQUESTED' ? 'Enviar credenciales al administrador' : 'Esperando la solicitud de Partly' }}
+                {{ g.credentialReviewStatus === 'REQUESTED' ? 'Enviar credenciales al administrador' : 'Esperando la solicitud de Tequio' }}
               </button>
             </div>
           }
@@ -503,7 +503,7 @@
                     <p class="text-xs font-bold text-ink">{{ isInviteGroup() ? 'Link de invitación pendiente de envío' : 'Credenciales pendientes de envío' }}</p>
                     <p class="text-xs text-on-surface-variant">
                       @if (g.approvalStatus === 'PENDING' && g.credentialReviewStatus !== 'REQUESTED') {
-                        Podrás enviarlas cuando Partly las solicite, después de que conozcas tu comisión.
+                        Podrás enviarlas cuando Tequio las solicite, después de que conozcas tu comisión.
                       } @else {
                         Envíalas al administrador para que pueda comprobarlas y aprobar el grupo.
                       }
@@ -569,9 +569,9 @@
                   }
                   <div class="flex items-center justify-end gap-3 flex-wrap">
                     @if (isOwner() && credentialsByPartly()) {
-                      <p class="text-xs text-on-surface-variant flex-1">Las credenciales de esta cuenta de mayoreo las administra Partly.</p>
+                      <p class="text-xs text-on-surface-variant flex-1">Las credenciales de esta cuenta de mayoreo las administra Tequio.</p>
                       <a routerLink="/panel/soporte/nueva" [queryParams]="{ compra: g.wholesaleAccount!.orderId }" class="inline-flex items-center gap-1 text-xs font-bold text-pink">
-                        <span class="material-symbols-outlined text-sm">support_agent</span>Pedir cambio a Partly
+                        <span class="material-symbols-outlined text-sm">support_agent</span>Pedir cambio a Tequio
                       </a>
                     } @else if (isOwner()) {
                       <button type="button" (click)="openCredentialForm()" class="inline-flex items-center gap-1 text-xs font-bold text-pink">
@@ -1146,7 +1146,7 @@
       </div>
     </ng-template>
 
-    <!-- Banner Partly Shield -->
+    <!-- Banner Tequio Shield -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white shadow-neu-raised">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 shrink-0">
@@ -1154,10 +1154,10 @@
         </div>
         <div>
           <p class="text-sm font-bold text-ink flex items-center gap-2">
-            Protección Partly Shield activa
+            Protección Tequio Shield activa
             <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Grupo verificado</span>
           </p>
-          <p class="text-xs text-on-surface-variant">Si algo no funciona como se espera, te ayudamos a resolverlo. Tu compra está protegida con Partly Shield.</p>
+          <p class="text-xs text-on-surface-variant">Si algo no funciona como se espera, te ayudamos a resolverlo. Tu compra está protegida con Tequio Shield.</p>
         </div>
       </div>
       <a routerLink="/seguridad" class="active:scale-[0.98] hover:bg-slate-200 shrink-0 inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-slate-100 text-ink text-xs font-bold transition-all">

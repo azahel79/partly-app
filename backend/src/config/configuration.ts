@@ -33,7 +33,7 @@ export default () => ({
   // real basta cambiar el proveedor y llenar sus variables (ver .env.example).
   mail: {
     provider: (process.env.MAIL_PROVIDER ?? 'log').toLowerCase(),
-    fromName: process.env.MAIL_FROM_NAME || 'Partly',
+    fromName: process.env.MAIL_FROM_NAME || 'Tequio',
     fromAddress: process.env.MAIL_FROM_ADDRESS || undefined,
     replyTo: process.env.MAIL_REPLY_TO || undefined,
     resendApiKey: process.env.RESEND_API_KEY || undefined,

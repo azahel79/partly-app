@@ -90,7 +90,7 @@ export function isPublishable(order: ProviderOrder): boolean {
   return order.status === 'FULFILLED' && !order.resultingGroupId && order.kind !== 'RENEWAL' && !order.replaced;
 }
 
-/** Cuenta entregada cuyo acceso Partly todavía puede corregir o cambiar (la vigente, no una renovación ni una sustituida). */
+/** Cuenta entregada cuyo acceso Tequio todavía puede corregir o cambiar (la vigente, no una renovación ni una sustituida). */
 export function canUpdateCredential(order: ProviderOrder): boolean {
   return order.status === 'FULFILLED' && order.kind !== 'RENEWAL' && !order.replaced;
 }

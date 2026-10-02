@@ -25,7 +25,7 @@ import { PaginationQueryDto } from './dto/pagination-query.dto';
 
 const MAX_RECEIPT_SIZE_BYTES = 8 * 1024 * 1024; // 8MB
 
-/** Ganancias del vendedor: lo que cobra de sus grupos, ya separado en comisión de Partly y lo que le queda. */
+/** Ganancias del vendedor: lo que cobra de sus grupos, ya separado en comisión de Tequio y lo que le queda. */
 @ApiTags('earnings')
 @Controller('earnings')
 @UseGuards(JwtAuthGuard)
@@ -46,7 +46,7 @@ export class EarningsController {
   }
 }
 
-/** Comisión que el vendedor le paga a Partly por transferencia (con comprobante). */
+/** Comisión que el vendedor le paga a Tequio por transferencia (con comprobante). */
 @ApiTags('commissions')
 @Controller('commissions')
 @UseGuards(JwtAuthGuard)
@@ -61,13 +61,13 @@ export class CommissionsController {
   }
 
   @Get('me')
-  @ApiOperation({ summary: 'Tus cobros de comisión, la cuenta de Partly donde pagarlos y tu estado' })
+  @ApiOperation({ summary: 'Tus cobros de comisión, la cuenta de Tequio donde pagarlos y tu estado' })
   getMine(@CurrentUser() user: AuthenticatedUser) {
     return this.commissionsService.getMyCommissions(user.id);
   }
 
   @Get('bank-account')
-  @ApiOperation({ summary: 'Cuenta bancaria de Partly para transferir la comisión' })
+  @ApiOperation({ summary: 'Cuenta bancaria de Tequio para transferir la comisión' })
   getBankAccount() {
     return this.commissionsService.getBankAccount();
   }
@@ -75,7 +75,7 @@ export class CommissionsController {
   @Post(':id/receipt')
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: MAX_RECEIPT_SIZE_BYTES } }))
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Sube el comprobante de tu transferencia de comisión; queda en revisión de Partly' })
+  @ApiOperation({ summary: 'Sube el comprobante de tu transferencia de comisión; queda en revisión de Tequio' })
   uploadReceipt(
     @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,

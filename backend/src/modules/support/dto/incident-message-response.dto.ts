@@ -22,7 +22,7 @@ export class IncidentMessageResponseDto {
   @Expose()
   createdAt: Date;
 
-  /** ALL = lo ven todos; REPORTER / ASSIGNEE = privado entre Partly y esa persona. */
+  /** ALL = lo ven todos; REPORTER / ASSIGNEE = privado entre Tequio y esa persona. */
   @Expose()
   audience: IncidentMessage['audience'];
 

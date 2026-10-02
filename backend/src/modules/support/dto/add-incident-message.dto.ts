@@ -10,7 +10,7 @@ export class AddIncidentMessageDto {
 
   @ApiPropertyOptional({
     enum: IncidentMessageAudience,
-    description: 'ALL = lo ven todos. REPORTER / ASSIGNEE = privado entre Partly y quien reportó / el responsable.',
+    description: 'ALL = lo ven todos. REPORTER / ASSIGNEE = privado entre Tequio y quien reportó / el responsable.',
   })
   @IsOptional()
   @IsEnum(IncidentMessageAudience)

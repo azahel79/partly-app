@@ -14,7 +14,7 @@ const STATUS: Record<CommissionChargeStatus, { label: string; tone: string }> = 
   PAID: { label: 'Pagada', tone: 'bg-emerald-50 text-emerald-700' },
 };
 
-/** La comisión que el vendedor le paga a Partly: se transfiere a la cuenta de Partly y se sube el comprobante. */
+/** La comisión que el vendedor le paga a Tequio: se transfiere a la cuenta de Tequio y se sube el comprobante. */
 @Component({
   imports: [RouterLink],
   selector: 'app-commissions',
@@ -67,7 +67,7 @@ export class CommissionsPage implements OnInit {
     }
     const message = await this.confirmService.prompt({
       title: 'Solicitar comisión reducida',
-      text: `Hoy pagas ${rate.rate}%. El equipo de Partly revisará tu trayectoria y te dirá el porcentaje que te puede autorizar. Si quieres, agrega un mensaje.`,
+      text: `Hoy pagas ${rate.rate}%. El equipo de Tequio revisará tu trayectoria y te dirá el porcentaje que te puede autorizar. Si quieres, agrega un mensaje.`,
       placeholder: 'Opcional: cuéntanos de tus grupos',
       confirmText: 'Enviar solicitud',
     });
@@ -139,7 +139,7 @@ export class CommissionsPage implements OnInit {
           const { [charge.id]: _removed, ...rest } = map;
           return rest;
         });
-        this.notice.set('Comprobante enviado. Partly lo revisará y te avisaremos cuando quede validado.');
+        this.notice.set('Comprobante enviado. Tequio lo revisará y te avisaremos cuando quede validado.');
         this.load();
       },
       error: (message: string) => {

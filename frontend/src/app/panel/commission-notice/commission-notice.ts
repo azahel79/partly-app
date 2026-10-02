@@ -6,7 +6,7 @@ import { CommissionsService } from '../../shared/commissions.service';
 import { formatMoney } from '../../shared/money';
 
 /**
- * Aviso del panel para el vendedor que debe comisión a Partly (o la tiene en revisión). No
+ * Aviso del panel para el vendedor que debe comisión a Tequio (o la tiene en revisión). No
  * aparece si no debe nada, así que a quien solo compra nunca se le muestra.
  */
 @Component({

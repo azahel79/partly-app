@@ -32,10 +32,10 @@ export class ProviderOrdersController {
     summary: 'Reserva una cuenta del mayoreo — tienes un plazo para transferir y subir tu comprobante',
     description:
       'Solo para vendedores con acceso al mayoreo autorizado. El stock se aparta de inmediato; si no subes el comprobante a tiempo la reserva se cancela sola. ' +
-      'El pago es por transferencia a la cuenta de Partly (GET /commissions/bank-account) y el proveedor lo valida al aprobar.',
+      'El pago es por transferencia a la cuenta de Tequio (GET /commissions/bank-account) y el proveedor lo valida al aprobar.',
   })
   @ApiResponse({ status: 201, type: ProviderOrderResponseDto })
-  @ApiResponse({ status: 400, description: 'Sin stock, servicio inactivo o Partly sin cuenta de pago publicada.' })
+  @ApiResponse({ status: 400, description: 'Sin stock, servicio inactivo o Tequio sin cuenta de pago publicada.' })
   @ApiResponse({ status: 403, description: 'Sin acceso al mayoreo, tope mensual alcanzado o comisión vencida.' })
   async create(
     @CurrentUser() user: AuthenticatedUser,

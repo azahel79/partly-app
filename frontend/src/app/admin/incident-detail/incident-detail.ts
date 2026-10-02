@@ -13,11 +13,11 @@ import { DeliverCredentialsModal } from '../deliver-credentials-modal/deliver-cr
 const ADMIN_ACTIONS: Record<IncidentStatus, { status: IncidentStatus; label: string; icon: string; tone: 'primary' | 'secondary' | 'danger' }[]> = {
   OPEN: [
     { status: 'RESOLVED', label: 'Marcar como resuelta', icon: 'check', tone: 'primary' },
-    { status: 'ESCALATED', label: 'Tomarla (escalar a Partly)', icon: 'shield_person', tone: 'secondary' },
+    { status: 'ESCALATED', label: 'Tomarla (escalar a Tequio)', icon: 'shield_person', tone: 'secondary' },
   ],
   IN_REVIEW: [
     { status: 'RESOLVED', label: 'Marcar como resuelta', icon: 'check', tone: 'primary' },
-    { status: 'ESCALATED', label: 'Tomarla (escalar a Partly)', icon: 'shield_person', tone: 'secondary' },
+    { status: 'ESCALATED', label: 'Tomarla (escalar a Tequio)', icon: 'shield_person', tone: 'secondary' },
   ],
   ESCALATED: [
     { status: 'RESOLVED', label: 'Marcar como resuelta', icon: 'check', tone: 'primary' },
@@ -44,21 +44,21 @@ export class IncidentDetail implements OnInit {
   protected readonly sending = signal(false);
   protected readonly updatingStatus = signal(false);
   protected readonly reply = signal('');
-  /** A quién va el siguiente mensaje de Partly: a los dos o en privado a una de las partes. */
+  /** A quién va el siguiente mensaje de Tequio: a los dos o en privado a una de las partes. */
   protected readonly audience = signal<IncidentMessageAudience>('ALL');
   protected readonly requesting = signal(false);
   /** Compra de Mi tienda cuyo acceso se está corrigiendo desde el reporte. */
   protected readonly updatingOrder = signal<ProviderOrder | null>(null);
   protected readonly loadingOrder = signal(false);
 
-  /** Reporte de una cuenta de Mi tienda (o de un grupo que la usa) con credenciales que administra Partly. */
+  /** Reporte de una cuenta de Mi tienda (o de un grupo que la usa) con credenciales que administra Tequio. */
   protected readonly canFixCredentials = computed(() => {
     const inc = this.incident();
     const about = inc?.about;
     return !!about?.providerOrderId && inc!.status !== 'RESOLVED' && (about.kind === 'WHOLESALE' || about.credentialsManagedByPartly);
   });
 
-  /** En un grupo hay dos personas distintas con quién hablar; en el mayoreo el responsable es Partly. */
+  /** En un grupo hay dos personas distintas con quién hablar; en el mayoreo el responsable es Tequio. */
   protected readonly canWritePrivately = computed(() => this.incident()?.about?.kind === 'GROUP');
 
   /** Estado del "Pedir respuesta": pendiente, venció sin respuesta o ya respondió. */
@@ -198,20 +198,20 @@ export class IncidentDetail implements OnInit {
   }
 
   protected statusLabel(status: IncidentStatus): string {
-    return { OPEN: 'Abierta', IN_REVIEW: 'En revisión', RESOLVED: 'Resuelta', ESCALATED: 'Escalada a Partly' }[status];
+    return { OPEN: 'Abierta', IN_REVIEW: 'En revisión', RESOLVED: 'Resuelta', ESCALATED: 'Escalada a Tequio' }[status];
   }
 
   protected statusPill(status: IncidentStatus): string {
     return { OPEN: 'ui-pill--warn', IN_REVIEW: 'ui-pill--info', RESOLVED: 'ui-pill--ok', ESCALATED: 'ui-pill--danger' }[status];
   }
 
-  /** Quién escribió: el que reportó, el responsable o Partly. */
+  /** Quién escribió: el que reportó, el responsable o Tequio. */
   protected roleOf(authorId: string): string {
     const inc = this.incident();
     if (!inc) return '';
     if (authorId === inc.reportedBy.id) return 'Reportó';
     if (authorId === inc.assignedTo.id) return 'Responsable';
-    return 'Partly';
+    return 'Tequio';
   }
 
   protected formatDateTime(value: string): string {

@@ -1,6 +1,6 @@
-# Partly
+# Tequio
 
-Partly es una plataforma para organizar, compartir y comercializar suscripciones digitales. Conecta compradores, vendedores y proveedores; administra grupos y perfiles; registra pagos por transferencia; protege credenciales; calcula comisiones y ofrece herramientas de soporte y moderación.
+Tequio es una plataforma para organizar, compartir y comercializar suscripciones digitales. Conecta compradores, vendedores y proveedores; administra grupos y perfiles; registra pagos por transferencia; protege credenciales; calcula comisiones y ofrece herramientas de soporte y moderación.
 
 ## Estado del proyecto
 
@@ -11,7 +11,7 @@ El repositorio contiene una aplicación funcional en desarrollo activo:
 - catálogo de plataformas, planes y grupos;
 - aprobación administrativa de grupos y credenciales;
 - pagos mediante comprobante, prorrateo y renovaciones;
-- ganancias y comisiones de Partly;
+- ganancias y comisiones de Tequio;
 - proveedores, inventario y compras al mayoreo;
 - notificaciones, correo, reseñas e incidencias;
 - panel administrativo y auditoría básica.
@@ -101,8 +101,8 @@ También existen `npm run start:backend` y `npm run start:frontend` para desarro
 3. Los compradores reservan un lugar; al comenzar el grupo se generan sus cobros.
 4. Cada comprador transfiere al vendedor y sube su comprobante.
 5. El vendedor o un administrador valida el pago; la membresía obtiene acceso a las credenciales cifradas.
-6. Partly registra ingreso bruto, comisión y neto del vendedor.
-7. Las comisiones exigibles se agrupan en cargos que el vendedor paga a Partly.
+6. Tequio registra ingreso bruto, comisión y neto del vendedor.
+7. Las comisiones exigibles se agrupan en cargos que el vendedor paga a Tequio.
 8. Las tareas programadas gestionan renovaciones, vencimientos, recordatorios y correo.
 
 El módulo de mayoreo permite que usuarios autorizados compren cuentas completas a proveedores y las conviertan posteriormente en grupos.
@@ -114,7 +114,7 @@ El módulo de mayoreo permite que usuarios autorizados compren cuentas completas
 - Credenciales compartidas y cuentas de retiro (CLABE o tarjeta de débito) cifradas con AES-256-GCM.
 - Validación estricta de DTO, rate limiting, Helmet y CORS.
 - Los administradores solo pueden leer las credenciales de un grupo mientras las revisan (enviadas y sin aprobar), y cada consulta queda en la bitácora.
-- La cuenta bancaria del vendedor solo la ven él, un administrador y quien le debe un pago; la comisión pactada, solo el vendedor y Partly. Los grupos sin aprobar no son públicos.
+- La cuenta bancaria del vendedor solo la ven él, un administrador y quien le debe un pago; la comisión pactada, solo el vendedor y Tequio. Los grupos sin aprobar no son públicos.
 - Los comprobantes se validan por su contenido real (JPG, PNG, WEBP o PDF), no solo por la extensión.
 - La app web se sirve con cabeceras de seguridad (CSP sin scripts en línea, HSTS, protección contra iframes); ver `frontend/nginx/security-headers.conf`.
 - En producción se exige HTTPS, secretos JWT de al menos 32 caracteres y correo real.

@@ -1,14 +1,14 @@
-# Partly — Product Context
+# Tequio — Product Context
 
 <!-- impeccable:product-schema 1 -->
 
 ## Platform
 
-Partly is a responsive web application. Its public landing experience introduces the product, while authenticated areas support buyers, group hosts, providers, support staff, moderators, and administrators.
+Tequio is a responsive web application. Its public landing experience introduces the product, while authenticated areas support buyers, group hosts, providers, support staff, moderators, and administrators.
 
 ## Product Purpose
 
-Partly helps people in Mexico organize and share digital subscriptions so each member can pay only their corresponding portion. It brings group discovery, membership, payment evidence, credential access, support, and administration into one product experience.
+Tequio helps people in Mexico organize and share digital subscriptions so each member can pay only their corresponding portion. It brings group discovery, membership, payment evidence, credential access, support, and administration into one product experience.
 
 ## Users
 
@@ -19,7 +19,7 @@ Partly helps people in Mexico organize and share digital subscriptions so each m
 
 ## Positioning
 
-Partly should feel like a trustworthy, clear, and approachable way to share subscriptions. Its differentiators are verified groups, prorated payments, protected credentials, and the Partly Shield trust and protection promise.
+Tequio should feel like a trustworthy, clear, and approachable way to share subscriptions. Its differentiators are verified groups, prorated payments, protected credentials, and the Tequio Shield trust and protection promise.
 
 The product should communicate practical savings without sacrificing security or clarity. It is not positioned as an anonymous listing board or as an automated payment processor.
 
@@ -38,7 +38,7 @@ The product should communicate practical savings without sacrificing security or
 - Upload, review, and track payment receipts.
 - Protect and reveal shared credentials through controlled authenticated flows.
 - Support commissions, wholesale operations, providers, support cases, and moderation.
-- Present Partly Shield as the product's trust and protection layer.
+- Present Tequio Shield as the product's trust and protection layer.
 
 ## Public Information Architecture
 
@@ -48,15 +48,15 @@ The home page supports two explicit entry intentions: joining an existing group 
 
 ## Constraints and Product Truth
 
-- Do not imply that Partly processes payments automatically while the flow depends on bank transfers and human verification.
+- Do not imply that Tequio processes payments automatically while the flow depends on bank transfers and human verification.
 - Do not present unverified adoption, savings, availability, or trust claims as real product data.
 - The “10,000 usuarios” statement is **demonstrative content pending validation**. It must be visibly labeled as demonstrative or replaced before production; it is not evidence of actual usage.
 - Product examples and previews may use representative data, but they must not be mistaken for live marketplace inventory or verified customer activity.
 
 ## Brand Commitments
 
-- The product name is **Partly**.
-- Preserve the approved Partly logo and wordmark proportions.
+- The product name is **Tequio**.
+- Preserve the approved Tequio logo and wordmark proportions.
 - Preserve the established green, deep navy, and warm cream visual identity.
 - Preserve the current typography direction, recognizable structure, and friendly rounded character while improving hierarchy, consistency, accessibility, and polish.
 - Future design work should refine the established product rather than replace its identity.
@@ -65,7 +65,7 @@ The home page supports two explicit entry intentions: joining an existing group 
 
 - Existing Angular landing page and authenticated application surfaces.
 - Existing NestJS and PostgreSQL backend covering groups, payments, commissions, providers, support, and moderation.
-- Existing Partly wordmark, icon, dark variant, and platform logo assets.
+- Existing Tequio wordmark, icon, dark variant, and platform logo assets.
 - Existing responsive, focus-visible, and reduced-motion behaviors in the frontend styles.
 - Product flows and interface examples are available in the repository; usage and adoption metrics are not currently verified.
 

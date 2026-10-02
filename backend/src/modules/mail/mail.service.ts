@@ -270,7 +270,7 @@ export class MailService {
     return this.sendImmediate({
       to,
       template: 'test',
-      subject: 'Prueba de correo de Partly',
+      subject: 'Prueba de correo de Tequio',
       includePrefsLink: false,
       content: {
         title: 'Tu correo está funcionando',
@@ -280,7 +280,7 @@ export class MailService {
             ? 'Este es un correo de prueba en modo simulado: no salió de la app, pero así se ve lo que enviaremos a tus usuarios.'
             : `Este correo salió de verdad por ${status.provider}. Si lo estás leyendo, el envío quedó bien configurado.`,
         ],
-        cta: { label: 'Abrir Partly', url: this.config.appUrl },
+        cta: { label: 'Abrir Tequio', url: this.config.appUrl },
       },
     });
   }
@@ -291,13 +291,13 @@ export class MailService {
     await this.sendImmediate({
       to,
       template: 'password-reset',
-      subject: 'Restablece tu contraseña de Partly',
+      subject: 'Restablece tu contraseña de Tequio',
       includePrefsLink: false,
       content: {
         title: 'Restablece tu contraseña',
         greeting: 'Hola,',
         paragraphs: [
-          'Recibimos una solicitud para cambiar la contraseña de tu cuenta de Partly. Usa el botón para elegir una nueva.',
+          'Recibimos una solicitud para cambiar la contraseña de tu cuenta de Tequio. Usa el botón para elegir una nueva.',
           'El enlace vence pronto. Si tú no lo pediste, ignora este correo: tu contraseña no cambia.',
         ],
         cta: { label: 'Elegir nueva contraseña', url: resetUrl },
@@ -310,7 +310,7 @@ export class MailService {
     await this.sendImmediate({
       to,
       template: 'google-account',
-      subject: 'Tu cuenta de Partly inicia sesión con Google',
+      subject: 'Tu cuenta de Tequio inicia sesión con Google',
       includePrefsLink: false,
       content: {
         title: 'Tu cuenta usa Google para entrar',
@@ -332,7 +332,7 @@ export class MailService {
         title: subject,
         greeting: 'Hola,',
         paragraphs: [body],
-        cta: cta ? { label: cta.label, url: `${this.config.appUrl}${cta.path}` } : { label: 'Abrir Partly', url: this.config.appUrl },
+        cta: cta ? { label: cta.label, url: `${this.config.appUrl}${cta.path}` } : { label: 'Abrir Tequio', url: this.config.appUrl },
       },
     });
   }

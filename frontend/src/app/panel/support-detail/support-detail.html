@@ -36,7 +36,7 @@
         <div class="min-w-0">
           <h1 class="text-xl! font-extrabold text-ink wrap-break-word">{{ inc.subject }}</h1>
           <p class="text-xs text-on-surface-variant mt-1">
-            Reportó {{ isReporter() ? 'tú' : inc.reportedBy.name }} · Responsable: {{ isAssignee() ? 'tú' : (isWholesale() ? 'Partly' : inc.assignedTo.name) }} · {{ formatDateTime(inc.createdAt) }}
+            Reportó {{ isReporter() ? 'tú' : inc.reportedBy.name }} · Responsable: {{ isAssignee() ? 'tú' : (isWholesale() ? 'Tequio' : inc.assignedTo.name) }} · {{ formatDateTime(inc.createdAt) }}
           </p>
         </div>
         <span class="ui-pill shrink-0" [class]="statusPill(inc.status)">{{ statusLabel(inc.status) }}</span>
@@ -45,7 +45,7 @@
       <!-- Qué pasa ahora, según quién mira -->
       @switch (inc.status) {
         @case ('ESCALATED') {
-          <p class="ui-note ui-note--danger"><span class="material-symbols-outlined">shield_person</span><span>Escalada a Partly: nuestro equipo está revisando la conversación y es quien la cierra. Puedes seguir escribiendo aquí si tienes algo más que agregar.</span></p>
+          <p class="ui-note ui-note--danger"><span class="material-symbols-outlined">shield_person</span><span>Escalada a Tequio: nuestro equipo está revisando la conversación y es quien la cierra. Puedes seguir escribiendo aquí si tienes algo más que agregar.</span></p>
         }
         @case ('RESOLVED') {
           <p class="ui-note ui-note--info"><span class="material-symbols-outlined">check_circle</span><span>Resuelta el {{ inc.resolvedAt ? formatDateTime(inc.resolvedAt) : '' }}. Si el problema vuelve, abre un reporte nuevo desde Soporte.</span></p>
@@ -57,12 +57,12 @@
               <span>
                 @if (inc.status === 'OPEN') {
                   @if (isWholesale()) {
-                    El equipo de Partly ya recibió tu reporte y te responderá aquí. Te avisamos por correo en cuanto conteste.
+                    El equipo de Tequio ya recibió tu reporte y te responderá aquí. Te avisamos por correo en cuanto conteste.
                   } @else {
-                    Esperando la respuesta de {{ responsibleName() }}; ya le avisamos por correo. Si no te responde o no se arregla, puedes pedir ayuda a Partly.
+                    Esperando la respuesta de {{ responsibleName() }}; ya le avisamos por correo. Si no te responde o no se arregla, puedes pedir ayuda a Tequio.
                   }
                 } @else {
-                  {{ isWholesale() ? 'El equipo de Partly' : responsibleName() }} ya está atendiendo tu reporte. Cuando vuelva a funcionar, ciérralo con "Ya quedó".
+                  {{ isWholesale() ? 'El equipo de Tequio' : responsibleName() }} ya está atendiendo tu reporte. Cuando vuelva a funcionar, ciérralo con "Ya quedó".
                 }
               </span>
             </p>
@@ -81,12 +81,12 @@
         }
       }
 
-      <!-- Partly le pidió respuesta al responsable -->
+      <!-- Tequio le pidió respuesta al responsable -->
       @if (inc.responseDueAt && inc.status !== 'RESOLVED') {
         @if (isAssignee()) {
-          <p class="ui-note ui-note--danger"><span class="material-symbols-outlined">alarm</span><span>Partly te pidió responder este reporte antes del <strong>{{ formatDateTime(inc.responseDueAt) }}</strong>. Si no contestas, Partly decidirá con la información que tenga.</span></p>
+          <p class="ui-note ui-note--danger"><span class="material-symbols-outlined">alarm</span><span>Tequio te pidió responder este reporte antes del <strong>{{ formatDateTime(inc.responseDueAt) }}</strong>. Si no contestas, Tequio decidirá con la información que tenga.</span></p>
         } @else if (isReporter()) {
-          <p class="ui-note ui-note--info"><span class="material-symbols-outlined">alarm</span><span>Partly le pidió a {{ firstName(inc.assignedTo.name) }} que te responda antes del {{ formatDateTime(inc.responseDueAt) }}.</span></p>
+          <p class="ui-note ui-note--info"><span class="material-symbols-outlined">alarm</span><span>Tequio le pidió a {{ firstName(inc.assignedTo.name) }} que te responda antes del {{ formatDateTime(inc.responseDueAt) }}.</span></p>
         }
       }
 
@@ -96,18 +96,18 @@
           @if (isReporter()) {
             <button type="button" class="ui-btn ui-btn--primary ui-btn--sm" [disabled]="updatingStatus()" (click)="resolve()"><span class="material-symbols-outlined">check</span>Ya quedó, cerrar reporte</button>
             @if (!isWholesale()) {
-              <button type="button" class="ui-btn ui-btn--ghost-danger ui-btn--sm" [disabled]="updatingStatus()" (click)="escalate()"><span class="material-symbols-outlined">shield_person</span>Pedir ayuda a Partly</button>
+              <button type="button" class="ui-btn ui-btn--ghost-danger ui-btn--sm" [disabled]="updatingStatus()" (click)="escalate()"><span class="material-symbols-outlined">shield_person</span>Pedir ayuda a Tequio</button>
             }
           } @else if (isAssignee()) {
             @if (inc.about?.credentialsManagedByPartly && inc.about?.providerOrderId) {
-              <!-- La cuenta es de Mi tienda: la contraseña la cambia Partly y aquí se deja su respuesta al guardarla. -->
-              <a routerLink="/panel/soporte/nueva" [queryParams]="{ compra: inc.about!.providerOrderId }" class="ui-btn ui-btn--primary ui-btn--sm"><span class="material-symbols-outlined">key</span>Pedir cambio a Partly</a>
+              <!-- La cuenta es de Mi tienda: la contraseña la cambia Tequio y aquí se deja su respuesta al guardarla. -->
+              <a routerLink="/panel/soporte/nueva" [queryParams]="{ compra: inc.about!.providerOrderId }" class="ui-btn ui-btn--primary ui-btn--sm"><span class="material-symbols-outlined">key</span>Pedir cambio a Tequio</a>
             } @else if (inc.about?.kind === 'GROUP' && inc.about?.groupId) {
               <a [routerLink]="['/panel/grupos', inc.about!.groupId]" [queryParams]="{ accion: 'credenciales' }" class="ui-btn ui-btn--primary ui-btn--sm"><span class="material-symbols-outlined">key</span>Actualizar credenciales</a>
             }
             <button type="button" class="ui-btn ui-btn--secondary ui-btn--sm" (click)="prepareFixedMessage()"><span class="material-symbols-outlined">task_alt</span>Ya lo arreglé</button>
             @if (!isWholesale()) {
-              <button type="button" class="ui-btn ui-btn--ghost-danger ui-btn--sm" [disabled]="updatingStatus()" (click)="escalate()"><span class="material-symbols-outlined">shield_person</span>Pedir ayuda a Partly</button>
+              <button type="button" class="ui-btn ui-btn--ghost-danger ui-btn--sm" [disabled]="updatingStatus()" (click)="escalate()"><span class="material-symbols-outlined">shield_person</span>Pedir ayuda a Tequio</button>
             }
           }
         </div>
@@ -126,9 +126,9 @@
               <strong class="text-xs font-bold text-ink">
                 {{ mine ? 'Tú' : msg.author.name }}
                 @if (msg.audience !== 'ALL') {
-                  <span class="ui-pill ui-pill--violet no-dot ml-1"><span class="material-symbols-outlined text-sm!">lock</span>Solo tú y Partly</span>
+                  <span class="ui-pill ui-pill--violet no-dot ml-1"><span class="material-symbols-outlined text-sm!">lock</span>Solo tú y Tequio</span>
                 }
-                @if (!mine && ((msg.author.id !== inc.reportedBy.id && msg.author.id !== inc.assignedTo.id) || (isWholesale() && msg.author.id === inc.assignedTo.id))) { <span class="ui-pill ui-pill--info no-dot ml-1">Partly</span> }
+                @if (!mine && ((msg.author.id !== inc.reportedBy.id && msg.author.id !== inc.assignedTo.id) || (isWholesale() && msg.author.id === inc.assignedTo.id))) { <span class="ui-pill ui-pill--info no-dot ml-1">Tequio</span> }
               </strong>
               <span class="text-xs text-on-surface-variant">{{ formatDateTime(msg.createdAt) }}</span>
             </div>
@@ -144,7 +144,7 @@
           <label class="flex items-center gap-2 text-xs font-semibold text-on-surface-variant cursor-pointer select-none">
             <input type="checkbox" class="accent-emerald-700 w-4 h-4" [checked]="privateToPartly()" (change)="privateToPartly.set($any($event.target).checked)" />
             <span class="material-symbols-outlined text-base">lock</span>
-            Enviar solo a Partly ({{ isReporter() ? firstName(inc.assignedTo.name) : firstName(inc.reportedBy.name) }} no lo verá)
+            Enviar solo a Tequio ({{ isReporter() ? firstName(inc.assignedTo.name) : firstName(inc.reportedBy.name) }} no lo verá)
           </label>
         }
         <div class="flex items-end gap-2.5">

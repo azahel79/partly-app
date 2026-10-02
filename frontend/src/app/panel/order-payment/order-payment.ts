@@ -13,7 +13,7 @@ const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pd
 
 const KIND_LABEL: Record<ProviderOrderKind, string> = { PURCHASE: 'Compra', RENEWAL: 'Renovación', REPLACEMENT: 'Reposición' };
 
-/** Pagar una compra al mayoreo: transferir a la cuenta de Partly, subir el comprobante y esperar la validación. */
+/** Pagar una compra al mayoreo: transferir a la cuenta de Tequio, subir el comprobante y esperar la validación. */
 @Component({
   imports: [RouterLink, PlatformLogo],
   selector: 'app-order-payment',

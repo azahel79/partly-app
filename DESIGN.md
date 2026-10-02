@@ -1,5 +1,5 @@
 ---
-name: Partly
+name: Tequio
 description: Confianza en movimiento para compartir suscripciones con claridad.
 colors:
   protection-navy: "#14142b"
@@ -100,13 +100,13 @@ components:
     padding: "8px 14px"
 ---
 
-# Design System: Partly
+# Design System: Tequio
 
 ## Overview
 
 **Creative North Star: "Confianza en movimiento"**
 
-Partly combines the steadiness of a protected service with the energy of people sharing something useful. Deep navy anchors important decisions, green signals progress and trust, and warm cream keeps the experience approachable. The landing may be expressive and persuasive; authenticated surfaces become calmer and more operational while retaining the same recognizable identity.
+Tequio combines the steadiness of a protected service with the energy of people sharing something useful. Deep navy anchors important decisions, green signals progress and trust, and warm cream keeps the experience approachable. The landing may be expressive and persuasive; authenticated surfaces become calmer and more operational while retaining the same recognizable identity.
 
 The system is clear, agile, close, and secure. It uses confident typography, practical hierarchy, moderate rounding, and ambient depth to guide attention without appearing like a cold bank, an infantilized marketplace, or a visually saturated promotion. Motion supports comprehension and perceived responsiveness; it never obscures content or becomes the product's personality by itself.
 
@@ -153,7 +153,7 @@ The palette pairs protective dark neutrals with a focused trust accent and warm 
 
 **Body Font:** Plus Jakarta Sans (with sans-serif fallback)
 
-**Character:** Bricolage Grotesque gives Partly its confident, friendly voice in headings. Plus Jakarta Sans keeps product data, forms, navigation, and explanations compact and highly readable.
+**Character:** Bricolage Grotesque gives Tequio its confident, friendly voice in headings. Plus Jakarta Sans keeps product data, forms, navigation, and explanations compact and highly readable.
 
 ### Hierarchy
 
@@ -179,7 +179,7 @@ The base rhythm follows 4px increments, with 8px, 12px, 16px, 24px, and 32px as 
 
 ## Elevation & Depth
 
-Partly uses a hybrid depth system. Marketing surfaces can use ambient gradients, soft floating layers, and selective shadows to create momentum. Product surfaces remain flatter: a fine border or tonal shift defines most containers, and stronger elevation appears only for overlays, dropdowns, active controls, or hover feedback.
+Tequio uses a hybrid depth system. Marketing surfaces can use ambient gradients, soft floating layers, and selective shadows to create momentum. Product surfaces remain flatter: a fine border or tonal shift defines most containers, and stronger elevation appears only for overlays, dropdowns, active controls, or hover feedback.
 
 ### Shadow Vocabulary
 
@@ -241,7 +241,7 @@ All public pages share one navigation and footer shell. The landing, payment gui
 
 ### Trust and Status Patterns
 
-Verification, Partly Shield, payment review, and credential protection use a consistent combination of meaningful icon, plain-language label, and state color. Green is for safe or completed states; amber, red, blue, and neutral slate retain their semantic meanings and always include text.
+Verification, Tequio Shield, payment review, and credential protection use a consistent combination of meaningful icon, plain-language label, and state color. Green is for safe or completed states; amber, red, blue, and neutral slate retain their semantic meanings and always include text.
 
 ### Landing Proof Pattern
 
@@ -253,7 +253,7 @@ The landing separates the buyer and plan-holder journeys before presenting detai
 
 ### Do:
 
-- **Do** preserve the approved Partly wordmark proportions and provide breathing room around it.
+- **Do** preserve the approved Tequio wordmark proportions and provide breathing room around it.
 - **Do** use navy as the visual anchor and green as a purposeful trust or action signal.
 - **Do** keep product cards mostly flat, with a 16px default radius and restrained borders.
 - **Do** preserve visible keyboard focus, 44px touch targets, responsive reflow, and reduced-motion behavior.
@@ -265,4 +265,4 @@ The landing separates the buyer and plan-holder journeys before presenting detai
 - **Don't** introduce unrelated accent colors or another UI typeface.
 - **Don't** rely on green alone to explain verification, payment, protection, success, or selection.
 - **Don't** use heavy permanent shadows across operational screens.
-- **Don't** make Partly feel like a cold bank, a childish marketplace, or a visually saturated promotion.
+- **Don't** make Tequio feel like a cold bank, a childish marketplace, or a visually saturated promotion.
