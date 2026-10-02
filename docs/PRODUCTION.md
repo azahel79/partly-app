@@ -20,6 +20,17 @@ proveedor de correo
 
 `compose.production.yml` implementa esta arquitectura en una sola máquina, excepto TLS y correo externo. Para alta disponibilidad, usa PostgreSQL administrado, almacenamiento de objetos y varias réplicas del backend detrás de un balanceador.
 
+## Servidor propio sin Docker (Lightsail)
+
+Es la opción elegida para el servidor de `tequio.com.mx` (Amazon Lightsail). Docker Compose (secciones siguientes) queda como alternativa; no mezcles las dos en el mismo servidor. Para un solo servidor Debian/Ubuntu con nginx + pm2 + PostgreSQL local están los scripts de `deploy/`:
+
+1. Entra por SSH con tu propia llave y deja abiertos solo 22 (tu IP), 80 y 443.
+2. `sudo apt install -y git`, clona el repo en `/var/www/partly` (repo privado: usuario + token de GitHub).
+3. `cd /var/www/partly && bash deploy/instalar-servidor.sh` — instala paquetes, swap, Node 24 y pm2, crea la base vacía y el `backend/.env` con secretos nuevos (pregunta la llave de Resend y los datos de Google), aplica migraciones, compila, arranca la API con pm2 y configura nginx (`deploy/nginx-partly.conf`). Al final imprime lo que falta: respaldar la llave de cifrado, DNS, `certbot`, Google y el primer admin.
+4. Después de cada push: `bash /var/www/partly/deploy/actualizar.sh` (respalda la base en `/var/www/partly-datos/respaldos`, migra, recompila y reinicia).
+
+Los comprobantes viven fuera del repo, en `/var/www/partly-datos/comprobantes`. El dominio se toma de `DOMINIO` (por omisión `tequio.com.mx`).
+
 ## 1. Secretos y variables
 
 ```bash
@@ -170,7 +181,7 @@ Checklist web público:
 
 - confirmar que `/`, `/como-funciona-el-ciclo`, `/seguridad`, `/terminos` y `/privacidad` entreguen HTML prerenderizado;
 - confirmar que `/comparativa`, autenticación, panel y administración carguen el shell cliente correcto;
-- reemplazar `https://partly.mx` si no es el dominio final y validar canonical, Open Graph, Twitter y datos estructurados;
+- el dominio final es `https://tequio.com.mx` (ya puesto en `index.html`); validar canonical, Open Graph, Twitter y datos estructurados;
 - revisar teclado, foco visible, zoom al 200 %, lector de pantalla y movimiento reducido;
 - medir LCP, CLS e INP en móvil y escritorio con el dominio, CDN y API reales;
 - validar eventos de conversión sin información personal;
