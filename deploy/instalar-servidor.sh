@@ -33,7 +33,7 @@ ok "paquetes instalados"
 
 # ---------------------------------------------------------------------------------------------------------------
 paso "2/8 Memoria extra (swap de 2 GB, para que compile Angular)"
-if swapon --show | grep -q /swapfile; then
+if sudo swapon --show | grep -q /swapfile; then
   ok "ya existía"
 else
   sudo fallocate -l 2G /swapfile
@@ -50,12 +50,13 @@ export NVM_DIR="$HOME/.nvm"
 if [ ! -s "$NVM_DIR/nvm.sh" ]; then
   curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 fi
-set +u # nvm no está escrito para modo estricto
+set +euo pipefail # nvm no está escrito para modo estricto: al cargarlo puede devolver error sin que lo haya
 # shellcheck disable=SC1091
 . "$NVM_DIR/nvm.sh"
 nvm install 24 >/dev/null
 nvm alias default 24 >/dev/null
-set -u
+set -euo pipefail
+command -v node >/dev/null || falla "No se pudo instalar Node. Mándame una captura de lo de arriba."
 command -v pm2 >/dev/null || npm install -g pm2 >/dev/null
 ok "node $(node -v), pm2 $(pm2 -v)"
 

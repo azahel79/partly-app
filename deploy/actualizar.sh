@@ -15,10 +15,11 @@ ok() { printf '    \033[32m✔\033[0m %s\n' "$*"; }
 falla() { printf '\n\033[1;31m✘ %s\033[0m\n' "$*"; exit 1; }
 
 export NVM_DIR="$HOME/.nvm"
-set +u
+set +euo pipefail # nvm no está escrito para modo estricto
 # shellcheck disable=SC1091
 . "$NVM_DIR/nvm.sh"
-set -u
+set -euo pipefail
+command -v pm2 >/dev/null || falla "No encuentro Node/pm2: ¿ya corriste deploy/instalar-servidor.sh?"
 
 paso "1/4 Bajando la última versión"
 cd "$REPO_DIR"
